@@ -1,0 +1,10 @@
+PROGRAM CaseTest;
+VAR
+  x: integer;
+BEGIN
+  x := 42;
+  IF x > 10 THEN
+    writeln('besar')
+  ELSE
+    writeln('kecil');
+END.

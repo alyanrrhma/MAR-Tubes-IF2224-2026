@@ -1,0 +1,10 @@
+program ArrayTest;
+var
+  arr: array[1..5] of integer;
+  i: integer;
+begin
+  for i := 1 to 5 do
+  begin
+    arr[i] := i * 2;
+  end;
+end.

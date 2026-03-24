@@ -1,0 +1,14 @@
+program LoopTest;
+var
+  n: integer;
+begin
+  n := 1;
+  while n <= 5 do
+  begin
+    writeln(n);
+    n := n + 1;
+  end;
+  repeat
+    n := n - 1;
+  until n == 0;
+end.

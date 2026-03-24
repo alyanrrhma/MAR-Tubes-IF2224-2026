@@ -1,0 +1,9 @@
+program PetikTest;
+var
+  s: string;
+begin
+  s := 'Baca buku ''KBBI''';
+  s := '''';
+  s := '';
+  writeln(s);
+end.

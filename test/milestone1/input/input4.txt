@@ -1,0 +1,12 @@
+program KomentarTest;
+{ ini komentar curly brace }
+var
+  x: integer;
+(* ini komentar
+   multi line
+   bintang *)
+begin
+  x := 99;
+  { komentar di tengah kode }
+  writeln(x);
+end.

@@ -1,0 +1,25 @@
+program FungsiTest;
+
+const
+  MAX := 100;
+
+type
+  Bilangan = integer;
+
+var
+  hasil: integer;
+
+function tambah(a, b: integer): integer;
+begin
+  tambah := a + b;
+end;
+
+procedure cetak(n: integer);
+begin
+  writeln(n);
+end;
+
+begin
+  hasil := tambah(10, 20);
+  cetak(hasil);
+end.
