@@ -8,10 +8,11 @@
 #include <sstream>
 #include <array>
 #include <unordered_map>
+#include <string>
 #include "token.hpp"
 
-#define N_STATE_CHAR_ID 8  // jumlah karakter maksimal dari kode state adalah 5, ditambah '\0', total 6 contohnya 'q1_1'
-#define MAX_ASCII_USED 128 // digunakan untuk melakukan biding ke transTable
+#define N_STATE_CHAR_ID 8
+#define MAX_ASCII_USED 128
 
 class State
 {
@@ -26,6 +27,7 @@ public:
      */
     State(const char *charID, int16_t newStateIdx, bool isFinalState);
     bool isFinalState() const;
+    void setFinalState(bool isFinalState);
     int16_t getStateIdx() const;
     const char *getStateCharID() const;
     bool isNullState() const;
@@ -34,7 +36,7 @@ public:
 
 private:
     bool finState;
-    int16_t stateIdx; // stateIdx adalah posisi/indeks dari State pada array state di kelas DFA
+    int16_t stateIdx; 
     char stateCharID[N_STATE_CHAR_ID];
 
     /**
@@ -76,18 +78,21 @@ public:
      */
     void resetState();
     TokenType getCurrToken() const;
+    TokenType getTokenForState(int stateID) const;
     int getTokIDfromStateID(int stateID) const;
     int getTokIDfromTokName(std::string tokName) const;
     State getStateWithId(int stateId) const;
+    bool hasKeywordToken(const std::string &lexeme) const;
+    TokenType getKeywordToken(const std::string &lexeme) const;
 
     ~DFA();
 
 private:
-    int16_t currStateIdx; // jika bernilai -1 artinya null state
-    static State nullState; // state yang dikembalikan pada saat null state
-    static TokenType unknownToken; // Token yang diberikan pada saat mengalami nullstate
+    int16_t currStateIdx; 
+    static State nullState;
+    static TokenType unknownToken;
 
-    static bool isVisualized; //sebagai flag untuk mengetahui apakah DFA memasuki mode debuging visual atau tidak.
+    static bool isVisualized; 
     static std::fstream visualFileStream;
 
     std::vector<State> states;
@@ -111,6 +116,7 @@ private:
      * @note tujuannya adalah supaya setiap (final) state yang terhubung dengan token ID dapat mengakses TokenTypes secara tidak langsung melalui StateID-nya
      */
     std::unordered_map<int, int> stateIDtoTokenID;
+    std::unordered_map<std::string, int> keywordLexemeToTokenID;
 
     int addUniqueState(const char *newCharID, bool newFinState);
     int findStateIdx(const char *newCharID);
@@ -120,6 +126,9 @@ private:
     void addTokenToTokenTypes(TokenType newTok);
     void addToTokenNameIDMapping(std::string name, int tokID);
     void addToStateIDtoTokenID(int stateID, int tokID);
+    void addKeywordLexemeToTokenID(const std::string &lexeme, int tokID);
+    int addOrGetTokenID(const std::string &name);
+    static std::string toUpper(std::string text);
 
     void visualizedProccToFile(char c, State currState) const;
 };

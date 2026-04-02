@@ -90,7 +90,10 @@ Token Lexer::get_next_token() {
             }
 
             // Sudah mencapai final state
-            TokenType tt(cur.getStateCharID());
+            TokenType tt = dfa->getCurrToken();
+            if (tt.get_name() == "IDENT" && dfa->hasKeywordToken(lexeme)) {
+                tt = dfa->getKeywordToken(lexeme);
+            }
             Token tok(tt, lexeme);
             write_token(tok);
             return tok;
@@ -122,7 +125,10 @@ Token Lexer::get_next_token() {
                     --col_counter;
                 }
 
-                TokenType tt(prev_state.getStateCharID());
+                TokenType tt = dfa->getTokenForState(prev_state.getStateIdx());
+                if (tt.get_name() == "IDENT" && dfa->hasKeywordToken(lexeme)) {
+                    tt = dfa->getKeywordToken(lexeme);
+                }
                 Token tok(tt, lexeme);
                 write_token(tok);
                 return tok;

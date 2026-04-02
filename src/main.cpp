@@ -2,6 +2,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <filesystem>
 
 #include "lexer/lexer.hpp"
 #include "lexer/dfa.hpp"
@@ -19,13 +20,20 @@ int main(int argc, char* argv[]) {
     if (argc > 3 && std::string(argv[2]) == "-o") {
         output_filename = argv[3];
     } else {
-        output_filename = "out_" + input_filename;
+        std::filesystem::path input_path(input_filename);
+        std::string stem = input_path.stem().string();
+        output_filename = (std::filesystem::path("test") / "milestone1" / "output" / (stem + ".txt")).string();
     }
 
     std::ifstream input_file(input_filename);
     if (!input_file.is_open()) {
         std::cerr << "Gagal membuka file input: " << input_filename << "\n";
         return 1;
+    }
+
+    std::filesystem::path output_path(output_filename);
+    if (output_path.has_parent_path()) {
+        std::filesystem::create_directories(output_path.parent_path());
     }
 
     std::ofstream output_file(output_filename);
@@ -38,7 +46,7 @@ int main(int argc, char* argv[]) {
         auto dfa = std::make_shared<DFA>();
 
         // Ganti path ini jika file konfigurasi DFA Anda berada di lokasi lain
-        dfa->loadConfig("config/dfa.txt");
+        dfa->loadConfig("config/config_lexer.txt");
 
         Lexer lexer(input_file, dfa, &output_file);
 
