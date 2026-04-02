@@ -16,26 +16,14 @@ SRCS = $(SRC_DIR)/main.cpp \
 # Object files
 OBJS = $(SRCS:.cpp=.o)
 # Default target — build semua
-all: $(TARGET)
+run: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 	@echo "Build sukses! Binary: ./$(TARGET)"
 # Compile setiap .cpp jadi .o
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
-# Run — jalankan lexer dengan input file
-N    ?= 1
-SAVE ?= 0
-TEST_INPUT  = test/milestone1/input/input$(N).txt
-TEST_OUTPUT = test/milestone1/output/output$(N).txt
-run: $(TARGET)
-ifeq ($(SAVE), 1)
-	./$(TARGET) $(TEST_INPUT) -o $(TEST_OUTPUT)
-	@echo "Output disimpan ke $(TEST_OUTPUT)"
-else
-	./$(TARGET) $(TEST_INPUT)
-endif
-# Clean — hapus semua file hasil build
+
 clean:
 	rm -f $(OBJS) $(TARGET)
 	@echo "Clean selesai."

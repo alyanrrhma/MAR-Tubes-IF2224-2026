@@ -1,14 +1,14 @@
 program LogikaTest;
 var
-  a, b, c: integer;
+a, b, c: integer;
 begin
-  a := 10;
-  b := 5;
-  c := a div b;
-  c := a mod b;
-  c := a * b;
-  c := a / b;
-  if (a > 0) AND (b > 0) then writeln('positif');
-  if (a > 0) OR (b < 0) then writeln('salah satu positif');
-  if NOT (a == b) then writeln('tidak sama');
+a := 10;
+b := 5;
+c := a div b;
+c := a mod b;
+c := a * b;
+c := a / b;
+if (a > 0) AND (b > 0) then writeln('positif');
+if (a > 0) OR (b < 0) then writeln('salah satu positif');
+if NOT (a == b) then writeln('tidak sama');
 end.
