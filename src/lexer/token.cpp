@@ -16,7 +16,8 @@ bool token_has_value(const std::string& type_name) {
         "intcon",
         "realcon",
         "charcon",
-        "string"
+        "string",
+        "unknown"
     };
     return valued_tokens.find(type_name) != valued_tokens.end();
 }
