@@ -16,21 +16,6 @@ State::State(const char *charID, int16_t newStateIdx, bool isFinState)
     finState = isFinState;
 }
 
-State::State(const State &other)
-{
-    finState = other.finState;
-    stateIdx = other.stateIdx;
-    assignCharID(other.getStateCharID());
-}
-
-State::State(State &&other) noexcept
-{
-    finState = other.finState;
-    stateIdx = other.stateIdx;
-
-    assignCharID(other.stateCharID);
-}
-
 bool State::isFinalState() const
 {
     return finState;
@@ -87,14 +72,13 @@ void DFA::loadConfig(std::string path)
     else
     {
         std::string line, kw = "", tk1 = "", tk2 = "", tk3 = "";
-        bool ckKw, ckTk1, ckTk2, ckTk3;
+        bool ckKw, ckTk1, ckTk2;
         while (std::getline(fs, line))
         {
             std::istringstream stream(line);
             ckKw = static_cast<bool>(stream >> kw);
             ckTk1 = static_cast<bool>(stream >> tk1);
             ckTk2 = static_cast<bool>(stream >> tk2);
-            ckTk3 = static_cast<bool>(stream >> tk3);
 
             if (ckKw)
             {

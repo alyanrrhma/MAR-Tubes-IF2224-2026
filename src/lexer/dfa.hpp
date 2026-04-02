@@ -25,8 +25,6 @@ public:
      * @param charID pointer karakter yang berisikan kode state "q0, .. ,q37"
      */
     State(const char *charID, int16_t newStateIdx, bool isFinalState);
-    State(const State &other);
-    State(State &&other) noexcept;
     bool isFinalState() const;
     int16_t getStateIdx() const;
     const char *getStateCharID() const;
