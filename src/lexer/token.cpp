@@ -16,12 +16,13 @@ const std::string& TokenType::get_name() const {
 
 bool token_has_value(const std::string& type_name) {
     static const std::set<std::string> valued_tokens = {
-        "ident",
-        "intcon",
-        "realcon",
-        "charcon",
-        "string",
-        "unknown"
+        "ident", "IDENT",
+        "intcon", "INTCON",
+        "realcon", "REALCON",
+        "charcon", "CHARCON",
+        "string", "STRING",
+        "unknown", "UNKNOWN",
+        "comment", "COMMENT"
     };
     return valued_tokens.find(type_name) != valued_tokens.end();
 }

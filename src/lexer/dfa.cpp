@@ -1,6 +1,6 @@
 #include "dfa.hpp"
 
-// State-lihat penjelasan pada dfa.hpp
+#include <stdexcept>
 
 State::State()
 {
@@ -16,216 +16,259 @@ State::State(const char *charID, int16_t newStateIdx, bool isFinState)
     finState = isFinState;
 }
 
-bool State::isFinalState() const
-{
-    return finState;
-}
-
-int16_t State::getStateIdx() const
-{
-    return stateIdx;
-}
-
-const char *State::getStateCharID() const
-{
-    return stateCharID;
-}
+bool State::isFinalState() const { return finState; }
+int16_t State::getStateIdx() const { return stateIdx; }
+const char *State::getStateCharID() const { return stateCharID; }
+void State::setFinalState(bool value) { finState = value; }
 
 bool State::compCharID(const char *otherCharID) const
 {
-    if (strcmp(stateCharID, otherCharID) == 0)
-    {
-        return true;
-    }
-    return false;
+    return std::strcmp(stateCharID, otherCharID) == 0;
 }
 
 void State::assignCharID(const char *newCharID)
 {
-    strncpy(stateCharID, newCharID, sizeof(stateCharID) - 1);
+    std::strncpy(stateCharID, newCharID, sizeof(stateCharID) - 1);
     stateCharID[N_STATE_CHAR_ID - 1] = '\0';
 }
 
-bool State::isNullState() const
-{
-    if (stateIdx == -1)
-        return true;
-    return false;
-}
-
+bool State::isNullState() const { return stateIdx == -1; }
 State::~State() {}
 
-// DFA-Lihat penjelasan pada dfa.hpp
+DFA::DFA() : currStateIdx(-1) {}
 
-DFA::DFA() : currStateIdx(-1)
+std::string DFA::toUpper(std::string s)
 {
+    for (char &c : s)
+    {
+        if (c >= 'a' && c <= 'z')
+            c = static_cast<char>(c - 'a' + 'A');
+    }
+    return s;
+}
+
+void DFA::ensureStateCapacity(int16_t idx)
+{
+    if (idx < 0)
+        return;
+    while (static_cast<int>(states.size()) <= idx)
+    {
+        int16_t newIdx = static_cast<int16_t>(states.size());
+        states.emplace_back("", newIdx, false);
+    }
+    while (static_cast<int>(transTable.size()) <= idx)
+    {
+        std::array<int16_t, MAX_ASCII_USED> row;
+        row.fill(-1);
+        transTable.push_back(row);
+    }
+}
+
+int DFA::addOrGetTokenID(const std::string &name)
+{
+    auto it = tokenNameIDMapping.find(name);
+    if (it != tokenNameIDMapping.end())
+        return it->second;
+
+    tokenTypes.emplace_back(name);
+    int tokId = tokenTypes.back().get_type();
+    tokenNameIDMapping[name] = tokId;
+    return tokId;
 }
 
 void DFA::loadConfig(std::string path)
 {
-    std::fstream fs;
-    fs.open(path, std::ios::in);
-    if (!fs)
+    std::ifstream fs(path);
+    if (!fs.is_open())
     {
-        std::cout << "Gagal membuka file, file config tidak berhasil di load." << "\n";
+        throw std::runtime_error("Gagal membuka file config DFA: " + path);
     }
-    else
+
+    std::string line;
+    while (std::getline(fs, line))
     {
-        std::string line, kw = "", tk1 = "", tk2 = "", tk3 = "";
-        bool ckKw, ckTk1, ckTk2;
-        while (std::getline(fs, line))
+        if (line.empty())
+            continue;
+
+        std::istringstream stream(line);
+        std::string kw;
+        stream >> kw;
+        if (kw.empty())
+            continue;
+
+        if (kw == "START")
         {
-            std::istringstream stream(line);
-            ckKw = static_cast<bool>(stream >> kw);
-            ckTk1 = static_cast<bool>(stream >> tk1);
-            ckTk2 = static_cast<bool>(stream >> tk2);
-
-            if (ckKw)
-            {
-                if (kw == "START")
-                {
-                    if (ckTk1)
-                    {
-                        addStateWithIdx(0, State(tk1.c_str(), 0, false));
-                    }
-                }
-                else if (kw == "FINAL")
-                {
-                    if (ckTk1 && ckTk2)
-                    {
-                        int tokId;
-                        auto it = tokenNameIDMapping.find(tk1);
-                        if (it == tokenNameIDMapping.end())
-                        {
-                            TokenType newTok(tk1);
-                            tokId = newTok.get_type();
-                            tokenTypes.push_back(newTok);
-                            addToTokenNameIDMapping(tk1, tokId);
-                        }
-                        else
-                        {
-                            tokId = it->second;
-                        }
-                        int stateIdx = addUniqueState(tk2.c_str(), true);
-
-                        addToStateIDtoTokenID(stateIdx, tokId);
-                    }
-                }
-                else
-                {
-                    // parser untuk format transisi
-                    if (ckTk1 && ckTk2)
-                    {
-                        int inputASCII = std::stoi(kw);
-                        int16_t tk1Idx = findStateIdx(tk1.c_str());
-                        if (tk1Idx < 0)
-                        {
-                            tk1Idx = addUniqueState(tk1.c_str(), false);
-                        }
-                        int16_t tk2Idx = findStateIdx(tk2.c_str());
-                        if (tk2Idx < 0)
-                        {
-                            tk2Idx = addUniqueState(tk2.c_str(), false);
-                        }
-                        addTransition(tk1Idx, inputASCII, tk2Idx);
-                    }
-                }
-            }
+            std::string stateName;
+            if (!(stream >> stateName))
+                continue;
+            ensureStateCapacity(0);
+            states[0] = State(stateName.c_str(), 0, false);
+            continue;
         }
+
+        if (kw == "FINAL")
+        {
+            std::string tokName, stateName;
+            if (!(stream >> tokName))
+                continue;
+            int tokId = addOrGetTokenID(tokName);
+            if (stream >> stateName)
+            {
+                int stateIdx = addUniqueState(stateName.c_str(), true);
+                states[stateIdx].setFinalState(true);
+                addToStateIDtoTokenID(stateIdx, tokId);
+            }
+            continue;
+        }
+
+        if (kw == "FINALSET")
+        {
+            std::string tokName, stateName, lexeme;
+            if (!(stream >> tokName >> stateName >> lexeme))
+                continue;
+            int tokId = addOrGetTokenID(tokName);
+            keywordLexemeToTokenID[toUpper(lexeme)] = tokId;
+
+            int stateIdx = addUniqueState(stateName.c_str(), true);
+            states[stateIdx].setFinalState(true);
+            if (stateIDtoTokenID.find(stateIdx) == stateIDtoTokenID.end())
+            {
+                addToStateIDtoTokenID(stateIdx, tokId);
+            }
+            continue;
+        }
+
+        std::string fromState, toState;
+        if (!(stream >> fromState >> toState))
+            continue;
+
+        int inputASCII = std::stoi(kw);
+        int fromIdx = addUniqueState(fromState.c_str(), false);
+        int toIdx = addUniqueState(toState.c_str(), false);
+        addTransition(fromIdx, inputASCII, toIdx);
     }
+
+    if (states.empty())
+    {
+        throw std::runtime_error("Config DFA kosong atau tidak valid: " + path);
+    }
+
+    addOrGetTokenID("UNKNOWN");
 }
 
-void DFA::exportDFAConfig(std::string path) const
-{
-    ;
-}
-
-void DFA::visualizeProcess(std::string path) const
-{
-    ;
-}
+void DFA::exportDFAConfig(std::string) const {}
+void DFA::visualizeProcess(std::string) const {}
 
 const State &DFA::getState() const
 {
     static State nullstate;
-    if (currStateIdx < 0 || currStateIdx >= states.size())
+    if (currStateIdx < 0 || currStateIdx >= static_cast<int16_t>(states.size()))
     {
-        std::cout << "DFA berada dalam current state tidak valid. \n";
-        return nullstate; // mengembalikan null state
+        return nullstate;
     }
     return states[currStateIdx];
 }
 
 void DFA::next(unsigned char c)
 {
-    int16_t newStateIdx = transTable[currStateIdx][c];
-    // menghasilkan -1 jika state tidak ditemukan, artinya pada saat demikian state menjadi tidak valid atau null;
-    currStateIdx = newStateIdx;
-}
-
-void DFA::resetState()
-{
-    currStateIdx = 0; // konvensi bahwa stateIdx 0 adalah start state;
-}
-
-int16_t DFA::addUniqueState(const char *newCharID, bool newFinState)
-{
-    int16_t idx;
-
-    idx = findStateIdx(newCharID);
-    if (idx < 0)
+    if (currStateIdx < 0 || currStateIdx >= static_cast<int16_t>(transTable.size()))
     {
-        idx = states.size();
-        states.push_back(State(newCharID, states.size(), newFinState));
+        currStateIdx = -1;
+        return;
     }
+    currStateIdx = transTable[currStateIdx][c];
+}
+
+void DFA::resetState() { currStateIdx = 0; }
+
+TokenType DFA::getCurrToken() const
+{
+    int tokId = getTokIDfromStateID(currStateIdx);
+    for (const auto &tok : tokenTypes)
+    {
+        if (tok.get_type() == tokId)
+            return tok;
+    }
+    return TokenType("UNKNOWN");
+}
+
+int DFA::getTokIDfromStateID(int stateID) const
+{
+    auto iter = stateIDtoTokenID.find(stateID);
+    if (iter == stateIDtoTokenID.end())
+        return getTokIDfromTokName("UNKNOWN");
+    return iter->second;
+}
+
+int DFA::getTokIDfromTokName(std::string tokName) const
+{
+    auto iter = tokenNameIDMapping.find(tokName);
+    if (iter == tokenNameIDMapping.end())
+        return -1;
+    return iter->second;
+}
+
+bool DFA::hasKeywordToken(const std::string &lexeme) const
+{
+    return keywordLexemeToTokenID.find(toUpper(lexeme)) != keywordLexemeToTokenID.end();
+}
+
+TokenType DFA::getKeywordToken(const std::string &lexeme) const
+{
+    auto it = keywordLexemeToTokenID.find(toUpper(lexeme));
+    if (it == keywordLexemeToTokenID.end())
+        return getCurrToken();
+
+    for (const auto &tok : tokenTypes)
+    {
+        if (tok.get_type() == it->second)
+            return tok;
+    }
+    return TokenType("UNKNOWN");
+}
+
+int DFA::addUniqueState(const char *newCharID, bool newFinState)
+{
+    int idx = findStateIdx(newCharID);
+    if (idx >= 0)
+    {
+        if (newFinState)
+            states[idx].setFinalState(true);
+        return idx;
+    }
+
+    idx = static_cast<int>(states.size());
+    ensureStateCapacity(static_cast<int16_t>(idx));
+    states[idx] = State(newCharID, static_cast<int16_t>(idx), newFinState);
     return idx;
 }
 
-int16_t DFA::findStateIdx(const char *newCharID)
+int DFA::findStateIdx(const char *newCharID) const
 {
-    bool found = false;
-    int16_t addedStateIdx = states.size();
-    for (int16_t i = 0; i < states.size(); i++)
+    for (int i = 0; i < static_cast<int>(states.size()); i++)
     {
         if (states[i].compCharID(newCharID))
-        {
-            found = true;
-            addedStateIdx = i;
-        }
+            return i;
     }
-    if (!found)
-    {
-        return -1;
-    }
-    return addedStateIdx;
+    return -1;
 }
 
-void DFA::addStateWithIdx(int16_t idx, State nState)
+void DFA::addStateWithIdx(int16_t idx, const State &nState)
 {
-    states.insert(states.begin() + idx, nState);
+    ensureStateCapacity(idx);
+    states[idx] = nState;
 }
 
-void DFA::setCurrentState(int16_t newStateIdx)
-{
-    currStateIdx = newStateIdx;
-}
+void DFA::setCurrentState(int16_t newStateIdx) { currStateIdx = newStateIdx; }
 
 void DFA::addTransition(int16_t state1, int input, int16_t state2)
 {
-    std::array<int16_t, MAX_ASCII_USED> row;
-    row.fill(-1);
-    transTable.push_back(row);
-    transTable[state1][input] = state2;
-}
-
-void DFA::addTokenToTokenTypes(TokenType newTok)
-{
-    tokenTypes.push_back(newTok);
-}
-
-void DFA::addToTokenNameIDMapping(std::string name, int tokId)
-{
-    tokenNameIDMapping[name] = tokId;
+    ensureStateCapacity(state1);
+    ensureStateCapacity(state2);
+    if (input >= 0 && input < MAX_ASCII_USED)
+    {
+        transTable[state1][input] = state2;
+    }
 }
 
 void DFA::addToStateIDtoTokenID(int stateID, int tokID)
