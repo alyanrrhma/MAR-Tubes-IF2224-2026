@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include "token.hpp"
 
-#define N_STATE_CHAR_ID 6  // jumlah karakter maksimal dari kode state adalah 5, ditambah '\0', total 6 contohnya 'q1_1'
+#define N_STATE_CHAR_ID 8  // jumlah karakter maksimal dari kode state adalah 5, ditambah '\0', total 6 contohnya 'q1_1'
 #define MAX_ASCII_USED 128 // digunakan untuk melakukan biding ke transTable
 
 class State
@@ -74,6 +74,9 @@ public:
      * @brief fungsi untuk melakukan reset state sehingga current state kembali ke start state
      */
     void resetState();
+    TokenType getCurrToken() const;
+    int getTokIDfromStateID(int stateID) const;
+    int getTokIDfromTokName(std::string tokName) const;
 
     ~DFA();
 
@@ -102,8 +105,8 @@ private:
      */
     std::unordered_map<int, int> stateIDtoTokenID;
 
-    int16_t addUniqueState(const char *newCharID, bool newFinState);
-    int16_t findStateIdx(const char *newCharID);
+    int addUniqueState(const char *newCharID, bool newFinState);
+    int findStateIdx(const char *newCharID);
     void addStateWithIdx(int16_t idx, State nState);
     void setCurrentState(int16_t newStateIdx);
     void addTransition(int16_t state1, int input, int16_t state2);

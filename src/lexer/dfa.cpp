@@ -168,9 +168,9 @@ void DFA::resetState()
     currStateIdx = 0; // konvensi bahwa stateIdx 0 adalah start state;
 }
 
-int16_t DFA::addUniqueState(const char *newCharID, bool newFinState)
+int DFA::addUniqueState(const char *newCharID, bool newFinState)
 {
-    int16_t idx;
+    int idx;
 
     idx = findStateIdx(newCharID);
     if (idx < 0)
@@ -181,11 +181,11 @@ int16_t DFA::addUniqueState(const char *newCharID, bool newFinState)
     return idx;
 }
 
-int16_t DFA::findStateIdx(const char *newCharID)
+int DFA::findStateIdx(const char *newCharID)
 {
     bool found = false;
-    int16_t addedStateIdx = states.size();
-    for (int16_t i = 0; i < states.size(); i++)
+    int addedStateIdx = states.size();
+    for (int i = 0; i < states.size(); i++)
     {
         if (states[i].compCharID(newCharID))
         {
@@ -198,6 +198,33 @@ int16_t DFA::findStateIdx(const char *newCharID)
         return -1;
     }
     return addedStateIdx;
+}
+
+TokenType DFA::getCurrToken() const {
+    int tokId = getTokIDfromStateID(currStateIdx);
+    return tokenTypes[tokId];
+}
+
+int DFA::getTokIDfromStateID(int stateID) const {
+    int tokId;
+    auto iter = stateIDtoTokenID.find(stateID);
+    if (iter == stateIDtoTokenID.end()){
+        tokId = getTokIDfromTokName("unknown");
+    }else{
+       tokId = iter->second; 
+    }
+    return tokId;
+}
+
+int DFA::getTokIDfromTokName(std::string tokName) const {
+    int tokId;
+    auto iter = tokenNameIDMapping.find(tokName);
+    if (iter == tokenNameIDMapping.end()){
+        tokId = getTokIDfromTokName("unknown");
+    }else{
+       tokId = iter->second; 
+    }
+    return tokId;
 }
 
 void DFA::addStateWithIdx(int16_t idx, State nState)
