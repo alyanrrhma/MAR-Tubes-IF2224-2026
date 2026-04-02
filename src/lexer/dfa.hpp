@@ -39,13 +39,6 @@ private:
     int16_t stateIdx; // stateIdx adalah posisi/indeks dari State pada array state di kelas DFA
     char stateCharID[N_STATE_CHAR_ID];
 
-    // Token
-    /**
-     * @brief tokensTypes adalah kumpulan dari tipe token yang dikenali pada bahasa pemrograman Arion
-     * @note tokenTypes tidak menyimpan nilai, nilai ditangani pada lexer atau main
-     */
-    std::vector<TokenType> tokensType;
-    std::vector<std::unordered_map<int, int> > tokToStateMapping;
     /**
      * @brief fungsi bantu assign untuk assign di State.
      */
@@ -103,13 +96,13 @@ private:
      * @brief tokenNameIDMapping memetakan nama ke id dari tokenType
      * @note tujuannya adalah untuk mencegah pembuatan token yang sama dua kali.
      */
-    std::vector<std::unordered_map<std::string, int> > tokenNameIDMapping;
+    std::unordered_map<std::string, int> tokenNameIDMapping;
 
     /**
      * @brief stateIDtoTokenID merupakan pemetaan antara stateID ke Token ID
      * @note tujuannya adalah supaya setiap (final) state yang terhubung dengan token ID dapat mengakses TokenTypes secara tidak langsung melalui StateID-nya
      */
-    std::vector<std::unordered_map<int, int> > stateIDtoTokenID;
+    std::unordered_map<int, int> stateIDtoTokenID;
 
     int16_t addUniqueState(const char *newCharID, bool newFinState);
     int16_t findStateIdx(const char *newCharID);
@@ -117,7 +110,7 @@ private:
     void setCurrentState(int16_t newStateIdx);
     void addTransition(int16_t state1, int input, int16_t state2);
 
-    void addTokenToTokenTypes(Token newTok);
+    void addTokenToTokenTypes(TokenType newTok);
     void addToTokenNameIDMapping(std::string name, int tokID);
     void addToStateIDtoTokenID(int stateID, int tokID);
 };
