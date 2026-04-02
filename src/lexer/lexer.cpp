@@ -1,0 +1,140 @@
+#include "lexer.hpp"
+
+Lexer::Lexer(std::istream& source, std::shared_ptr<DFA> automaton, std::ostream* output)
+    : src(source),
+      dfa(automaton),
+      out(output),
+      line_counter(1),
+      col_counter(0),
+      reprocess_input(std::nullopt),
+      reached_eof(false)
+{}
+
+bool Lexer::eof() const {
+    // Masih ada karakter pending → belum benar-benar EOF
+    if (reprocess_input.has_value()) return false;
+    return reached_eof;
+}
+
+bool Lexer::read_char(char& c) {
+    // Jika ada karakter yang tertunda untuk diproses ulang, kembalikan itu dulu
+    if (reprocess_input.has_value()) {
+        c = reprocess_input.value();
+        reprocess_input = std::nullopt;
+        return true;
+    }
+
+    if (!src.get(c)) {
+        reached_eof = true;
+        return false;
+    }
+    return true;
+}
+
+
+void Lexer::update_position(char c) {
+    if (c == '\n') {
+        ++line_counter;
+        col_counter = 0;
+    } else {
+        ++col_counter;
+    }
+}
+
+
+void Lexer::write_token(const Token& t) {
+    if (out != nullptr) {
+        *out << t.to_string() << "\n";
+    }
+}
+
+// Mendapatkan token berikutnya
+Token Lexer::get_next_token() {
+    dfa->resetState();
+
+    std::string lexeme;       
+    int token_start_line = line_counter;
+    int token_start_col  = col_counter + 1;
+
+    char c;
+
+    while (true) {
+        bool got_char = read_char(c);
+
+        // Misalkan EOF di tengah
+        if (!got_char) {
+            // Jika DFA sedang di final state, token selesai karena EOF
+            const State& cur = dfa->getState();
+
+            if (cur.isNullState()) {
+                // DFA di null state dan EOF → karakter jadi karakter tidak dikenali
+                if (!lexeme.empty()) {
+                    throw LexerException(
+                        "Karakter tidak dikenali",
+                        token_start_line, token_start_col, lexeme
+                    );
+                }
+                
+                throw LexerException(
+                    "get_next_token dipanggil setelah EOF",
+                    line_counter, col_counter, ""
+                );
+            }
+
+            if (!cur.isFinalState()) {
+                // Input habis tapi token belum selesai 
+                throw LexerException(
+                    "Input berakhir secara tidak terduga saat membaca token",
+                    token_start_line, token_start_col, lexeme
+                );
+            }
+
+            // Sudah mencapai final state
+            TokenType tt(cur.getStateCharID());
+            Token tok(tt, lexeme);
+            write_token(tok);
+            return tok;
+        }
+
+        update_position(c);
+
+        if (lexeme.empty() && (c == ' ' || c == '\t' || c == '\r' || c == '\n')) {
+            // Whitespace di antara token: reset state dan perbarui token_start
+            dfa->resetState();
+            token_start_line = line_counter;
+            token_start_col  = col_counter + 1;
+            continue;
+        }
+
+        const State& prev_state = dfa->getState();
+        dfa->next(static_cast<unsigned char>(c));
+        const State& next_state = dfa->getState();
+
+        if (next_state.isNullState()) {
+
+            if (prev_state.isFinalState()) {
+                reprocess_input = c;
+
+                if (c == '\n') {
+                    --line_counter;
+                    col_counter = 0; 
+                } else {
+                    --col_counter;
+                }
+
+                TokenType tt(prev_state.getStateCharID());
+                Token tok(tt, lexeme);
+                write_token(tok);
+                return tok;
+            }
+
+            lexeme += c;
+            throw LexerException(
+                "Karakter tidak dikenali atau pola token tidak valid",
+                line_counter, col_counter, lexeme
+            );
+        }
+
+        lexeme += c;
+    }
+}
