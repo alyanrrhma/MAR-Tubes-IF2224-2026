@@ -69,17 +69,46 @@ void DFA::loadConfig(std::string path) {
     if (!fs) {
         std::cout << "Gagal membuka file, file config tidak berhasil di load." << "\n";
     } else {
-        std::string line, kw, body, tk1, tk2, tk3;
+        std::string line, kw = "", tk1 = "", tk2 = "", tk3 = "";
+        bool ckKw, ckTk1, ckTk2, ckTk3;
         while (std::getline(fs, line)) {
-            std::istringstream iss(line);
-            iss >> kw >> tk1 >> tk2 >> tk3;
+            std::istringstream stream(line);
+            ckKw = static_cast<bool>(stream >> ckKw);
+            ckTk1 = static_cast<bool>(stream >> tk1);
+            ckTk2 = static_cast<bool>(stream >> tk2);
+            ckTk3 = static_cast<bool>(stream >> tk3);
             
-            if (kw == "START") {
-                removeTrailingWhitespace(body);
-                addStateWithIdx(0, State(body.c_str(), 0, false));
-            } else if (kw == "FINAL") {
-                
+            if (ckKw) {
+                if (kw == "START") {
+                    if (ckTk1) {
+                        addStateWithIdx(0, State(tk1.c_str(), 0, false));
+                    }
+                    } else if (kw == "FINAL") {
+                        if (ckTk1 && ckTk2){
+                            addUniqueState(tk2.c_str(), true);
+                        }
+                    } else if (kw == "FINALSET") {
+                        if (ckTk1 && ckTk2){
+                            addUniqueState(tk2.c_str(), true);
+                        }    
+                    } else {
+                        // parser untuk format transisi
+                        if (ckTk1, ckTk2) {
+                            int inputASCII = std::stoi(kw);
+                            int16_t tk1Idx = findStateIdx(tk1.c_str());
+                            if (tk1Idx < 0){
+                                tk1Idx = addUniqueState(tk1.c_str(), false);
+                            }
+                            int16_t tk2Idx = findStateIdx(tk2.c_str());
+                            if (tk2Idx < 0){
+                                tk2Idx = addUniqueState(tk2.c_str(), false);
+                            }
+                            addTransition(tk1Idx, inputASCII, tk2Idx);
+                        }
+                        
+                    }
             }
+           
         }
     }
     
@@ -112,6 +141,15 @@ void DFA::resetState() {
 }
 
 int16_t DFA::addUniqueState(const char* newCharID, bool newFinState){
+    int16_t idx;
+    idx = findStateIdx(newCharID);
+    if (idx < 0){
+        states.push_back(State(newCharID, states.size(), newFinState));
+    }
+    return idx;
+}
+
+int16_t DFA::findStateIdx(const char* newCharID) {
     bool found = false;
     int16_t addedStateIdx = states.size();
     for (int16_t i = 0; i < states.size(); i++){
@@ -121,7 +159,7 @@ int16_t DFA::addUniqueState(const char* newCharID, bool newFinState){
         }
     }
     if (!found){
-        states.push_back(State(newCharID, addedStateIdx, newFinState));
+        return -1;
     }
     return addedStateIdx;
 }
@@ -134,14 +172,8 @@ void DFA::setCurrentState(int16_t newStateIdx) {
     currStateIdx = newStateIdx;
 }
 
-void DFA::removeTrailingWhitespace(std::string& str) const{
-    const std::string WHITESPACE = " \t\n\r\f\v";
-    size_t end = str.find_last_not_of(WHITESPACE);
-    if (end != std::string::npos) {
-        str.erase(end + 1);
-    } else {
-        str.clear();
-    }
+void DFA::addTransition(int16_t state1, int input, int16_t state2){
+    transTable[state1][input] = state2;
 }
 
 DFA::~DFA(){}

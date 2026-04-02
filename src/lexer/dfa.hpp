@@ -76,8 +76,8 @@ class DFA {
         std::vector<std::array<int16_t, 128>> transTable;
 
         int16_t addUniqueState(const char* newCharID, bool newFinState);
+        int16_t findStateIdx(const char* newCharID);
         void addStateWithIdx(int16_t idx, State nState);
         void setCurrentState(int16_t newStateIdx);
-        void removeTrailingWhitespace(std::string& str) const;
-
+        void addTransition(int16_t state1, int input, int16_t state2);
 };
