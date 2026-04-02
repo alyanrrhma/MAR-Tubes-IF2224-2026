@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include "token.hpp"
 
-#define N_STATE_CHAR_ID 6  // jumlah karakter maksimal dari kode state adalah 5, ditambah '\0', total 6 contohnya 'q1_1'
+#define N_STATE_CHAR_ID 8  // jumlah karakter maksimal dari kode state adalah 5, ditambah '\0', total 6 contohnya 'q1_1'
 #define MAX_ASCII_USED 128 // digunakan untuk melakukan biding ke transTable
 
 class State
@@ -25,8 +25,6 @@ public:
      * @param charID pointer karakter yang berisikan kode state "q0, .. ,q37"
      */
     State(const char *charID, int16_t newStateIdx, bool isFinalState);
-    State(const State &other);
-    State(State &&other) noexcept;
     bool isFinalState() const;
     int16_t getStateIdx() const;
     const char *getStateCharID() const;
@@ -39,13 +37,6 @@ private:
     int16_t stateIdx; // stateIdx adalah posisi/indeks dari State pada array state di kelas DFA
     char stateCharID[N_STATE_CHAR_ID];
 
-    // Token
-    /**
-     * @brief tokensTypes adalah kumpulan dari tipe token yang dikenali pada bahasa pemrograman Arion
-     * @note tokenTypes tidak menyimpan nilai, nilai ditangani pada lexer atau main
-     */
-    std::vector<TokenType> tokensType;
-    std::vector<std::unordered_map<int, int> > tokToStateMapping;
     /**
      * @brief fungsi bantu assign untuk assign di State.
      */
@@ -83,6 +74,9 @@ public:
      * @brief fungsi untuk melakukan reset state sehingga current state kembali ke start state
      */
     void resetState();
+    TokenType getCurrToken() const;
+    int getTokIDfromStateID(int stateID) const;
+    int getTokIDfromTokName(std::string tokName) const;
 
     ~DFA();
 
@@ -103,21 +97,21 @@ private:
      * @brief tokenNameIDMapping memetakan nama ke id dari tokenType
      * @note tujuannya adalah untuk mencegah pembuatan token yang sama dua kali.
      */
-    std::vector<std::unordered_map<std::string, int> > tokenNameIDMapping;
+    std::unordered_map<std::string, int> tokenNameIDMapping;
 
     /**
      * @brief stateIDtoTokenID merupakan pemetaan antara stateID ke Token ID
      * @note tujuannya adalah supaya setiap (final) state yang terhubung dengan token ID dapat mengakses TokenTypes secara tidak langsung melalui StateID-nya
      */
-    std::vector<std::unordered_map<int, int> > stateIDtoTokenID;
+    std::unordered_map<int, int> stateIDtoTokenID;
 
-    int16_t addUniqueState(const char *newCharID, bool newFinState);
-    int16_t findStateIdx(const char *newCharID);
+    int addUniqueState(const char *newCharID, bool newFinState);
+    int findStateIdx(const char *newCharID);
     void addStateWithIdx(int16_t idx, State nState);
     void setCurrentState(int16_t newStateIdx);
     void addTransition(int16_t state1, int input, int16_t state2);
 
-    void addTokenToTokenTypes(Token newTok);
+    void addTokenToTokenTypes(TokenType newTok);
     void addToTokenNameIDMapping(std::string name, int tokID);
     void addToStateIDtoTokenID(int stateID, int tokID);
 };
