@@ -1,17 +1,12 @@
-program LoopTest;
+program TipeData;
 var
-n: integer;
+r: real;
+c: char;
 begin
-n := 1;
-while n <= 5 do
-begin
-writeln(n);
-n := n + 1;
-end;
-repeat
-n := n - 1;
-until n == 0;
-case n of
-0: writeln('nol');
-end;
+r := 3.14;
+r := 26.7;
+c := 'A';
+c := 'z';
+writeln(r);
+writeln(c);
 end.

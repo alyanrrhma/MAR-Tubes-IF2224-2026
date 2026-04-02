@@ -1,8 +1,0 @@
-program ErrorTest;
-var
-s: string;
-begin
-s := 'teks belum ditutup;
-writeln(s);
-{ komentar juga belum ditutup
-end.

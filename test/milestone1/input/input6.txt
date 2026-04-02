@@ -1,14 +1,17 @@
-program ArrayTest;
+program LoopTest;
 var
-arr: array[1..5] of integer;
-i: integer;
+n: integer;
 begin
-for i := 1 to 5 do
+n := 1;
+while n <= 5 do
 begin
-arr[i] := i * 2;
+writeln(n);
+n := n + 1;
 end;
-for i := 5 downto 1 do
-begin
-arr[i] := arr[i] / 2;
+repeat
+n := n - 1;
+until n == 0;
+case n of
+0: writeln('nol');
 end;
 end.

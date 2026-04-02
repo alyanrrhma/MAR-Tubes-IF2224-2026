@@ -1,28 +1,8 @@
-program FungsiTest;
-
-const
-MAX := 100;
-
-type
-Bilangan: integer;
-DataAngka: record
-nilai: integer;
-end;
-
+program ErrorTest;
 var
-hasil: integer;
-
-function tambah(a, b: integer): integer;
+s: string;
 begin
-tambah := a + b;
-end;
-
-procedure cetak(n: integer);
-begin
-writeln(n);
-end;
-
-begin
-hasil := tambah(10, 20);
-cetak(hasil);
+s := 'teks belum ditutup;
+writeln(s);
+{ komentar juga belum ditutup
 end.
