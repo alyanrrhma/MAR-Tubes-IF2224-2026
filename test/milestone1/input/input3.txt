@@ -1,13 +1,13 @@
 program RelasiTest;
 var
-  a, b: integer;
+a, b: integer;
 begin
-  a := 10;
-  b := 20;
-  if a == b then writeln('sama');
-  if a <> b then writeln('beda');
-  if a < b then writeln('kurang');
-  if a <= b then writeln('kurang sama');
-  if a > b then writeln('lebih');
-  if a >= b then writeln('lebih sama');
+a := 10;
+b := 20;
+if a == b then writeln('sama');
+if a <> b then writeln('beda');
+if a < b then writeln('kurang');
+if a <= b then writeln('kurang sama');
+if a > b then writeln('lebih');
+if a >= b then writeln('lebih sama');
 end.
