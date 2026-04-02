@@ -8,3 +8,4 @@ begin
     arr[i] := i * 2;
   end;
 end.
+
