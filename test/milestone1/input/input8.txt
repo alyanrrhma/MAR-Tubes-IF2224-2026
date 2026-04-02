@@ -1,12 +1,12 @@
 program TipeData;
 var
-  r: real;
-  c: char;
+r: real;
+c: char;
 begin
-  r := 3.14;
-  r := 26.7;
-  c := 'A';
-  c := 'z';
-  writeln(r);
-  writeln(c);
+r := 3.14;
+r := 26.7;
+c := 'A';
+c := 'z';
+writeln(r);
+writeln(c);
 end.
