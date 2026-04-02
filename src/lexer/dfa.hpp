@@ -50,6 +50,7 @@ public:
     /**
      * @brief melakukan load transision termasuk token dari file konfigurasi
      * @note method ini menjadi satu-satunya cara untuk mengisi atribut kelas DFA persis setelah inisiasi.
+     * @note START harus selalu di baris pertama file.
      */
     void loadConfig(std::string path);
 
@@ -77,11 +78,17 @@ public:
     TokenType getCurrToken() const;
     int getTokIDfromStateID(int stateID) const;
     int getTokIDfromTokName(std::string tokName) const;
+    State getStateWithId(int stateId) const;
 
     ~DFA();
 
 private:
     int16_t currStateIdx; // jika bernilai -1 artinya null state
+    static State nullState; // state yang dikembalikan pada saat null state
+    static TokenType unknownToken; // Token yang diberikan pada saat mengalami nullstate
+
+    static bool isVisualized; //sebagai flag untuk mengetahui apakah DFA memasuki mode debuging visual atau tidak.
+    static std::fstream visualFileStream;
 
     std::vector<State> states;
     std::vector<std::array<int16_t, MAX_ASCII_USED> > transTable;
@@ -107,11 +114,12 @@ private:
 
     int addUniqueState(const char *newCharID, bool newFinState);
     int findStateIdx(const char *newCharID);
-    void addStateWithIdx(int16_t idx, State nState);
     void setCurrentState(int16_t newStateIdx);
     void addTransition(int16_t state1, int input, int16_t state2);
 
     void addTokenToTokenTypes(TokenType newTok);
     void addToTokenNameIDMapping(std::string name, int tokID);
     void addToStateIDtoTokenID(int stateID, int tokID);
+
+    void visualizedProccToFile(char c, State currState) const;
 };

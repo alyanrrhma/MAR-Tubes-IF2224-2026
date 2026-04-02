@@ -56,6 +56,10 @@ bool State::isNullState() const
 State::~State() {}
 
 // DFA-Lihat penjelasan pada dfa.hpp
+TokenType DFA::unknownToken = TokenType("unknown");
+bool DFA::isVisualized = false;
+State DFA::nullState = State();
+std::fstream DFA::visualFileStream;
 
 DFA::DFA() : currStateIdx(-1)
 {
@@ -71,7 +75,7 @@ void DFA::loadConfig(std::string path)
     }
     else
     {
-        std::string line, kw = "", tk1 = "", tk2 = "", tk3 = "";
+        std::string line, kw = "", tk1 = "", tk2 = "";
         bool ckKw, ckTk1, ckTk2;
         while (std::getline(fs, line))
         {
@@ -86,7 +90,7 @@ void DFA::loadConfig(std::string path)
                 {
                     if (ckTk1)
                     {
-                        addStateWithIdx(0, State(tk1.c_str(), 0, false));
+                        addUniqueState(tk1.c_str(), false);
                     }
                 }
                 else if (kw == "FINAL")
@@ -132,35 +136,128 @@ void DFA::loadConfig(std::string path)
                 }
             }
         }
+        fs.close();
     }
 }
 
 void DFA::exportDFAConfig(std::string path) const
 {
-    ;
+    std::ofstream fs(path);
+    if (!fs)
+    {
+        std::cout << "Gagal membuka file output untuk export DFA.\n";
+        return;
+    }
+
+    // START
+    if (!states.empty())
+    {
+        fs << "START " << states[0].getStateCharID() << "\n\n";
+    }
+    else
+    {
+        std::cout << "DFA kosong, tidak ada state untuk diexport.\n";
+        return;
+    }
+
+    // FINAL
+    // stateIDtoTokenID : stateIdx -> tokenId
+    // tokenTypes[tokenId] diasumsikan valid dan posisinya sesuai id token
+    for (const auto& entry : stateIDtoTokenID)
+    {
+        int stateIdx = entry.first;
+        int tokenId = entry.second;
+
+        if (stateIdx < 0 || stateIdx >= static_cast<int>(states.size()))
+        {
+            continue;
+        }
+
+        if (tokenId < 0 || tokenId >= static_cast<int>(tokenTypes.size()))
+        {
+            continue;
+        }
+
+        fs << "FINAL "
+           << tokenTypes[tokenId].get_name() << " "
+           << states[stateIdx].getStateCharID() << "\n";
+    }
+
+    fs << "\n";
+
+    // TRANSITIONS
+    for (int from = 0; from < static_cast<int>(transTable.size()); ++from)
+    {
+        for (int ascii = 0; ascii < MAX_ASCII_USED; ++ascii)
+        {
+            int16_t to = transTable[from][ascii];
+            if (to != -1)
+            {
+                if (to >= 0 && to < static_cast<int>(states.size()))
+                {
+                    fs << ascii << " "
+                       << states[from].getStateCharID() << " "
+                       << states[to].getStateCharID() << "\n";
+                }
+            }
+        }
+    }
+
+    fs.close();
 }
 
 void DFA::visualizeProcess(std::string path) const
 {
-    ;
+    if (!isVisualized)
+    {
+        visualFileStream.open(path, std::ios::out);
+        if (!visualFileStream)
+        {
+            std::cout << "Gagal membukan file visual\n";
+        }
+        else
+        {
+            isVisualized = true;
+        }
+    }
+}
+
+void DFA::visualizedProccToFile(char c, State currState) const
+{
+    if (isVisualized)
+    {
+        visualFileStream << c << " ==> " << currState.getStateCharID() << std::endl;
+    }
+    if (visualFileStream.good())
+    {
+        std::cout << "Gagal menulis ke dalam visualFileStream" << std::endl;
+        return;
+    }
 }
 
 const State &DFA::getState() const
 {
-    static State nullstate;
-    if (currStateIdx < 0 || currStateIdx >= states.size())
+    if (currStateIdx < 0 || currStateIdx >= static_cast<int>(states.size()))
     {
         std::cout << "DFA berada dalam current state tidak valid. \n";
-        return nullstate; // mengembalikan null state
+        return nullState; // mengembalikan null state
     }
     return states[currStateIdx];
 }
 
 void DFA::next(unsigned char c)
 {
+    if (currStateIdx == -1)
+    {
+        std::cout << "Gagal melakukan pergantian state, DFA belum terinisiasi\n";
+        return;
+    }
     int16_t newStateIdx = transTable[currStateIdx][c];
     // menghasilkan -1 jika state tidak ditemukan, artinya pada saat demikian state menjadi tidak valid atau null;
     currStateIdx = newStateIdx;
+    if (isVisualized){
+        visualizedProccToFile(c, getState());
+    }
 }
 
 void DFA::resetState()
@@ -185,7 +282,7 @@ int DFA::findStateIdx(const char *newCharID)
 {
     bool found = false;
     int addedStateIdx = states.size();
-    for (int i = 0; i < states.size(); i++)
+    for (int i = 0; i < static_cast<int>(states.size()); i++)
     {
         if (states[i].compCharID(newCharID))
         {
@@ -200,36 +297,60 @@ int DFA::findStateIdx(const char *newCharID)
     return addedStateIdx;
 }
 
-TokenType DFA::getCurrToken() const {
+TokenType DFA::getCurrToken() const
+{
+    if (currStateIdx == -1)
+    {
+        std::cout << "Gagal mengambil token, DFA masih belum diinisialisasi\n";
+        return unknownToken;
+    }
     int tokId = getTokIDfromStateID(currStateIdx);
+    if (tokId < 0){
+        std::cout << "Pasangan dari state tidak ditemukan\n";
+        return unknownToken;
+    }
     return tokenTypes[tokId];
 }
 
-int DFA::getTokIDfromStateID(int stateID) const {
+int DFA::getTokIDfromStateID(int stateID) const
+{
+    if (currStateIdx == -1)
+    {
+        std::cout << "Gagal mengambil token, DFA masih belum diinisialisasi\n";
+        return -1;
+    }
     int tokId;
     auto iter = stateIDtoTokenID.find(stateID);
-    if (iter == stateIDtoTokenID.end()){
-        tokId = getTokIDfromTokName("unknown");
-    }else{
-       tokId = iter->second; 
+    if (iter == stateIDtoTokenID.end())
+    {
+        tokId = -1;
+    }
+    else
+    {
+        tokId = iter->second;
     }
     return tokId;
 }
 
-int DFA::getTokIDfromTokName(std::string tokName) const {
+int DFA::getTokIDfromTokName(std::string tokName) const
+{
+    if (currStateIdx == -1)
+    {
+        std::cout << "Gagal mengambil token, DFA masih belum diinisialisasi\n";
+        return -1;
+    }
+
     int tokId;
     auto iter = tokenNameIDMapping.find(tokName);
-    if (iter == tokenNameIDMapping.end()){
+    if (iter == tokenNameIDMapping.end())
+    {
         tokId = getTokIDfromTokName("unknown");
-    }else{
-       tokId = iter->second; 
+    }
+    else
+    {
+        tokId = iter->second;
     }
     return tokId;
-}
-
-void DFA::addStateWithIdx(int16_t idx, State nState)
-{
-    states.insert(states.begin() + idx, nState);
 }
 
 void DFA::setCurrentState(int16_t newStateIdx)
@@ -239,9 +360,13 @@ void DFA::setCurrentState(int16_t newStateIdx)
 
 void DFA::addTransition(int16_t state1, int input, int16_t state2)
 {
-    std::array<int16_t, MAX_ASCII_USED> row;
-    row.fill(-1);
-    transTable.push_back(row);
+    while (transTable.size() <= static_cast<size_t>(state1))
+    {
+        std::array<int16_t, MAX_ASCII_USED> row;
+        row.fill(-1);
+        transTable.push_back(row);
+    }
+
     transTable[state1][input] = state2;
 }
 
