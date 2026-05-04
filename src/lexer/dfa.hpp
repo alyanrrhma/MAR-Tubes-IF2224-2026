@@ -84,6 +84,7 @@ public:
     State getStateWithId(int stateId) const;
     bool hasKeywordToken(const std::string &lexeme) const;
     TokenType getKeywordToken(const std::string &lexeme) const;
+    TokenType getTokenTypeFromTypeName(std::string typeName) const;
 
     ~DFA();
 

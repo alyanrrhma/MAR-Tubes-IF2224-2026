@@ -477,4 +477,13 @@ State DFA::getStateWithId(int stateId) const
     return states[stateId];
 }
 
+TokenType DFA::getTokenTypeFromTypeName(std::string typeName) const {
+    for (auto it : tokenTypes) {
+        if (it.get_name() == typeName) {
+            return it;
+        }
+    }
+    return unknownToken;
+}
+
 DFA::~DFA() {}

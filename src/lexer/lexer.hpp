@@ -7,6 +7,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include "dfa.hpp"
 #include "token.hpp"
@@ -16,7 +17,7 @@ class Lexer {
 public:
     Lexer(std::istream& source, std::shared_ptr<DFA> automaton, std::ostream* output = nullptr);
     bool eof() const;
-    Token get_next_token();
+    void process_next_token();
 
 private:
     std::istream& src;
@@ -32,6 +33,8 @@ private:
     bool read_char(char& c);
     void update_position(char c);
     void write_token(const Token& t);
+
+    std::vector<Token> result;
 };
 
 #endif 

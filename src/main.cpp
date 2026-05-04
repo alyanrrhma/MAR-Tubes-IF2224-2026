@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
         Lexer lexer(input_file, dfa, &output_file);
 
         while (!lexer.eof()) {
-            lexer.get_next_token();
+            lexer.process_next_token();
         }
 
         std::cout << "Lexing selesai.\n";
