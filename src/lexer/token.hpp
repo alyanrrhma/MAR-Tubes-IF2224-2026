@@ -25,6 +25,7 @@ public:
     std::string to_string() const;
     const std::string& get_value() const;
     int get_type() const;
+    const std::string& get_type_name() const;
 };
 
 #endif

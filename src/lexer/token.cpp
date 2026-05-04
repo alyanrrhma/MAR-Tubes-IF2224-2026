@@ -45,3 +45,7 @@ const std::string& Token::get_value() const {
 int Token::get_type() const { 
     return type.get_type(); 
 }
+
+const std::string& Token::get_type_name() const { 
+    return type.get_name(); 
+}
