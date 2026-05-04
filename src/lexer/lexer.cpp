@@ -178,3 +178,7 @@ void Lexer::process_next_token() {
         lexeme += c;
     }
 }
+
+const std::vector<Token>& Lexer::getResult() const{
+    return result;
+}

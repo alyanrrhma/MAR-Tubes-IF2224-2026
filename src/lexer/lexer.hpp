@@ -18,6 +18,7 @@ public:
     Lexer(std::istream& source, std::shared_ptr<DFA> automaton, std::ostream* output = nullptr);
     bool eof() const;
     void process_next_token();
+    const std::vector<Token>& getResult() const;
 
 private:
     std::istream& src;
