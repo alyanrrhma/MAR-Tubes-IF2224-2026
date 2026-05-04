@@ -6,13 +6,15 @@ CXXFLAGS = -std=c++17 -Wall -Wextra -g
 # Direktori
 SRC_DIR   = src
 LEXER_DIR = $(SRC_DIR)/lexer
+PARSE_DIR = $(SRC_DIR)/parser
 # Output binary
 TARGET = arion
 # Source files
 SRCS = $(SRC_DIR)/main.cpp \
        $(LEXER_DIR)/dfa.cpp \
        $(LEXER_DIR)/lexer.cpp \
-       $(LEXER_DIR)/token.cpp
+       $(LEXER_DIR)/token.cpp \
+       $(PARSER_DIR)/parse_tree.cpp
 # Object files
 OBJS = $(SRCS:.cpp=.o)
 # Default target — build semua
