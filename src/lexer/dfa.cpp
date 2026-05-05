@@ -7,7 +7,7 @@
 
 State::State()
 {
-    assignCharID("null");
+    assignCharID("q_stale");
     stateIdx = -1;
     finState = false;
 }
@@ -64,12 +64,12 @@ bool State::isNullState() const
 State::~State() {}
 
 // DFA-Lihat penjelasan pada dfa.hpp
-TokenType DFA::unknownToken = TokenType("unknown");
+TokenType DFA::unknownToken = TokenType("UNKNOWN");
 bool DFA::isVisualized = false;
 State DFA::nullState = State();
 std::fstream DFA::visualFileStream;
 
-DFA::DFA() : currStateIdx(-1)
+DFA::DFA() : currStateIdx(0)
 {
 }
 
@@ -271,7 +271,7 @@ void DFA::next(unsigned char c)
 {
     if (currStateIdx == -1)
     {
-        std::cout << "Gagal melakukan pergantian state, DFA belum terinisiasi\n";
+        // std::cout << "Gagal melakukan pergantian state, DFA belum terinisiasi\n";
         return;
     }
     int16_t newStateIdx = transTable[currStateIdx][c];
@@ -327,12 +327,12 @@ TokenType DFA::getCurrToken() const
 {
     if (currStateIdx == -1)
     {
-        std::cout << "Gagal mengambil token, DFA masih belum diinisialisasi\n";
+        // std::cout << "Gagal mengambil token, DFA masih belum diinisialisasi\n";
         return unknownToken;
     }
     int tokId = getTokIDfromStateID(currStateIdx);
     if (tokId < 0){
-        std::cout << "Pasangan dari state tidak ditemukan\n";
+        // std::cout << "Pasangan dari state tidak ditemukan\n";
         return unknownToken;
     }
     return tokenTypes[tokId];
