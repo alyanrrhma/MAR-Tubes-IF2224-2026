@@ -1,2 +1,4 @@
 *.o
 arion
+build/
+bin/
