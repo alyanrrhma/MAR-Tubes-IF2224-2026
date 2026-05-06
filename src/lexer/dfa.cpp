@@ -116,23 +116,6 @@ void DFA::loadConfig(std::string path)
             continue;
         }
 
-<<<<<<< HEAD
-        if (kw == "FINALSET")
-        {
-            std::string tokenName;
-            std::string stateName;
-            std::string lexeme;
-            if ((stream >> tokenName) && (stream >> stateName) && (stream >> lexeme))
-            {
-                const int tokId = addOrGetTokenID(tokenName);
-                addUniqueState(stateName.c_str(), true);
-                addKeywordLexemeToTokenID(lexeme, tokId);
-            }
-            continue;
-        }
-
-=======
->>>>>>> 0981f1f (feat: update config-lexer.txt and deleting FINAL SET condition)
         std::string fromState;
         std::string toState;
         if (stream >> fromState >> toState)
@@ -480,16 +463,4 @@ State DFA::getStateWithId(int stateId) const
     return states[stateId];
 }
 
-<<<<<<< HEAD
-TokenType DFA::getTokenTypeFromTypeName(std::string typeName) const {
-    for (auto it : tokenTypes) {
-        if (it.get_name() == typeName) {
-            return it;
-        }
-    }
-    return unknownToken;
-}
-
-=======
->>>>>>> 0981f1f (feat: update config-lexer.txt and deleting FINAL SET condition)
 DFA::~DFA() {}
