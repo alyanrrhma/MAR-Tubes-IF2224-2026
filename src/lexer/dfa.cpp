@@ -454,6 +454,23 @@ TokenType DFA::getKeywordToken(const std::string &lexeme) const
     return tokenTypes[tokId];
 }
 
+TokenType DFA::getTokenTypeFromTypeName(std::string typeName) const
+{
+    auto it = tokenNameIDMapping.find(typeName);
+    if (it == tokenNameIDMapping.end())
+    {
+        return unknownToken;
+    }
+
+    const int tokId = it->second;
+    if (tokId < 0 || tokId >= static_cast<int>(tokenTypes.size()))
+    {
+        return unknownToken;
+    }
+
+    return tokenTypes[tokId];
+}
+
 State DFA::getStateWithId(int stateId) const
 {
     if (stateId < 0 || stateId >= static_cast<int>(states.size()))
