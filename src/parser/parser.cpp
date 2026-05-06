@@ -537,7 +537,7 @@ NodePtr Parser::parseParameterList() {
     NodePtr node = makeNonTerminal(NonTerminal::ParameterList);
     node->addChild(parseExpression());
     while (check("COMMA")) {
-        node->addChild(termNode()); // COMMA
+        node->addChild(termNode()); 
         node->addChild(parseExpression());
     }
     return node;
@@ -643,11 +643,11 @@ NodePtr Parser::parseVariable() {
 NodePtr Parser::parseSelector() {
     NodePtr node = makeNonTerminal(NonTerminal::Selector);
     if (check("LBRACK")) {
-        node->addChild(termNode()); // LBRACK
+        node->addChild(termNode()); 
         node->addChild(parseIndexList());
         node->addChild(expectNode("RBRACK"));
     } else if (check("PERIOD")) {
-        node->addChild(termNode()); // PERIOD
+        node->addChild(termNode()); 
         node->addChild(expectNode("IDENT"));
     } else {
         throw ParseException(
@@ -661,7 +661,7 @@ NodePtr Parser::parseIndexList() {
     NodePtr node = makeNonTerminal(NonTerminal::IndexList);
     node->addChild(parseExpression());
     while (check("COMMA")) {
-        node->addChild(termNode()); // COMMA
+        node->addChild(termNode()); 
         node->addChild(parseExpression());
     }
     return node;
