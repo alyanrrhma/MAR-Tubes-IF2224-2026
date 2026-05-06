@@ -7,23 +7,32 @@ CXXFLAGS = -std=c++17 -Wall -Wextra -g
 SRC_DIR   = src
 LEXER_DIR = $(SRC_DIR)/lexer
 PARSE_DIR = $(SRC_DIR)/parser
+BIN_DIR = bin
+BUILD_DIR = build
 # Output binary
-TARGET = arion
+TARGET = $(BIN_DIR)/arion
 # Source files
 SRCS = $(SRC_DIR)/main.cpp \
-       $(LEXER_DIR)/dfa.cpp \
-       $(LEXER_DIR)/lexer.cpp \
-       $(LEXER_DIR)/token.cpp \
-       $(PARSER_DIR)/parse_tree.cpp
+	$(LEXER_DIR)/dfa.cpp \
+	$(LEXER_DIR)/lexer.cpp \
+	$(LEXER_DIR)/token.cpp \
+	$(PARSE_DIR)/parse_tree.cpp \
+	$(PARSE_DIR)/parser.cpp
+
 # Object files
-OBJS = $(SRCS:.cpp=.o)
+OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS))
 # Default target — build semua
-run: $(TARGET)
+run: all
+	$(TARGET)
+
+all: $(TARGET)
 $(TARGET): $(OBJS)
+	@mkdir -p $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) -o $@ $^
 	@echo "Build sukses! Binary: ./$(TARGET)"
 # Compile setiap .cpp jadi .o
-%.o: %.cpp
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
