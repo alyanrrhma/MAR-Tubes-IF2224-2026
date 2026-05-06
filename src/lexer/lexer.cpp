@@ -54,10 +54,25 @@ void Lexer::process_next_token() {
     dfa->resetState();
 
     std::string lexeme;       
-    int token_start_line = line_counter;
-    int token_start_col  = col_counter + 1;
-
     char c;
+
+    auto write_unknown = [&]() {
+        if (!lexeme.empty()) {
+            Token tok(dfa->getCurrToken(), lexeme);
+            write_token(tok);
+        }
+    };
+
+    auto munch_until_whitespace = [&]() {
+        while (read_char(c)) {
+            update_position(c);
+            if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+                break;
+            }
+            lexeme += c;
+        }
+        write_unknown();
+    };
 
     while (true) {
         bool got_char = read_char(c);
@@ -70,24 +85,17 @@ void Lexer::process_next_token() {
             if (cur.isNullState()) {
                 // DFA di null state dan EOF → karakter jadi karakter tidak dikenali
                 if (!lexeme.empty()) {
-                    throw LexerException(
-                        "Karakter tidak dikenali",
-                        token_start_line, token_start_col, lexeme
-                    );
+                    write_unknown();
+                    return;
                 }
                 
-                throw LexerException(
-                    "process_next_token dipanggil setelah EOF",
-                    line_counter, col_counter, ""
-                );
+                return;
             }
 
             if (!cur.isFinalState()) {
                 // Input habis tapi token belum selesai 
-                throw LexerException(
-                    "Input berakhir secara tidak terduga saat membaca token",
-                    token_start_line, token_start_col, lexeme
-                );
+                write_unknown();
+                return;
             }
 
             // Sudah mencapai final state
@@ -121,8 +129,6 @@ void Lexer::process_next_token() {
         if (lexeme.empty() && (c == ' ' || c == '\t' || c == '\r' || c == '\n')) {
             // Whitespace di antara token: reset state dan perbarui token_start
             dfa->resetState();
-            token_start_line = line_counter;
-            token_start_col  = col_counter + 1;
             continue;
         }
 
@@ -132,7 +138,8 @@ void Lexer::process_next_token() {
 
         if (next_state.isNullState()) {
 
-            if (prev_state.isFinalState()) {
+            TokenType tt = dfa->getTokenForState(prev_state.getStateIdx());
+            if (prev_state.isFinalState() && tt.get_name() != "UNKNOWN") {
                 reprocess_input = c;
 
                 if (c == '\n') {
@@ -142,12 +149,10 @@ void Lexer::process_next_token() {
                     --col_counter;
                 }
 
-                TokenType tt = dfa->getTokenForState(prev_state.getStateIdx());
                 // if (tt.get_name() == "IDENT" && dfa->hasKeywordToken(lexeme)) {
                 //     tt = dfa->getKeywordToken(lexeme);
                 // }
                 if (tt.get_name() == "RANGE") {
-                    printf("RANGE\n");
                     size_t dotdot = lexeme.find("..");
                     std::string first = lexeme.substr(0, dotdot);
                     std::string second = lexeme.substr(dotdot + 2);
@@ -168,11 +173,21 @@ void Lexer::process_next_token() {
                 return;
             }
 
+            if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
+                write_unknown();
+                return;
+            }
+
             lexeme += c;
-            throw LexerException(
-                "Karakter tidak dikenali atau pola token tidak valid",
-                line_counter, col_counter, lexeme
-            );
+            munch_until_whitespace();
+            return;
+        }
+
+        if ((c == ' ' || c == '\t' || c == '\r' || c == '\n') &&
+            next_state.isFinalState() &&
+            dfa->getTokenForState(next_state.getStateIdx()).get_name() == "UNKNOWN") {
+            write_unknown();
+            return;
         }
 
         lexeme += c;
