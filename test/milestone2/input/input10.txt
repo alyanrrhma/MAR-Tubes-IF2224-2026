@@ -1,0 +1,61 @@
+program FullFeatures;
+const
+  N == 5;
+  TRUEVAL == 1;
+type
+  Arr == array[1..5] of integer;
+  Direction == (North, South, East, West);
+  Coord == record
+    x: integer;
+    y: integer
+  end;
+var
+  nums: Arr;
+  pos: Coord;
+  dir: Direction;
+  i, j, temp, total: integer;
+procedure BubbleSort(size: integer);
+var
+  k, l: integer;
+begin
+  for k := 1 to size - 1 do
+    for l := 1 to size - k do
+      if nums[l] > nums[l + 1] then begin
+        temp := nums[l];
+        nums[l] := nums[l + 1];
+        nums[l + 1] := temp
+      end
+end;
+function Sum(size: integer): integer;
+var
+  k, s: integer;
+begin
+  s := 0;
+  for k := 1 to size do
+    s := s + nums[k];
+  Sum := s
+end;
+begin
+  nums[1] := 64;
+  nums[2] := 34;
+  nums[3] := 25;
+  nums[4] := 12;
+  nums[5] := 22;
+  BubbleSort(N);
+  total := Sum(N);
+  for i := 1 to N do
+    writeln(nums[i]);
+  writeln(total);
+  pos.x := 0;
+  pos.y := 0;
+  i := 1;
+  repeat
+    if i mod 2 == 0 then
+      pos.x := pos.x + 1
+    else
+      pos.y := pos.y + 1;
+    i := i + 1
+  until i > 10;
+  writeln(pos.x);
+  writeln(pos.y)
+end.

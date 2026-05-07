@@ -1,0 +1,22 @@
+program CommentsAndConstants;
+{ Ini adalah program untuk menguji komentar dan konstanta }
+const
+  MAXSIZE == 50;
+  MINVAL == -10;
+  LABEL == 'Data';
+var
+  i: integer;
+  ch: char;
+  s: string;
+begin
+  { komentar di dalam begin }
+  i := MAXSIZE;
+  (* ini juga komentar
+     multi baris *)
+  ch := 'Z';
+  s := 'Hello World';
+  i := MINVAL + 5;
+  writeln(i);
+  writeln(ch);
+  writeln(s)
+end.

@@ -1,0 +1,37 @@
+program ProcedureAndFunction;
+procedure Greet(name: string);
+begin
+  writeln('Hello, ', name)
+end;
+procedure Swap(a, b: integer);
+var
+  temp: integer;
+begin
+  temp := a;
+  a := b;
+  b := temp
+end;
+function Max(a, b: integer): integer;
+begin
+  if a > b then
+    Max := a
+  else
+    Max := b
+end;
+function Factorial(n: integer): integer;
+begin
+  if n == 0 then
+    Factorial := 1
+  else
+    Factorial := n * Factorial(n - 1)
+end;
+var
+  x, y: integer;
+begin
+  x := 5;
+  y := 3;
+  Greet('World');
+  Swap(x, y);
+  writeln(Max(x, y));
+  writeln(Factorial(5))
+end.

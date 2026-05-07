@@ -1,0 +1,21 @@
+program ArrayAndRecord;
+type
+  Matrix == array[1..3] of integer;
+  Person == record
+    name: string;
+    age: integer;
+    score: real
+  end;
+var
+  arr: array[1..5] of integer;
+  i: integer;
+  p: Person;
+begin
+  arr[1] := 10;
+  arr[2] := 20;
+  arr[3] := arr[1] + arr[2];
+  p.age := 20;
+  p.score := 3.14;
+  for i := 1 to 5 do
+    writeln(arr[i]);
+end.

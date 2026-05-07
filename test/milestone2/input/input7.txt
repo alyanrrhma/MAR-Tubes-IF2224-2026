@@ -1,0 +1,21 @@
+program Expressions;
+var
+  a, b, c: integer;
+  x, y: real;
+  p, q, r: boolean;
+begin
+  a := 10;
+  b := 3;
+  c := a + b * 2 - 1;
+  c := a div b;
+  c := a mod b;
+  x := 10.0 / 3.0;
+  c := -a + b;
+  p := a == b;
+  q := a <> b;
+  r := (a > 0) AND (b > 0);
+  r := (a > 0) OR (b < 0);
+  r := NOT (a == b);
+  if (a > b) AND NOT (a == 0) then
+    writeln(a)
+end.
