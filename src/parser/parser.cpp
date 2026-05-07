@@ -107,7 +107,8 @@ NodePtr Parser::parse() {
 NodePtr Parser::parseProgram() {
     NodePtr node = makeNonTerminal(NonTerminal::Program);
     node->addChild(parseProgramHeader());
-    node->addChild(parseBlock());
+    node->addChild(parseDeclarationPart());
+    node->addChild(parseCompoundStatement());
     node->addChild(expectNode("PERIOD"));
     return node;
 }
@@ -116,13 +117,11 @@ NodePtr Parser::parseProgramHeader() {
     NodePtr node = makeNonTerminal(NonTerminal::ProgramHeader);
     node->addChild(expectNode("PROGRAMSY"));
     node->addChild(expectNode("IDENT"));
-
     if (check("LPARENT")) {
-        node->addChild(termNode()); 
+        node->addChild(termNode());
         node->addChild(parseIdentifierList());
         node->addChild(expectNode("RPARENT"));
     }
-
     node->addChild(expectNode("SEMICOLON"));
     return node;
 }
@@ -131,7 +130,7 @@ NodePtr Parser::parseIdentifierList() {
     NodePtr node = makeNonTerminal(NonTerminal::IdentifierList);
     node->addChild(expectNode("IDENT"));
     while (check("COMMA")) {
-        node->addChild(termNode()); 
+        node->addChild(termNode());
         node->addChild(expectNode("IDENT"));
     }
     return node;
@@ -165,7 +164,7 @@ NodePtr Parser::parseConstDeclaration() {
     node->addChild(expectNode("CONSTSY"));
     node->addChild(parseConstDefinition());
     node->addChild(expectNode("SEMICOLON"));
-    while (check("IDENT") && !checkAny({"TYPESY","VARSY","PROCEDURESY","FUNCTIONSY","BEGINSY"})) {
+    while (check("IDENT") && lookAhead(1).get_type_name() == "EQL") {
         node->addChild(parseConstDefinition());
         node->addChild(expectNode("SEMICOLON"));
     }
@@ -175,7 +174,7 @@ NodePtr Parser::parseConstDeclaration() {
 NodePtr Parser::parseConstDefinition() {
     NodePtr node = makeNonTerminal(NonTerminal::ConstDefinition);
     node->addChild(expectNode("IDENT"));
-    node->addChild(expectNode("BECOMES"));
+    node->addChild(expectNode("EQL"));
     node->addChild(parseConstant());
     return node;
 }
@@ -185,7 +184,7 @@ NodePtr Parser::parseTypeDeclaration() {
     node->addChild(expectNode("TYPESY"));
     node->addChild(parseTypeDefinition());
     node->addChild(expectNode("SEMICOLON"));
-    while (check("IDENT") && !checkAny({"CONSTSY","VARSY","PROCEDURESY","FUNCTIONSY","BEGINSY"})) {
+    while (check("IDENT") && lookAhead(1).get_type_name() == "EQL") {
         node->addChild(parseTypeDefinition());
         node->addChild(expectNode("SEMICOLON"));
     }
@@ -195,7 +194,7 @@ NodePtr Parser::parseTypeDeclaration() {
 NodePtr Parser::parseTypeDefinition() {
     NodePtr node = makeNonTerminal(NonTerminal::TypeDefinition);
     node->addChild(expectNode("IDENT"));
-    node->addChild(expectNode("COLON"));
+    node->addChild(expectNode("EQL"));
     node->addChild(parseType());
     return node;
 }
@@ -229,10 +228,16 @@ NodePtr Parser::parseType() {
     } else if (check("LPARENT")) {
         node->addChild(parseEnumerated());
     } else if (check("IDENT")) {
-        node->addChild(termNode());
+        if (lookAhead(1).get_type_name() == "PERIOD" && lookAhead(2).get_type_name() == "PERIOD") {
+            node->addChild(parseRange());
+        } else {
+            node->addChild(termNode());
+        }
+    } else if (checkAny({"INTCON", "REALCON", "CHARCON", "STRING", "PLUS", "MINUS"})) {
+        node->addChild(parseRange());
     } else {
         throw ParseException(
-            "Diharapkan tipe data (ident, array, record, atau enumerasi), mendapat '" +
+            "Diharapkan tipe data (ident, array, record, range, atau enumerasi), mendapat '" +
             current().get_type_name() + "'");
     }
     return node;
@@ -244,7 +249,7 @@ NodePtr Parser::parseArrayType() {
     node->addChild(expectNode("LBRACK"));
     node->addChild(parseRange());
     while (check("COMMA")) {
-        node->addChild(termNode()); 
+        node->addChild(termNode());
         node->addChild(parseRange());
     }
     node->addChild(expectNode("RBRACK"));
@@ -353,7 +358,7 @@ NodePtr Parser::parseFunctionHeading() {
         node->addChild(parseFormalParameterList());
     }
     node->addChild(expectNode("COLON"));
-    node->addChild(expectNode("IDENT")); 
+    node->addChild(expectNode("IDENT"));
     return node;
 }
 
@@ -362,7 +367,7 @@ NodePtr Parser::parseFormalParameterList() {
     node->addChild(expectNode("LPARENT"));
     node->addChild(parseParameterGroup());
     while (check("SEMICOLON")) {
-        node->addChild(termNode()); 
+        node->addChild(termNode());
         node->addChild(parseParameterGroup());
     }
     node->addChild(expectNode("RPARENT"));
@@ -373,7 +378,11 @@ NodePtr Parser::parseParameterGroup() {
     NodePtr node = makeNonTerminal(NonTerminal::ParameterGroup);
     node->addChild(parseIdentifierList());
     node->addChild(expectNode("COLON"));
-    node->addChild(expectNode("IDENT")); 
+    if (check("ARRAYSY")) {
+        node->addChild(parseArrayType());
+    } else {
+        node->addChild(expectNode("IDENT"));
+    }
     return node;
 }
 
@@ -389,7 +398,7 @@ NodePtr Parser::parseStatementList() {
     NodePtr node = makeNonTerminal(NonTerminal::StatementList);
     node->addChild(parseStatement());
     while (check("SEMICOLON")) {
-        node->addChild(termNode()); 
+        node->addChild(termNode());
         node->addChild(parseStatement());
     }
     return node;
@@ -397,7 +406,6 @@ NodePtr Parser::parseStatementList() {
 
 NodePtr Parser::parseStatement() {
     NodePtr node = makeNonTerminal(NonTerminal::Statement);
-
     if (check("IDENT")) {
         const std::string& next = lookAhead(1).get_type_name();
         if (next == "BECOMES") {
@@ -430,7 +438,6 @@ NodePtr Parser::parseStatement() {
     } else {
         node->addChild(makeNonTerminal(NonTerminal::Empty));
     }
-
     return node;
 }
 
@@ -446,7 +453,7 @@ NodePtr Parser::parseProcedureFunctionCall() {
     NodePtr node = makeNonTerminal(NonTerminal::ProcedureFunctionCall);
     node->addChild(expectNode("IDENT"));
     if (check("LPARENT")) {
-        node->addChild(termNode()); 
+        node->addChild(termNode());
         if (!check("RPARENT")) {
             node->addChild(parseParameterList());
         }
@@ -462,7 +469,7 @@ NodePtr Parser::parseIfStatement() {
     node->addChild(expectNode("THENSY"));
     node->addChild(parseStatement());
     if (check("ELSESY")) {
-        node->addChild(termNode()); 
+        node->addChild(termNode());
         node->addChild(parseStatement());
     }
     return node;
@@ -476,7 +483,7 @@ NodePtr Parser::parseCaseStatement() {
     node->addChild(parseCaseBlock());
     while (check("SEMICOLON") && !checkAny({"ENDSY","EOF"})) {
         if (lookAhead(1).get_type_name() == "ENDSY") break;
-        node->addChild(termNode()); 
+        node->addChild(termNode());
         node->addChild(parseCaseBlock());
     }
     if (check("SEMICOLON")) {
@@ -489,6 +496,10 @@ NodePtr Parser::parseCaseStatement() {
 NodePtr Parser::parseCaseBlock() {
     NodePtr node = makeNonTerminal(NonTerminal::CaseBlock);
     node->addChild(parseConstant());
+    while (check("COMMA")) {
+        node->addChild(termNode());
+        node->addChild(parseConstant());
+    }
     node->addChild(expectNode("COLON"));
     node->addChild(parseStatement());
     return node;
@@ -537,7 +548,7 @@ NodePtr Parser::parseParameterList() {
     NodePtr node = makeNonTerminal(NonTerminal::ParameterList);
     node->addChild(parseExpression());
     while (check("COMMA")) {
-        node->addChild(termNode()); 
+        node->addChild(termNode());
         node->addChild(parseExpression());
     }
     return node;
@@ -567,6 +578,9 @@ NodePtr Parser::parseRelationalOperator() {
 
 NodePtr Parser::parseSimpleExpression() {
     NodePtr node = makeNonTerminal(NonTerminal::SimpleExpression);
+    if (checkAny({"PLUS", "MINUS"})) {
+        node->addChild(termNode());
+    }
     node->addChild(parseTerm());
     while (isAdditiveOp()) {
         node->addChild(parseAdditiveOperator());
@@ -599,19 +613,18 @@ NodePtr Parser::parseMultiplicativeOperator() {
 
 NodePtr Parser::parseFactor() {
     NodePtr node = makeNonTerminal(NonTerminal::Factor);
-
     if (check("LPARENT")) {
-        node->addChild(termNode()); 
+        node->addChild(termNode());
         node->addChild(parseExpression());
         node->addChild(expectNode("RPARENT"));
     } else if (check("NOTSY")) {
-        node->addChild(termNode()); 
+        node->addChild(termNode());
         node->addChild(parseFactor());
     } else if (check("IDENT")) {
         if (lookAhead(1).get_type_name() == "LPARENT") {
             NodePtr callNode = makeNonTerminal(NonTerminal::ProcedureFunctionCall);
             callNode->addChild(expectNode("IDENT"));
-            callNode->addChild(termNode()); 
+            callNode->addChild(termNode());
             if (!check("RPARENT")) {
                 callNode->addChild(parseParameterList());
             }
@@ -620,14 +633,13 @@ NodePtr Parser::parseFactor() {
         } else {
             node->addChild(parseVariable());
         }
-    } else if (isConstantStart()) {
-        node->addChild(parseConstant());
+    } else if (checkAny({"INTCON", "REALCON", "CHARCON", "STRING"})) {
+        node->addChild(termNode());
     } else {
         throw ParseException(
-            "Diharapkan factor (ekspresi, konstanta, atau variable), mendapat '" +
+            "Diharapkan factor (ekspresi, konstanta, variable, atau NOT), mendapat '" +
             current().get_type_name() + "'");
     }
-
     return node;
 }
 
@@ -643,11 +655,11 @@ NodePtr Parser::parseVariable() {
 NodePtr Parser::parseSelector() {
     NodePtr node = makeNonTerminal(NonTerminal::Selector);
     if (check("LBRACK")) {
-        node->addChild(termNode()); 
+        node->addChild(termNode());
         node->addChild(parseIndexList());
         node->addChild(expectNode("RBRACK"));
     } else if (check("PERIOD")) {
-        node->addChild(termNode()); 
+        node->addChild(termNode());
         node->addChild(expectNode("IDENT"));
     } else {
         throw ParseException(
@@ -661,7 +673,7 @@ NodePtr Parser::parseIndexList() {
     NodePtr node = makeNonTerminal(NonTerminal::IndexList);
     node->addChild(parseExpression());
     while (check("COMMA")) {
-        node->addChild(termNode()); 
+        node->addChild(termNode());
         node->addChild(parseExpression());
     }
     return node;
@@ -669,11 +681,9 @@ NodePtr Parser::parseIndexList() {
 
 NodePtr Parser::parseConstant() {
     NodePtr node = makeNonTerminal(NonTerminal::Constant);
-
     if (checkAny({"PLUS", "MINUS"})) {
         node->addChild(termNode());
     }
-
     if (checkAny({"IDENT", "INTCON", "REALCON", "CHARCON", "STRING"})) {
         node->addChild(termNode());
     } else {
@@ -681,6 +691,5 @@ NodePtr Parser::parseConstant() {
             "Diharapkan konstanta (ident/intcon/realcon/charcon/string), mendapat '" +
             current().get_type_name() + "'");
     }
-
     return node;
 }
