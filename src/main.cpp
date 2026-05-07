@@ -157,6 +157,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
+        parse_tree::printTree(root.get(), std::cout);
         parse_tree::printTree(root.get(), parseTreeOutputFile);
         parseTreeOutputFile.close();
 

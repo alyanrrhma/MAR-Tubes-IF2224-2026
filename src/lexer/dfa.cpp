@@ -36,22 +36,17 @@ int16_t State::getStateIdx() const
 
 const char *State::getStateCharID() const
 {
-    return stateCharID;
+    return stateCharID.c_str();
 }
 
 bool State::compCharID(const char *otherCharID) const
 {
-    if (strcmp(stateCharID, otherCharID) == 0)
-    {
-        return true;
-    }
-    return false;
+    return stateCharID == otherCharID;
 }
 
 void State::assignCharID(const char *newCharID)
 {
-    strncpy(stateCharID, newCharID, sizeof(stateCharID) - 1);
-    stateCharID[N_STATE_CHAR_ID - 1] = '\0';
+    stateCharID = newCharID;
 }
 
 bool State::isNullState() const
@@ -237,7 +232,7 @@ void DFA::visualizedProccToFile(char c, State currState) const
     {
         visualFileStream << c << " ==> " << currState.getStateCharID() << std::endl;
     }
-    if (visualFileStream.good())
+    if (!visualFileStream.good())
     {
         std::cout << "Gagal menulis ke dalam visualFileStream" << std::endl;
         return;

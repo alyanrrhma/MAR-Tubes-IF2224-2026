@@ -1,4 +1,5 @@
 #include "token.hpp"
+#include <algorithm>
 #include <set>
 
 int TokenType::next_id = 0;
@@ -14,28 +15,29 @@ const std::string& TokenType::get_name() const {
     return name; 
 }
 
-bool token_has_value(const std::string& type_name) {
+static bool token_has_value(const std::string& type_name) {
     static const std::set<std::string> valued_tokens = {
-        "ident", "IDENT",
-        "intcon", "INTCON",
-        "realcon", "REALCON",
-        "charcon", "CHARCON",
-        "string", "STRING",
-        "unknown", "UNKNOWN",
-        "comment", "COMMENT"
+        "IDENT", "INTCON", "REALCON", "CHARCON", "STRING", "UNKNOWN", "COMMENT"
     };
     return valued_tokens.find(type_name) != valued_tokens.end();
+}
+
+static std::string to_lower(std::string s) {
+    std::transform(s.begin(), s.end(), s.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    return s;
 }
 
 Token::Token(TokenType type, std::string value)
     : type(type), value(value) {}
 
 std::string Token::to_string() const {
-    std::string name = type.get_name();
+    const std::string& name = type.get_name();
+    std::string display = to_lower(name);
     if (token_has_value(name) && !value.empty()) {
-        return name + " (" + value + ")";
+        return display + " (" + value + ")";
     }
-    return name;
+    return display;
 }
 
 const std::string& Token::get_value() const { 
