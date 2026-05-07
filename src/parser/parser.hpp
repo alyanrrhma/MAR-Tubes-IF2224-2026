@@ -67,7 +67,7 @@ private:
     parse_tree::NodePtr parseTypeDefinition();
 
     parse_tree::NodePtr parseVarDeclaration();
-    parse_tree::NodePtr parseVariableDeclaration();
+    parse_tree::NodePtr parseFieldPart();
 
     parse_tree::NodePtr parseType();
     parse_tree::NodePtr parseArrayType();
@@ -112,4 +112,4 @@ private:
     parse_tree::NodePtr parseConstant();
 };
 
-#endif 
+#endif

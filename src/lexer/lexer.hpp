@@ -34,8 +34,9 @@ private:
     bool read_char(char& c);
     void update_position(char c);
     void write_token(const Token& t);
+    void write_range_tokens(const std::string& lexeme);
 
     std::vector<Token> result;
 };
 
-#endif 
+#endif

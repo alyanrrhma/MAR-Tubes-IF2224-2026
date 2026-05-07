@@ -111,6 +111,7 @@ const char* toString(NonTerminal symbol) {
     case NonTerminal::Enumerated: return "enumerated";
     case NonTerminal::RecordType: return "record-type";
     case NonTerminal::FieldList: return "field-list";
+    case NonTerminal::FieldPart: return "field-part";
     case NonTerminal::SubprogramDeclarationPart: return "subprogram-declaration-part";
     case NonTerminal::SubprogramDeclaration: return "subprogram-declaration";
     case NonTerminal::ProcedureDeclaration: return "procedure-declaration";

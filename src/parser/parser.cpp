@@ -202,17 +202,21 @@ NodePtr Parser::parseTypeDefinition() {
 NodePtr Parser::parseVarDeclaration() {
     NodePtr node = makeNonTerminal(NonTerminal::VarDeclaration);
     node->addChild(expectNode("VARSY"));
-    node->addChild(parseVariableDeclaration());
+    node->addChild(parseIdentifierList());
+    node->addChild(expectNode("COLON"));
+    node->addChild(parseType());
     node->addChild(expectNode("SEMICOLON"));
     while (check("IDENT") && !checkAny({"CONSTSY","TYPESY","PROCEDURESY","FUNCTIONSY","BEGINSY"})) {
-        node->addChild(parseVariableDeclaration());
+        node->addChild(parseIdentifierList());
+        node->addChild(expectNode("COLON"));
+        node->addChild(parseType());
         node->addChild(expectNode("SEMICOLON"));
     }
     return node;
 }
 
-NodePtr Parser::parseVariableDeclaration() {
-    NodePtr node = makeNonTerminal(NonTerminal::VariableDeclaration);
+NodePtr Parser::parseFieldPart() {
+    NodePtr node = makeNonTerminal(NonTerminal::FieldPart);
     node->addChild(parseIdentifierList());
     node->addChild(expectNode("COLON"));
     node->addChild(parseType());
@@ -285,13 +289,13 @@ NodePtr Parser::parseRecordType() {
 
 NodePtr Parser::parseFieldList() {
     NodePtr node = makeNonTerminal(NonTerminal::FieldList);
-    node->addChild(parseVariableDeclaration());
+    node->addChild(parseFieldPart());
     while (check("SEMICOLON") && lookAhead(1).get_type_name() == "IDENT" &&
            lookAhead(2).get_type_name() != "CONSTSY" &&
            lookAhead(2).get_type_name() != "TYPESY") {
         if (check("SEMICOLON") && lookAhead(1).get_type_name() == "ENDSY") break;
         node->addChild(termNode());
-        node->addChild(parseVariableDeclaration());
+        node->addChild(parseFieldPart());
     }
     if (check("SEMICOLON")) {
         node->addChild(termNode());

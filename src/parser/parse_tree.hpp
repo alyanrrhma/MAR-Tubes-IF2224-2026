@@ -38,6 +38,7 @@ enum class NonTerminal {
     Enumerated,
     RecordType,
     FieldList,
+    FieldPart,
     SubprogramDeclarationPart,
     SubprogramDeclaration,
     ProcedureDeclaration,

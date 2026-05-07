@@ -53,6 +53,18 @@ static std::string decodeQuotedValue(const std::string& raw) {
     return "'" + decoded + "'";
 }
 
+void Lexer::write_range_tokens(const std::string& lexeme) {
+    size_t dotdot = lexeme.find("..");
+    std::string first  = lexeme.substr(0, dotdot);
+    std::string second = lexeme.substr(dotdot + 2);
+    TokenType intcon = dfa->getTokenTypeFromTypeName("INTCON");
+    TokenType dot    = dfa->getTokenTypeFromTypeName("PERIOD");
+    write_token(Token(intcon, first));
+    write_token(Token(dot, "."));
+    write_token(Token(dot, "."));
+    write_token(Token(intcon, second));
+}
+
 void Lexer::write_token(const Token& t) {
     result.push_back(t);
     if (out != nullptr) {
@@ -113,15 +125,7 @@ void Lexer::process_next_token() {
 
             TokenType tt = dfa->getCurrToken();
             if (tt.get_name() == "RANGE") {
-                size_t dotdot = lexeme.find("..");
-                std::string first = lexeme.substr(0, dotdot);
-                std::string second = lexeme.substr(dotdot + 2);
-                TokenType intcon = dfa->getTokenTypeFromTypeName("INTCON");
-                TokenType dot = dfa->getTokenTypeFromTypeName("PERIOD");
-                write_token(Token(intcon, first));
-                write_token(Token(dot, "."));
-                write_token(Token(dot, "."));
-                write_token(Token(intcon, second));
+                write_range_tokens(lexeme);
                 return;
             }
             write_token(make_token(tt, lexeme));
@@ -151,15 +155,7 @@ void Lexer::process_next_token() {
                 }
 
                 if (tt.get_name() == "RANGE") {
-                    size_t dotdot = lexeme.find("..");
-                    std::string first = lexeme.substr(0, dotdot);
-                    std::string second = lexeme.substr(dotdot + 2);
-                    TokenType intcon = dfa->getTokenTypeFromTypeName("INTCON");
-                    TokenType dot = dfa->getTokenTypeFromTypeName("PERIOD");
-                    write_token(Token(intcon, first));
-                    write_token(Token(dot, "."));
-                    write_token(Token(dot, "."));
-                    write_token(Token(intcon, second));
+                    write_range_tokens(lexeme);
                     return;
                 }
                 write_token(make_token(tt, lexeme));
