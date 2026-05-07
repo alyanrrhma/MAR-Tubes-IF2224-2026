@@ -1,0 +1,81 @@
+programsy
+ident (FungsiTest)
+semicolon
+constsy
+ident (MAX)
+becomes
+intcon (100)
+semicolon
+typesy
+ident (Bilangan)
+colon
+ident (integer)
+semicolon
+ident (DataAngka)
+colon
+recordsy
+ident (nilai)
+colon
+ident (integer)
+semicolon
+endsy
+semicolon
+varsy
+ident (hasil)
+colon
+ident (integer)
+semicolon
+functionsy
+ident (tambah)
+lparent
+ident (a)
+comma
+ident (b)
+colon
+ident (integer)
+rparent
+colon
+ident (integer)
+semicolon
+beginsy
+ident (tambah)
+becomes
+ident (a)
+plus
+ident (b)
+semicolon
+endsy
+semicolon
+proceduresy
+ident (cetak)
+lparent
+ident (n)
+colon
+ident (integer)
+rparent
+semicolon
+beginsy
+ident (writeln)
+lparent
+ident (n)
+rparent
+semicolon
+endsy
+semicolon
+beginsy
+ident (hasil)
+becomes
+ident (tambah)
+lparent
+intcon (10)
+comma
+intcon (20)
+rparent
+semicolon
+ident (cetak)
+lparent
+ident (hasil)
+rparent
+semicolon
+endsy
+period

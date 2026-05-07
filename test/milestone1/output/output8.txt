@@ -1,0 +1,41 @@
+programsy
+ident (TipeData)
+semicolon
+varsy
+ident (r)
+colon
+ident (real)
+semicolon
+ident (c)
+colon
+ident (char)
+semicolon
+beginsy
+ident (r)
+becomes
+realcon (3.14)
+semicolon
+ident (r)
+becomes
+realcon (26.7)
+semicolon
+ident (c)
+becomes
+charcon ('A')
+semicolon
+ident (c)
+becomes
+charcon ('z')
+semicolon
+ident (writeln)
+lparent
+ident (r)
+rparent
+semicolon
+ident (writeln)
+lparent
+ident (c)
+rparent
+semicolon
+endsy
+period

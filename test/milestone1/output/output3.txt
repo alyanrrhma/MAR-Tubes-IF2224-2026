@@ -1,0 +1,81 @@
+programsy
+ident (RelasiTest)
+semicolon
+varsy
+ident (a)
+comma
+ident (b)
+colon
+ident (integer)
+semicolon
+beginsy
+ident (a)
+becomes
+intcon (10)
+semicolon
+ident (b)
+becomes
+intcon (20)
+semicolon
+ifsy
+ident (a)
+eql
+ident (b)
+thensy
+ident (writeln)
+lparent
+string ('sama')
+rparent
+semicolon
+ifsy
+ident (a)
+neq
+ident (b)
+thensy
+ident (writeln)
+lparent
+string ('beda')
+rparent
+semicolon
+ifsy
+ident (a)
+lss
+ident (b)
+thensy
+ident (writeln)
+lparent
+string ('kurang')
+rparent
+semicolon
+ifsy
+ident (a)
+leq
+ident (b)
+thensy
+ident (writeln)
+lparent
+string ('kurang sama')
+rparent
+semicolon
+ifsy
+ident (a)
+gtr
+ident (b)
+thensy
+ident (writeln)
+lparent
+string ('lebih')
+rparent
+semicolon
+ifsy
+ident (a)
+geq
+ident (b)
+thensy
+ident (writeln)
+lparent
+string ('lebih sama')
+rparent
+semicolon
+endsy
+period

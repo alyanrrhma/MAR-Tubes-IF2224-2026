@@ -1,30 +1,30 @@
-PROGRAMSY
-IDENT (Hello)
-SEMICOLON
-VARSY
-IDENT (a)
-COMMA
-IDENT (b)
-COLON
-IDENT (integer)
-SEMICOLON
-BEGINSY
-IDENT (a)
-BECOMES
-INTCON (5)
-SEMICOLON
-IDENT (b)
-BECOMES
-IDENT (a)
-PLUS
-INTCON (10)
-SEMICOLON
-IDENT (writeln)
-LPARENT
-STRING ('Result = ')
-COMMA
-IDENT (b)
-RPARENT
-SEMICOLON
-ENDSY
-PERIOD
+programsy
+ident (Hello)
+semicolon
+varsy
+ident (a)
+comma
+ident (b)
+colon
+ident (integer)
+semicolon
+beginsy
+ident (a)
+becomes
+intcon (5)
+semicolon
+ident (b)
+becomes
+ident (a)
+plus
+intcon (10)
+semicolon
+ident (writeln)
+lparent
+string ('Result = ')
+comma
+ident (b)
+rparent
+semicolon
+endsy
+period

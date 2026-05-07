@@ -1,9 +1,64 @@
-PROGRAMSY
-ARRAYSY
-IDENT (Test)
-SEMICOLON
-VARSY
-IDENT (arr)
-COLON
-ARRAYSY
-LBRACK
+programsy
+ident (ArrayTest)
+semicolon
+varsy
+ident (arr)
+colon
+arraysy
+lbrack
+intcon (1)
+period
+period
+intcon (5)
+rbrack
+ofsy
+ident (integer)
+semicolon
+ident (i)
+colon
+ident (integer)
+semicolon
+beginsy
+forsy
+ident (i)
+becomes
+intcon (1)
+tosy
+intcon (5)
+dosy
+beginsy
+ident (arr)
+lbrack
+ident (i)
+rbrack
+becomes
+ident (i)
+times
+intcon (2)
+semicolon
+endsy
+semicolon
+forsy
+ident (i)
+becomes
+intcon (5)
+downtosy
+intcon (1)
+dosy
+beginsy
+ident (arr)
+lbrack
+ident (i)
+rbrack
+becomes
+ident (arr)
+lbrack
+ident (i)
+rbrack
+rdiv
+intcon (2)
+semicolon
+endsy
+semicolon
+endsy
+period

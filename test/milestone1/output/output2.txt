@@ -1,30 +1,30 @@
-PROGRAMSY
-IDENT (CaseTest)
-SEMICOLON
-VARSY
-IDENT (x)
-COLON
-IDENT (integer)
-SEMICOLON
-BEGINSY
-IDENT (x)
-BECOMES
-INTCON (42)
-SEMICOLON
-IFSY
-IDENT (x)
-GTR
-INTCON (10)
-THENSY
-IDENT (writeln)
-LPARENT
-STRING ('besar')
-RPARENT
-ELSESY
-IDENT (writeln)
-LPARENT
-STRING ('kecil')
-RPARENT
-SEMICOLON
-ENDSY
-PERIOD
+programsy
+ident (CaseTest)
+semicolon
+varsy
+ident (x)
+colon
+ident (integer)
+semicolon
+beginsy
+ident (x)
+becomes
+intcon (42)
+semicolon
+ifsy
+ident (x)
+gtr
+intcon (10)
+thensy
+ident (writeln)
+lparent
+string ('besar')
+rparent
+elsesy
+ident (writeln)
+lparent
+string ('kecil')
+rparent
+semicolon
+endsy
+period

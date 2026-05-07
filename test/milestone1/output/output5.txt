@@ -1,0 +1,96 @@
+programsy
+ident (LogikaTest)
+semicolon
+varsy
+ident (a)
+comma
+ident (b)
+comma
+ident (c)
+colon
+ident (integer)
+semicolon
+beginsy
+ident (a)
+becomes
+intcon (10)
+semicolon
+ident (b)
+becomes
+intcon (5)
+semicolon
+ident (c)
+becomes
+ident (a)
+idiv
+ident (b)
+semicolon
+ident (c)
+becomes
+ident (a)
+imod
+ident (b)
+semicolon
+ident (c)
+becomes
+ident (a)
+times
+ident (b)
+semicolon
+ident (c)
+becomes
+ident (a)
+rdiv
+ident (b)
+semicolon
+ifsy
+lparent
+ident (a)
+gtr
+intcon (0)
+rparent
+andsy
+lparent
+ident (b)
+gtr
+intcon (0)
+rparent
+thensy
+ident (writeln)
+lparent
+string ('positif')
+rparent
+semicolon
+ifsy
+lparent
+ident (a)
+gtr
+intcon (0)
+rparent
+orsy
+lparent
+ident (b)
+lss
+intcon (0)
+rparent
+thensy
+ident (writeln)
+lparent
+string ('salah satu positif')
+rparent
+semicolon
+ifsy
+notsy
+lparent
+ident (a)
+eql
+ident (b)
+rparent
+thensy
+ident (writeln)
+lparent
+string ('tidak sama')
+rparent
+semicolon
+endsy
+period

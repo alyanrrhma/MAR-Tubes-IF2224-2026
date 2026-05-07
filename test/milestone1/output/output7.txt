@@ -1,0 +1,58 @@
+programsy
+ident (LoopTest)
+semicolon
+varsy
+ident (n)
+colon
+ident (integer)
+semicolon
+beginsy
+ident (n)
+becomes
+intcon (1)
+semicolon
+whilesy
+ident (n)
+leq
+intcon (5)
+dosy
+beginsy
+ident (writeln)
+lparent
+ident (n)
+rparent
+semicolon
+ident (n)
+becomes
+ident (n)
+plus
+intcon (1)
+semicolon
+endsy
+semicolon
+repeatsy
+ident (n)
+becomes
+ident (n)
+minus
+intcon (1)
+semicolon
+untilsy
+ident (n)
+eql
+intcon (0)
+semicolon
+casesy
+ident (n)
+ofsy
+intcon (0)
+colon
+ident (writeln)
+lparent
+string ('nol')
+rparent
+semicolon
+endsy
+semicolon
+endsy
+period

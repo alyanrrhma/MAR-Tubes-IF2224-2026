@@ -1,0 +1,25 @@
+programsy
+ident (KomentarTest)
+semicolon
+comment ({ ini komentar curly brace })
+varsy
+ident (x)
+colon
+ident (integer)
+semicolon
+comment ((* ini komentar
+multi line
+bintang *))
+beginsy
+ident (x)
+becomes
+intcon (99)
+semicolon
+comment ({ komentar di tengah kode })
+ident (writeln)
+lparent
+ident (x)
+rparent
+semicolon
+endsy
+period

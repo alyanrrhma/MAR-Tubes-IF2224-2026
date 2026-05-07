@@ -1,0 +1,28 @@
+programsy
+ident (PetikTest)
+semicolon
+varsy
+ident (s)
+colon
+ident (string)
+semicolon
+beginsy
+ident (s)
+becomes
+string ('Baca buku 'KBBI'')
+semicolon
+ident (s)
+becomes
+charcon (''')
+semicolon
+ident (s)
+becomes
+string ('')
+semicolon
+ident (writeln)
+lparent
+ident (s)
+rparent
+semicolon
+endsy
+period
