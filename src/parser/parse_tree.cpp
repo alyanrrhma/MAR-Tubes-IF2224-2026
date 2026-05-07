@@ -1,5 +1,5 @@
 #include "parse_tree.hpp"
-
+#include <algorithm>
 #include <ostream>
 #include <stdexcept>
 #include <utility>
@@ -162,7 +162,10 @@ NodePtr makeTerminal(const std::string& tokenType, const std::string& lexeme, in
 }
 
 NodePtr makeTerminal(const Token& token) {
-    return makeTerminal(token.get_type_name(), token.get_value());
+    std::string label = token.get_type_name();
+    std::transform(label.begin(), label.end(), label.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    return makeTerminal(label, token.get_value());
 }
 
 NodePtr makeError(const std::string& message, int line, int column) {
@@ -197,4 +200,4 @@ void printTree(const Node* root, std::ostream& out) {
     root->print(out);
 }
 
-} // namespace parse_tree
+}
