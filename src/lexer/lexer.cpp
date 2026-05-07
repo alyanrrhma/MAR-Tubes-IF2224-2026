@@ -11,13 +11,11 @@ Lexer::Lexer(std::istream& source, std::shared_ptr<DFA> automaton, std::ostream*
 {}
 
 bool Lexer::eof() const {
-    // Masih ada karakter pending → belum benar-benar EOF
     if (reprocess_input.has_value()) return false;
     return reached_eof;
 }
 
 bool Lexer::read_char(char& c) {
-    // Jika ada karakter yang tertunda untuk diproses ulang, kembalikan itu dulu
     if (reprocess_input.has_value()) {
         c = reprocess_input.value();
         reprocess_input = std::nullopt;
@@ -31,7 +29,6 @@ bool Lexer::read_char(char& c) {
     return true;
 }
 
-
 void Lexer::update_position(char c) {
     if (c == '\n') {
         ++line_counter;
@@ -41,6 +38,20 @@ void Lexer::update_position(char c) {
     }
 }
 
+static std::string decodeQuotedValue(const std::string& raw) {
+    if (raw.size() < 2) return raw;
+    std::string content = raw.substr(1, raw.size() - 2);
+    std::string decoded;
+    for (size_t i = 0; i < content.size(); ++i) {
+        if (content[i] == '\'' && i + 1 < content.size() && content[i + 1] == '\'') {
+            decoded += '\'';
+            ++i;
+        } else {
+            decoded += content[i];
+        }
+    }
+    return "'" + decoded + "'";
+}
 
 void Lexer::write_token(const Token& t) {
     result.push_back(t);
@@ -49,11 +60,10 @@ void Lexer::write_token(const Token& t) {
     }
 }
 
-// Mendapatkan token berikutnya
 void Lexer::process_next_token() {
     dfa->resetState();
 
-    std::string lexeme;       
+    std::string lexeme;
     char c;
 
     auto write_unknown = [&]() {
@@ -61,6 +71,14 @@ void Lexer::process_next_token() {
             Token tok(dfa->getCurrToken(), lexeme);
             write_token(tok);
         }
+    };
+
+    auto make_token = [&](TokenType tt, const std::string& lex) -> Token {
+        const std::string& name = tt.get_name();
+        if (name == "CHARCON" || name == "STRING") {
+            return Token(tt, decodeQuotedValue(lex));
+        }
+        return Token(tt, lex);
     };
 
     auto munch_until_whitespace = [&]() {
@@ -77,57 +95,42 @@ void Lexer::process_next_token() {
     while (true) {
         bool got_char = read_char(c);
 
-        // Misalkan EOF di tengah
         if (!got_char) {
-            // Jika DFA sedang di final state, token selesai karena EOF
             const State& cur = dfa->getState();
 
             if (cur.isNullState()) {
-                // DFA di null state dan EOF → karakter jadi karakter tidak dikenali
                 if (!lexeme.empty()) {
                     write_unknown();
                     return;
                 }
-                
                 return;
             }
 
             if (!cur.isFinalState()) {
-                // Input habis tapi token belum selesai 
                 write_unknown();
                 return;
             }
 
-            // Sudah mencapai final state
             TokenType tt = dfa->getCurrToken();
-            // if (tt.get_name() == "IDENT" && dfa->hasKeywordToken(lexeme)) {
-            //     tt = dfa->getKeywordToken(lexeme);
-            // }
             if (tt.get_name() == "RANGE") {
                 size_t dotdot = lexeme.find("..");
                 std::string first = lexeme.substr(0, dotdot);
                 std::string second = lexeme.substr(dotdot + 2);
                 TokenType intcon = dfa->getTokenTypeFromTypeName("INTCON");
                 TokenType dot = dfa->getTokenTypeFromTypeName("PERIOD");
-                Token firstInt = Token(intcon, first);
-                Token firstDot = Token(dot, ".");
-                Token secondDot = Token(dot, ".");
-                Token secondInt = Token(intcon, second);
-                write_token(firstInt);
-                write_token(firstDot);
-                write_token(secondDot);
-                write_token(secondInt);
+                write_token(Token(intcon, first));
+                write_token(Token(dot, "."));
+                write_token(Token(dot, "."));
+                write_token(Token(intcon, second));
                 return;
             }
-            Token tok(tt, lexeme);
-            write_token(tok);
+            write_token(make_token(tt, lexeme));
             return;
         }
 
         update_position(c);
 
         if (lexeme.empty() && (c == ' ' || c == '\t' || c == '\r' || c == '\n')) {
-            // Whitespace di antara token: reset state dan perbarui token_start
             dfa->resetState();
             continue;
         }
@@ -137,39 +140,29 @@ void Lexer::process_next_token() {
         const State& next_state = dfa->getState();
 
         if (next_state.isNullState()) {
-
             TokenType tt = dfa->getTokenForState(prev_state.getStateIdx());
             if (prev_state.isFinalState() && tt.get_name() != "UNKNOWN") {
                 reprocess_input = c;
-
                 if (c == '\n') {
                     --line_counter;
-                    col_counter = 0; 
+                    col_counter = 0;
                 } else {
                     --col_counter;
                 }
 
-                // if (tt.get_name() == "IDENT" && dfa->hasKeywordToken(lexeme)) {
-                //     tt = dfa->getKeywordToken(lexeme);
-                // }
                 if (tt.get_name() == "RANGE") {
                     size_t dotdot = lexeme.find("..");
                     std::string first = lexeme.substr(0, dotdot);
                     std::string second = lexeme.substr(dotdot + 2);
                     TokenType intcon = dfa->getTokenTypeFromTypeName("INTCON");
                     TokenType dot = dfa->getTokenTypeFromTypeName("PERIOD");
-                    Token firstInt = Token(intcon, first);
-                    Token firstDot = Token(dot, ".");
-                    Token secondDot = Token(dot, ".");
-                    Token secondInt = Token(intcon, second);
-                    write_token(firstInt);
-                    write_token(firstDot);
-                    write_token(secondDot);
-                    write_token(secondInt);
+                    write_token(Token(intcon, first));
+                    write_token(Token(dot, "."));
+                    write_token(Token(dot, "."));
+                    write_token(Token(intcon, second));
                     return;
                 }
-                Token tok(tt, lexeme);
-                write_token(tok);
+                write_token(make_token(tt, lexeme));
                 return;
             }
 
@@ -194,6 +187,6 @@ void Lexer::process_next_token() {
     }
 }
 
-const std::vector<Token>& Lexer::getResult() const{
+const std::vector<Token>& Lexer::getResult() const {
     return result;
 }
