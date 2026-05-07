@@ -1,4 +1,4 @@
-# Makefile — Arion Compiler (Milestone 1: Lexical Analyzer)
+# Makefile — Arion Compiler
 
 # Compiler & flags
 CXX      = g++
@@ -43,7 +43,7 @@ rebuild: clean all
 # Help — tampilkan cara pemakaian
 help:
 	@echo "========================================"
-	@echo "  Arion Lexer — Makefile Commands"
+	@echo "  Arion Compiler — Makefile Commands"
 	@echo "========================================"
 	@echo "  make                   -> build program"
 	@echo "  make run N=1           -> run dengan input1.txt"
