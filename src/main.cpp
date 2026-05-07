@@ -29,6 +29,10 @@ std::string defaultOutputPath(const std::string& inputFilename,
     fs::path inputPath(inputFilename);
     std::string stem = inputPath.stem().string();
 
+    if (stem.rfind("input", 0) == 0) {
+        stem = "output" + stem.substr(5);
+    }
+
     return (fs::path("test") / milestoneFolder / "output" / (stem + ".txt")).string();
 }
 
