@@ -1,0 +1,139 @@
+programsy
+ident (Expressions)
+semicolon
+varsy
+ident (a)
+comma
+ident (b)
+comma
+ident (c)
+colon
+ident (integer)
+semicolon
+ident (x)
+comma
+ident (y)
+colon
+ident (real)
+semicolon
+ident (p)
+comma
+ident (q)
+comma
+ident (r)
+colon
+ident (boolean)
+semicolon
+beginsy
+ident (a)
+becomes
+intcon (10)
+semicolon
+ident (b)
+becomes
+intcon (3)
+semicolon
+ident (c)
+becomes
+ident (a)
+plus
+ident (b)
+times
+intcon (2)
+minus
+intcon (1)
+semicolon
+ident (c)
+becomes
+ident (a)
+idiv
+ident (b)
+semicolon
+ident (c)
+becomes
+ident (a)
+imod
+ident (b)
+semicolon
+ident (x)
+becomes
+realcon (10.0)
+rdiv
+realcon (3.0)
+semicolon
+ident (c)
+becomes
+minus
+ident (a)
+plus
+ident (b)
+semicolon
+ident (p)
+becomes
+ident (a)
+eql
+ident (b)
+semicolon
+ident (q)
+becomes
+ident (a)
+neq
+ident (b)
+semicolon
+ident (r)
+becomes
+lparent
+ident (a)
+gtr
+intcon (0)
+rparent
+andsy
+lparent
+ident (b)
+gtr
+intcon (0)
+rparent
+semicolon
+ident (r)
+becomes
+lparent
+ident (a)
+gtr
+intcon (0)
+rparent
+orsy
+lparent
+ident (b)
+lss
+intcon (0)
+rparent
+semicolon
+ident (r)
+becomes
+notsy
+lparent
+ident (a)
+eql
+ident (b)
+rparent
+semicolon
+ifsy
+lparent
+ident (a)
+gtr
+ident (b)
+rparent
+andsy
+notsy
+lparent
+ident (a)
+eql
+intcon (0)
+rparent
+thensy
+ident (writeln)
+lparent
+ident (a)
+rparent
+endsy
+period

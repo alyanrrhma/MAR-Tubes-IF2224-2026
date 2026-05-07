@@ -1,0 +1,229 @@
+<program>
+  <program-header>
+    programsy (program)
+    ident (LoopStatements)
+    semicolon (;)
+  <declaration-part>
+    <var-declaration>
+      varsy (var)
+      <identifier-list>
+        ident (i)
+        comma (,)
+        ident (sum)
+        comma (,)
+        ident (factorial)
+      colon (:)
+      <type>
+        ident (integer)
+      semicolon (;)
+  <compound-statement>
+    beginsy (begin)
+    <statement-list>
+      <statement>
+        <assignment-statement>
+          <variable>
+            ident (sum)
+          becomes (:=)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  intcon (0)
+      semicolon (;)
+      <statement>
+        <assignment-statement>
+          <variable>
+            ident (i)
+          becomes (:=)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  intcon (1)
+      semicolon (;)
+      <statement>
+        <while-statement>
+          whilesy (while)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  <variable>
+                    ident (i)
+            <relational-operator>
+              leq (<=)
+            <simple-expression>
+              <term>
+                <factor>
+                  intcon (10)
+          dosy (do)
+          <statement>
+            <compound-statement>
+              beginsy (begin)
+              <statement-list>
+                <statement>
+                  <assignment-statement>
+                    <variable>
+                      ident (sum)
+                    becomes (:=)
+                    <expression>
+                      <simple-expression>
+                        <term>
+                          <factor>
+                            <variable>
+                              ident (sum)
+                        <additive-operator>
+                          plus (+)
+                        <term>
+                          <factor>
+                            <variable>
+                              ident (i)
+                semicolon (;)
+                <statement>
+                  <assignment-statement>
+                    <variable>
+                      ident (i)
+                    becomes (:=)
+                    <expression>
+                      <simple-expression>
+                        <term>
+                          <factor>
+                            <variable>
+                              ident (i)
+                        <additive-operator>
+                          plus (+)
+                        <term>
+                          <factor>
+                            intcon (1)
+              endsy (end)
+      semicolon (;)
+      <statement>
+        <assignment-statement>
+          <variable>
+            ident (factorial)
+          becomes (:=)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  intcon (1)
+      semicolon (;)
+      <statement>
+        <assignment-statement>
+          <variable>
+            ident (i)
+          becomes (:=)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  intcon (5)
+      semicolon (;)
+      <statement>
+        <repeat-statement>
+          repeatsy (repeat)
+          <statement-list>
+            <statement>
+              <assignment-statement>
+                <variable>
+                  ident (factorial)
+                becomes (:=)
+                <expression>
+                  <simple-expression>
+                    <term>
+                      <factor>
+                        <variable>
+                          ident (factorial)
+                      <multiplicative-operator>
+                        times (*)
+                      <factor>
+                        <variable>
+                          ident (i)
+            semicolon (;)
+            <statement>
+              <assignment-statement>
+                <variable>
+                  ident (i)
+                becomes (:=)
+                <expression>
+                  <simple-expression>
+                    <term>
+                      <factor>
+                        <variable>
+                          ident (i)
+                    <additive-operator>
+                      minus (-)
+                    <term>
+                      <factor>
+                        intcon (1)
+          untilsy (until)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  <variable>
+                    ident (i)
+            <relational-operator>
+              eql (==)
+            <simple-expression>
+              <term>
+                <factor>
+                  intcon (0)
+      semicolon (;)
+      <statement>
+        <for-statement>
+          forsy (for)
+          ident (i)
+          becomes (:=)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  intcon (10)
+          downtosy (downto)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  intcon (1)
+          dosy (do)
+          <statement>
+            <procedure/function-call>
+              ident (writeln)
+              lparent (()
+              <parameter-list>
+                <expression>
+                  <simple-expression>
+                    <term>
+                      <factor>
+                        <variable>
+                          ident (i)
+              rparent ())
+      semicolon (;)
+      <statement>
+        <procedure/function-call>
+          ident (writeln)
+          lparent (()
+          <parameter-list>
+            <expression>
+              <simple-expression>
+                <term>
+                  <factor>
+                    <variable>
+                      ident (sum)
+          rparent ())
+      semicolon (;)
+      <statement>
+        <procedure/function-call>
+          ident (writeln)
+          lparent (()
+          <parameter-list>
+            <expression>
+              <simple-expression>
+                <term>
+                  <factor>
+                    <variable>
+                      ident (factorial)
+          rparent ())
+    endsy (end)
+  period (.)

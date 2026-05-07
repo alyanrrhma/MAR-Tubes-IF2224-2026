@@ -1,0 +1,88 @@
+programsy
+ident (LoopStatements)
+semicolon
+varsy
+ident (i)
+comma
+ident (sum)
+comma
+ident (factorial)
+colon
+ident (integer)
+semicolon
+beginsy
+ident (sum)
+becomes
+intcon (0)
+semicolon
+ident (i)
+becomes
+intcon (1)
+semicolon
+whilesy
+ident (i)
+leq
+intcon (10)
+dosy
+beginsy
+ident (sum)
+becomes
+ident (sum)
+plus
+ident (i)
+semicolon
+ident (i)
+becomes
+ident (i)
+plus
+intcon (1)
+endsy
+semicolon
+ident (factorial)
+becomes
+intcon (1)
+semicolon
+ident (i)
+becomes
+intcon (5)
+semicolon
+repeatsy
+ident (factorial)
+becomes
+ident (factorial)
+times
+ident (i)
+semicolon
+ident (i)
+becomes
+ident (i)
+minus
+intcon (1)
+untilsy
+ident (i)
+eql
+intcon (0)
+semicolon
+forsy
+ident (i)
+becomes
+intcon (10)
+downtosy
+intcon (1)
+dosy
+ident (writeln)
+lparent
+ident (i)
+rparent
+semicolon
+ident (writeln)
+lparent
+ident (sum)
+rparent
+semicolon
+ident (writeln)
+lparent
+ident (factorial)
+rparent
+endsy
+period

@@ -1,0 +1,65 @@
+programsy
+ident (ConstAndType)
+semicolon
+constsy
+ident (MAX)
+eql
+intcon (100)
+semicolon
+ident (PI)
+eql
+realcon (3.14)
+semicolon
+ident (INITIAL)
+eql
+charcon ('A')
+semicolon
+ident (GREETING)
+eql
+string ('Hello')
+semicolon
+typesy
+ident (SmallRange)
+eql
+intcon (1)
+period
+period
+intcon (10)
+semicolon
+ident (Season)
+eql
+lparent
+ident (Spring)
+comma
+ident (Summer)
+comma
+ident (Fall)
+comma
+ident (Winter)
+rparent
+semicolon
+varsy
+ident (x)
+colon
+ident (integer)
+semicolon
+ident (ch)
+colon
+ident (char)
+semicolon
+beginsy
+ident (x)
+becomes
+ident (MAX)
+semicolon
+ident (ch)
+becomes
+ident (INITIAL)
+semicolon
+ident (writeln)
+lparent
+ident (x)
+rparent
+semicolon
+endsy
+period

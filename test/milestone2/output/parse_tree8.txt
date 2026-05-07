@@ -1,0 +1,141 @@
+<program>
+  <program-header>
+    programsy (program)
+    ident (CommentsAndConstants)
+    semicolon (;)
+  <declaration-part>
+    <const-declaration>
+      constsy (const)
+      <const-definition>
+        ident (MAXSIZE)
+        eql (==)
+        <constant>
+          intcon (50)
+      semicolon (;)
+      <const-definition>
+        ident (MINVAL)
+        eql (==)
+        <constant>
+          minus (-)
+          intcon (10)
+      semicolon (;)
+      <const-definition>
+        ident (LABEL)
+        eql (==)
+        <constant>
+          string ('Data')
+      semicolon (;)
+    <var-declaration>
+      varsy (var)
+      <identifier-list>
+        ident (i)
+      colon (:)
+      <type>
+        ident (integer)
+      semicolon (;)
+      <identifier-list>
+        ident (ch)
+      colon (:)
+      <type>
+        ident (char)
+      semicolon (;)
+      <identifier-list>
+        ident (s)
+      colon (:)
+      <type>
+        ident (string)
+      semicolon (;)
+  <compound-statement>
+    beginsy (begin)
+    <statement-list>
+      <statement>
+        <assignment-statement>
+          <variable>
+            ident (i)
+          becomes (:=)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  <variable>
+                    ident (MAXSIZE)
+      semicolon (;)
+      <statement>
+        <assignment-statement>
+          <variable>
+            ident (ch)
+          becomes (:=)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  charcon ('Z')
+      semicolon (;)
+      <statement>
+        <assignment-statement>
+          <variable>
+            ident (s)
+          becomes (:=)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  string ('Hello World')
+      semicolon (;)
+      <statement>
+        <assignment-statement>
+          <variable>
+            ident (i)
+          becomes (:=)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  <variable>
+                    ident (MINVAL)
+              <additive-operator>
+                plus (+)
+              <term>
+                <factor>
+                  intcon (5)
+      semicolon (;)
+      <statement>
+        <procedure/function-call>
+          ident (writeln)
+          lparent (()
+          <parameter-list>
+            <expression>
+              <simple-expression>
+                <term>
+                  <factor>
+                    <variable>
+                      ident (i)
+          rparent ())
+      semicolon (;)
+      <statement>
+        <procedure/function-call>
+          ident (writeln)
+          lparent (()
+          <parameter-list>
+            <expression>
+              <simple-expression>
+                <term>
+                  <factor>
+                    <variable>
+                      ident (ch)
+          rparent ())
+      semicolon (;)
+      <statement>
+        <procedure/function-call>
+          ident (writeln)
+          lparent (()
+          <parameter-list>
+            <expression>
+              <simple-expression>
+                <term>
+                  <factor>
+                    <variable>
+                      ident (s)
+          rparent ())
+    endsy (end)
+  period (.)

@@ -1,0 +1,69 @@
+programsy
+ident (CommentsAndConstants)
+semicolon
+comment ({ Ini adalah program untuk menguji komentar dan konstanta })
+constsy
+ident (MAXSIZE)
+eql
+intcon (50)
+semicolon
+ident (MINVAL)
+eql
+minus
+intcon (10)
+semicolon
+ident (LABEL)
+eql
+string ('Data')
+semicolon
+varsy
+ident (i)
+colon
+ident (integer)
+semicolon
+ident (ch)
+colon
+ident (char)
+semicolon
+ident (s)
+colon
+ident (string)
+semicolon
+beginsy
+comment ({ komentar di dalam begin })
+ident (i)
+becomes
+ident (MAXSIZE)
+semicolon
+comment ((* ini juga komentar
+     multi baris *))
+ident (ch)
+becomes
+charcon ('Z')
+semicolon
+ident (s)
+becomes
+string ('Hello World')
+semicolon
+ident (i)
+becomes
+ident (MINVAL)
+plus
+intcon (5)
+semicolon
+ident (writeln)
+lparent
+ident (i)
+rparent
+semicolon
+ident (writeln)
+lparent
+ident (ch)
+rparent
+semicolon
+ident (writeln)
+lparent
+ident (s)
+rparent
+endsy
+period

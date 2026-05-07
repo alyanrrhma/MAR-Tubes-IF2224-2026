@@ -1,0 +1,330 @@
+programsy
+ident (FullFeatures)
+semicolon
+constsy
+ident (N)
+eql
+intcon (5)
+semicolon
+ident (TRUEVAL)
+eql
+intcon (1)
+semicolon
+typesy
+ident (Arr)
+eql
+arraysy
+lbrack
+intcon (1)
+period
+period
+intcon (5)
+rbrack
+ofsy
+ident (integer)
+semicolon
+ident (Direction)
+eql
+lparent
+ident (North)
+comma
+ident (South)
+comma
+ident (East)
+comma
+ident (West)
+rparent
+semicolon
+ident (Coord)
+eql
+recordsy
+ident (x)
+colon
+ident (integer)
+semicolon
+ident (y)
+colon
+ident (integer)
+endsy
+semicolon
+varsy
+ident (nums)
+colon
+ident (Arr)
+semicolon
+ident (pos)
+colon
+ident (Coord)
+semicolon
+ident (dir)
+colon
+ident (Direction)
+semicolon
+ident (i)
+comma
+ident (j)
+comma
+ident (temp)
+comma
+ident (total)
+colon
+ident (integer)
+semicolon
+proceduresy
+ident (BubbleSort)
+lparent
+ident (size)
+colon
+ident (integer)
+rparent
+semicolon
+varsy
+ident (k)
+comma
+ident (l)
+colon
+ident (integer)
+semicolon
+beginsy
+forsy
+ident (k)
+becomes
+intcon (1)
+tosy
+ident (size)
+minus
+intcon (1)
+dosy
+forsy
+ident (l)
+becomes
+intcon (1)
+tosy
+ident (size)
+minus
+ident (k)
+dosy
+ifsy
+ident (nums)
+lbrack
+ident (l)
+rbrack
+gtr
+ident (nums)
+lbrack
+ident (l)
+plus
+intcon (1)
+rbrack
+thensy
+beginsy
+ident (temp)
+becomes
+ident (nums)
+lbrack
+ident (l)
+rbrack
+semicolon
+ident (nums)
+lbrack
+ident (l)
+rbrack
+becomes
+ident (nums)
+lbrack
+ident (l)
+plus
+intcon (1)
+rbrack
+semicolon
+ident (nums)
+lbrack
+ident (l)
+plus
+intcon (1)
+rbrack
+becomes
+ident (temp)
+endsy
+endsy
+semicolon
+functionsy
+ident (Sum)
+lparent
+ident (size)
+colon
+ident (integer)
+rparent
+colon
+ident (integer)
+semicolon
+varsy
+ident (k)
+comma
+ident (s)
+colon
+ident (integer)
+semicolon
+beginsy
+ident (s)
+becomes
+intcon (0)
+semicolon
+forsy
+ident (k)
+becomes
+intcon (1)
+tosy
+ident (size)
+dosy
+ident (s)
+becomes
+ident (s)
+plus
+ident (nums)
+lbrack
+ident (k)
+rbrack
+semicolon
+ident (Sum)
+becomes
+ident (s)
+endsy
+semicolon
+beginsy
+ident (nums)
+lbrack
+intcon (1)
+rbrack
+becomes
+intcon (64)
+semicolon
+ident (nums)
+lbrack
+intcon (2)
+rbrack
+becomes
+intcon (34)
+semicolon
+ident (nums)
+lbrack
+intcon (3)
+rbrack
+becomes
+intcon (25)
+semicolon
+ident (nums)
+lbrack
+intcon (4)
+rbrack
+becomes
+intcon (12)
+semicolon
+ident (nums)
+lbrack
+intcon (5)
+rbrack
+becomes
+intcon (22)
+semicolon
+ident (BubbleSort)
+lparent
+ident (N)
+rparent
+semicolon
+ident (total)
+becomes
+ident (Sum)
+lparent
+ident (N)
+rparent
+semicolon
+forsy
+ident (i)
+becomes
+intcon (1)
+tosy
+ident (N)
+dosy
+ident (writeln)
+lparent
+ident (nums)
+lbrack
+ident (i)
+rbrack
+rparent
+semicolon
+ident (writeln)
+lparent
+ident (total)
+rparent
+semicolon
+ident (pos)
+period
+ident (x)
+becomes
+intcon (0)
+semicolon
+ident (pos)
+period
+ident (y)
+becomes
+intcon (0)
+semicolon
+ident (i)
+becomes
+intcon (1)
+semicolon
+repeatsy
+ifsy
+ident (i)
+imod
+intcon (2)
+eql
+intcon (0)
+thensy
+ident (pos)
+period
+ident (x)
+becomes
+ident (pos)
+period
+ident (x)
+plus
+intcon (1)
+elsesy
+ident (pos)
+period
+ident (y)
+becomes
+ident (pos)
+period
+ident (y)
+plus
+intcon (1)
+semicolon
+ident (i)
+becomes
+ident (i)
+plus
+intcon (1)
+untilsy
+ident (i)
+gtr
+intcon (10)
+semicolon
+ident (writeln)
+lparent
+ident (pos)
+period
+ident (x)
+rparent
+semicolon
+ident (writeln)
+lparent
+ident (pos)
+period
+ident (y)
+rparent
+endsy
+period

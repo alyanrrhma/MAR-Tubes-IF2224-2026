@@ -1,0 +1,155 @@
+programsy
+ident (ProcedureAndFunction)
+semicolon
+proceduresy
+ident (Greet)
+lparent
+ident (name)
+colon
+ident (string)
+rparent
+semicolon
+beginsy
+ident (writeln)
+lparent
+string ('Hello, ')
+comma
+ident (name)
+rparent
+endsy
+semicolon
+proceduresy
+ident (Swap)
+lparent
+ident (a)
+comma
+ident (b)
+colon
+ident (integer)
+rparent
+semicolon
+varsy
+ident (temp)
+colon
+ident (integer)
+semicolon
+beginsy
+ident (temp)
+becomes
+ident (a)
+semicolon
+ident (a)
+becomes
+ident (b)
+semicolon
+ident (b)
+becomes
+ident (temp)
+endsy
+semicolon
+functionsy
+ident (Max)
+lparent
+ident (a)
+comma
+ident (b)
+colon
+ident (integer)
+rparent
+colon
+ident (integer)
+semicolon
+beginsy
+ifsy
+ident (a)
+gtr
+ident (b)
+thensy
+ident (Max)
+becomes
+ident (a)
+elsesy
+ident (Max)
+becomes
+ident (b)
+endsy
+semicolon
+functionsy
+ident (Factorial)
+lparent
+ident (n)
+colon
+ident (integer)
+rparent
+colon
+ident (integer)
+semicolon
+beginsy
+ifsy
+ident (n)
+eql
+intcon (0)
+thensy
+ident (Factorial)
+becomes
+intcon (1)
+elsesy
+ident (Factorial)
+becomes
+ident (n)
+times
+ident (Factorial)
+lparent
+ident (n)
+minus
+intcon (1)
+rparent
+endsy
+semicolon
+varsy
+ident (x)
+comma
+ident (y)
+colon
+ident (integer)
+semicolon
+beginsy
+ident (x)
+becomes
+intcon (5)
+semicolon
+ident (y)
+becomes
+intcon (3)
+semicolon
+ident (Greet)
+lparent
+string ('World')
+rparent
+semicolon
+ident (Swap)
+lparent
+ident (x)
+comma
+ident (y)
+rparent
+semicolon
+ident (writeln)
+lparent
+ident (Max)
+lparent
+ident (x)
+comma
+ident (y)
+rparent
+rparent
+semicolon
+ident (writeln)
+lparent
+ident (Factorial)
+lparent
+intcon (5)
+rparent
+rparent
+endsy
+period

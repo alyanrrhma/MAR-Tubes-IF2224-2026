@@ -1,0 +1,112 @@
+programsy
+ident (ArrayAndRecord)
+semicolon
+typesy
+ident (Matrix)
+eql
+arraysy
+lbrack
+intcon (1)
+period
+period
+intcon (3)
+rbrack
+ofsy
+ident (integer)
+semicolon
+ident (Person)
+eql
+recordsy
+ident (name)
+colon
+ident (string)
+semicolon
+ident (age)
+colon
+ident (integer)
+semicolon
+ident (score)
+colon
+ident (real)
+endsy
+semicolon
+varsy
+ident (arr)
+colon
+arraysy
+lbrack
+intcon (1)
+period
+period
+intcon (5)
+rbrack
+ofsy
+ident (integer)
+semicolon
+ident (i)
+colon
+ident (integer)
+semicolon
+ident (p)
+colon
+ident (Person)
+semicolon
+beginsy
+ident (arr)
+lbrack
+intcon (1)
+rbrack
+becomes
+intcon (10)
+semicolon
+ident (arr)
+lbrack
+intcon (2)
+rbrack
+becomes
+intcon (20)
+semicolon
+ident (arr)
+lbrack
+intcon (3)
+rbrack
+becomes
+ident (arr)
+lbrack
+intcon (1)
+rbrack
+plus
+ident (arr)
+lbrack
+intcon (2)
+rbrack
+semicolon
+ident (p)
+period
+ident (age)
+becomes
+intcon (20)
+semicolon
+ident (p)
+period
+ident (score)
+becomes
+realcon (3.14)
+semicolon
+forsy
+ident (i)
+becomes
+intcon (1)
+tosy
+intcon (5)
+dosy
+ident (writeln)
+lparent
+ident (arr)
+lbrack
+ident (i)
+rbrack
+rparent
+semicolon
+endsy
+period

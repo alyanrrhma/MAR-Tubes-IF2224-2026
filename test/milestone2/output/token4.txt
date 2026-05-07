@@ -1,0 +1,79 @@
+programsy
+ident (BranchingStatements)
+semicolon
+varsy
+ident (x)
+comma
+ident (y)
+comma
+ident (z)
+colon
+ident (integer)
+semicolon
+beginsy
+ident (x)
+becomes
+intcon (10)
+semicolon
+ident (y)
+becomes
+intcon (20)
+semicolon
+ifsy
+ident (x)
+eql
+ident (y)
+thensy
+ident (writeln)
+lparent
+string ('sama')
+rparent
+elsesy
+beginsy
+ifsy
+ident (x)
+gtr
+ident (y)
+thensy
+ident (z)
+becomes
+ident (x)
+elsesy
+ident (z)
+becomes
+ident (y)
+semicolon
+ident (writeln)
+lparent
+ident (z)
+rparent
+endsy
+semicolon
+casesy
+ident (x)
+ofsy
+intcon (1)
+colon
+ident (writeln)
+lparent
+string ('satu')
+rparent
+semicolon
+intcon (2)
+comma
+intcon (3)
+colon
+ident (writeln)
+lparent
+string ('dua atau tiga')
+rparent
+semicolon
+intcon (10)
+colon
+ident (writeln)
+lparent
+string ('sepuluh')
+rparent
+endsy
+endsy
+period

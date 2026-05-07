@@ -1,0 +1,120 @@
+<program>
+  <program-header>
+    programsy (program)
+    ident (ConstAndType)
+    semicolon (;)
+  <declaration-part>
+    <const-declaration>
+      constsy (const)
+      <const-definition>
+        ident (MAX)
+        eql (==)
+        <constant>
+          intcon (100)
+      semicolon (;)
+      <const-definition>
+        ident (PI)
+        eql (==)
+        <constant>
+          realcon (3.14)
+      semicolon (;)
+      <const-definition>
+        ident (INITIAL)
+        eql (==)
+        <constant>
+          charcon ('A')
+      semicolon (;)
+      <const-definition>
+        ident (GREETING)
+        eql (==)
+        <constant>
+          string ('Hello')
+      semicolon (;)
+    <type-declaration>
+      typesy (type)
+      <type-definition>
+        ident (SmallRange)
+        eql (==)
+        <type>
+          <range>
+            <constant>
+              intcon (1)
+            period (.)
+            period (.)
+            <constant>
+              intcon (10)
+      semicolon (;)
+      <type-definition>
+        ident (Season)
+        eql (==)
+        <type>
+          <enumerated>
+            lparent (()
+            <identifier-list>
+              ident (Spring)
+              comma (,)
+              ident (Summer)
+              comma (,)
+              ident (Fall)
+              comma (,)
+              ident (Winter)
+            rparent ())
+      semicolon (;)
+    <var-declaration>
+      varsy (var)
+      <identifier-list>
+        ident (x)
+      colon (:)
+      <type>
+        ident (integer)
+      semicolon (;)
+      <identifier-list>
+        ident (ch)
+      colon (:)
+      <type>
+        ident (char)
+      semicolon (;)
+  <compound-statement>
+    beginsy (begin)
+    <statement-list>
+      <statement>
+        <assignment-statement>
+          <variable>
+            ident (x)
+          becomes (:=)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  <variable>
+                    ident (MAX)
+      semicolon (;)
+      <statement>
+        <assignment-statement>
+          <variable>
+            ident (ch)
+          becomes (:=)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  <variable>
+                    ident (INITIAL)
+      semicolon (;)
+      <statement>
+        <procedure/function-call>
+          ident (writeln)
+          lparent (()
+          <parameter-list>
+            <expression>
+              <simple-expression>
+                <term>
+                  <factor>
+                    <variable>
+                      ident (x)
+          rparent ())
+      semicolon (;)
+      <statement>
+        <empty>
+    endsy (end)
+  period (.)

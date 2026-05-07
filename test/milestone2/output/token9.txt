@@ -1,0 +1,213 @@
+programsy
+ident (NestedAndComplex)
+semicolon
+typesy
+ident (Grade)
+eql
+lparent
+ident (A)
+comma
+ident (B)
+comma
+ident (C)
+comma
+ident (D)
+comma
+ident (E)
+rparent
+semicolon
+ident (ScoreRange)
+eql
+intcon (0)
+period
+period
+intcon (100)
+semicolon
+varsy
+ident (score)
+comma
+ident (i)
+comma
+ident (j)
+colon
+ident (integer)
+semicolon
+ident (grade)
+colon
+ident (Grade)
+semicolon
+ident (matrix)
+colon
+arraysy
+lbrack
+intcon (1)
+period
+period
+intcon (3)
+rbrack
+ofsy
+ident (integer)
+semicolon
+proceduresy
+ident (PrintMatrix)
+lparent
+ident (size)
+colon
+ident (integer)
+rparent
+semicolon
+varsy
+ident (k)
+colon
+ident (integer)
+semicolon
+beginsy
+forsy
+ident (k)
+becomes
+intcon (1)
+tosy
+ident (size)
+dosy
+ident (writeln)
+lparent
+ident (matrix)
+lbrack
+ident (k)
+rbrack
+rparent
+endsy
+semicolon
+functionsy
+ident (GetGrade)
+lparent
+ident (s)
+colon
+ident (integer)
+rparent
+colon
+ident (integer)
+semicolon
+beginsy
+ifsy
+ident (s)
+geq
+intcon (80)
+thensy
+ident (GetGrade)
+becomes
+intcon (1)
+elsesy
+ifsy
+ident (s)
+geq
+intcon (60)
+thensy
+ident (GetGrade)
+becomes
+intcon (2)
+elsesy
+ident (GetGrade)
+becomes
+intcon (3)
+endsy
+semicolon
+beginsy
+forsy
+ident (i)
+becomes
+intcon (1)
+tosy
+intcon (3)
+dosy
+beginsy
+ident (matrix)
+lbrack
+ident (i)
+rbrack
+becomes
+ident (i)
+times
+intcon (10)
+semicolon
+endsy
+semicolon
+ident (PrintMatrix)
+lparent
+intcon (3)
+rparent
+semicolon
+ident (score)
+becomes
+intcon (75)
+semicolon
+casesy
+ident (GetGrade)
+lparent
+ident (score)
+rparent
+ofsy
+intcon (1)
+colon
+ident (writeln)
+lparent
+charcon ('A')
+rparent
+semicolon
+intcon (2)
+colon
+ident (writeln)
+lparent
+charcon ('B')
+rparent
+semicolon
+intcon (3)
+colon
+ident (writeln)
+lparent
+charcon ('C')
+rparent
+endsy
+semicolon
+ident (i)
+becomes
+intcon (1)
+semicolon
+whilesy
+ident (i)
+leq
+intcon (3)
+dosy
+beginsy
+ident (j)
+becomes
+intcon (1)
+semicolon
+whilesy
+ident (j)
+leq
+intcon (3)
+dosy
+beginsy
+ident (writeln)
+lparent
+ident (i)
+times
+ident (j)
+rparent
+semicolon
+ident (j)
+becomes
+ident (j)
+plus
+intcon (1)
+endsy
+semicolon
+ident (i)
+becomes
+ident (i)
+plus
+intcon (1)
+endsy
+endsy
+period
