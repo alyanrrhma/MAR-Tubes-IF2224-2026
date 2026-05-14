@@ -7,6 +7,7 @@ CXXFLAGS = -std=c++17 -Wall -Wextra -g
 SRC_DIR   = src
 LEXER_DIR = $(SRC_DIR)/lexer
 PARSE_DIR = $(SRC_DIR)/parser
+SEMANTIC_DIR = $(SRC_DIR)/semantic
 BIN_DIR = bin
 BUILD_DIR = build
 # Output binary
@@ -17,15 +18,20 @@ SRCS = $(SRC_DIR)/main.cpp \
 	$(LEXER_DIR)/lexer.cpp \
 	$(LEXER_DIR)/token.cpp \
 	$(PARSE_DIR)/parse_tree.cpp \
-	$(PARSE_DIR)/parser.cpp
+	$(PARSE_DIR)/parser.cpp \
+	$(SEMANTIC_DIR)/ast_nodes.cpp \
+	$(SEMANTIC_DIR)/symbol_table.cpp
 
 # Object files
 OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS))
-# Default target — build semua
+# Default target — build saja, jangan jalankan binary tanpa argumen.
+.DEFAULT_GOAL := all
+
+all: $(TARGET)
+
 run: all
 	$(TARGET)
 
-all: $(TARGET)
 $(TARGET): $(OBJS)
 	@mkdir -p $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) -o $@ $^
