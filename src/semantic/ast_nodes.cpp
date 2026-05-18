@@ -1,12 +1,14 @@
 #include "ast_nodes.hpp"
 
 #include <ostream>
+#include <sstream>
 
 namespace semantic {
 
 const char* toString(AstKind kind) {
     switch (kind) {
     case AstKind::Program:        return "Program";
+    case AstKind::DeclPart:       return "DeclPart";
     case AstKind::Block:          return "Block";
     case AstKind::ConstDecl:      return "ConstDecl";
     case AstKind::TypeDecl:       return "TypeDecl";
@@ -107,8 +109,274 @@ void AstNode::print(std::ostream& out, int depth) const {
     printChildren(out, depth + 1);
 }
 
-void printAst(std::ostream& out, const AstNode* root) {
-    if (root) root->print(out, 0);
+namespace {
+
+std::string quote(const std::string& value) { // EDIT MARK
+    return "'" + value + "'";
+}
+
+std::string exprToString(const AstNode* node); // EDIT MARK
+
+std::string typeToString(const AstNode* node) { // EDIT MARK
+    if (!node) return "?";
+
+    if (const auto* simple = dynamic_cast<const SimpleTypeNode*>(node)) {
+        return simple->name;
+    }
+
+    if (const auto* range = dynamic_cast<const RangeNode*>(node)) {
+        return exprToString(range->low.get()) + ".." + exprToString(range->high.get());
+    }
+
+    if (const auto* array = dynamic_cast<const ArrayTypeNode*>(node)) {
+        std::ostringstream out;
+        out << "array[";
+        for (std::size_t i = 0; i < array->indexTypes.size(); ++i) {
+            if (i) out << ", ";
+            out << typeToString(array->indexTypes[i].get());
+        }
+        out << "] of " << typeToString(array->elementType.get());
+        return out.str();
+    }
+
+    if (const auto* enumerated = dynamic_cast<const EnumeratedTypeNode*>(node)) {
+        std::ostringstream out;
+        out << '(';
+        for (std::size_t i = 0; i < enumerated->identifiers.size(); ++i) {
+            if (i) out << ", ";
+            out << enumerated->identifiers[i];
+        }
+        out << ')';
+        return out.str();
+    }
+
+    if (dynamic_cast<const RecordTypeNode*>(node)) {
+        return "record";
+    }
+
+    return node->kindName();
+}
+
+std::string exprToString(const AstNode* node) { // EDIT MARK
+    if (!node) return "Empty";
+
+    if (const auto* var = dynamic_cast<const VarNode*>(node)) {
+        return "Var(" + quote(var->name) + ")";
+    }
+
+    if (const auto* intLit = dynamic_cast<const IntLitNode*>(node)) {
+        return "Num(" + std::to_string(intLit->value) + ")";
+    }
+
+    if (const auto* realLit = dynamic_cast<const RealLitNode*>(node)) {
+        std::ostringstream out;
+        out << "Real(" << realLit->value << ')';
+        return out.str();
+    }
+
+    if (const auto* charLit = dynamic_cast<const CharLitNode*>(node)) {
+        return "Char('" + std::string(1, charLit->value) + "')";
+    }
+
+    if (const auto* stringLit = dynamic_cast<const StringLitNode*>(node)) {
+        return "String(" + quote(stringLit->value) + ")";
+    }
+
+    if (const auto* boolLit = dynamic_cast<const BoolLitNode*>(node)) {
+        return std::string("Bool(") + (boolLit->value ? "true" : "false") + ")";
+    }
+
+    if (const auto* unary = dynamic_cast<const UnaryOpNode*>(node)) {
+        return "UnaryOp(op: '" + std::string(toString(unary->op)) +
+               "', value: " + exprToString(unary->operand.get()) + ")";
+    }
+
+    if (const auto* binop = dynamic_cast<const BinOpNode*>(node)) {
+        return "BinOp(op: '" + std::string(toString(binop->op)) +
+               "', left: " + exprToString(binop->lhs.get()) +
+               ", right: " + exprToString(binop->rhs.get()) + ")";
+    }
+
+    if (const auto* call = dynamic_cast<const ProcCallNode*>(node)) {
+        std::ostringstream out;
+        out << "ProcedureCall(name: " << quote(call->name) << ", args: [";
+        for (std::size_t i = 0; i < call->args.size(); ++i) {
+            if (i) out << ", ";
+            out << exprToString(call->args[i].get());
+        }
+        out << "])";
+        return out.str();
+    }
+
+    if (const auto* arrayAccess = dynamic_cast<const ArrayAccessNode*>(node)) {
+        std::ostringstream out;
+        out << "ArrayAccess(base: " << exprToString(arrayAccess->base.get()) << ", indices: [";
+        for (std::size_t i = 0; i < arrayAccess->indices.size(); ++i) {
+            if (i) out << ", ";
+            out << exprToString(arrayAccess->indices[i].get());
+        }
+        out << "])";
+        return out.str();
+    }
+
+    if (const auto* fieldAccess = dynamic_cast<const FieldAccessNode*>(node)) {
+        return "FieldAccess(base: " + exprToString(fieldAccess->base.get()) +
+               ", field: " + quote(fieldAccess->field) + ")";
+    }
+
+    return node->kindName();
+}
+
+void printNodePretty(std::ostream& out, const AstNode* node, const std::string& prefix, bool last); // EDIT MARK
+
+void printChildrenPretty(std::ostream& out,
+                         const std::vector<const AstNode*>& nodes,
+                         const std::string& prefix) { // EDIT MARK
+    for (std::size_t i = 0; i < nodes.size(); ++i) {
+        printNodePretty(out, nodes[i], prefix, i + 1 == nodes.size());
+    }
+}
+
+void printDeclSection(std::ostream& out, const DeclarationNode* decl, const std::string& prefix, bool last) { // EDIT MARK
+    out << prefix << (last ? "\\-- " : "+-- ") << "Declarations\n";
+    const std::string childPrefix = prefix + (last ? "    " : "|   ");
+
+    std::vector<const AstNode*> decls;
+    if (decl) {
+        for (const auto& item : decl->constDecls) decls.push_back(item.get());
+        for (const auto& item : decl->typeDecls) decls.push_back(item.get());
+        for (const auto& item : decl->varDecls) decls.push_back(item.get());
+        for (const auto& item : decl->subprogDecls) decls.push_back(item.get());
+    }
+    printChildrenPretty(out, decls, childPrefix);
+}
+
+void printBlockSection(std::ostream& out, const CompoundNode* block, const std::string& prefix, bool last) { // EDIT MARK
+    out << prefix << (last ? "\\-- " : "+-- ") << "Block\n";
+    const std::string childPrefix = prefix + (last ? "    " : "|   ");
+
+    std::vector<const AstNode*> statements;
+    if (block) {
+        for (const auto& statement : block->statements) statements.push_back(statement.get());
+    }
+    printChildrenPretty(out, statements, childPrefix);
+}
+
+void printNodePretty(std::ostream& out, const AstNode* node, const std::string& prefix, bool last) { // EDIT MARK
+    if (!node) return;
+
+    out << prefix << (last ? "\\-- " : "+-- ");
+
+    if (const auto* constDecl = dynamic_cast<const ConstDeclNode*>(node)) {
+        out << "ConstDecl(name: " << quote(constDecl->name)
+            << ", value: " << exprToString(constDecl->value.get()) << ")\n";
+        return;
+    }
+
+    if (const auto* typeDecl = dynamic_cast<const TypeDeclNode*>(node)) {
+        out << "TypeDecl(name: " << quote(typeDecl->name)
+            << ", type: " << quote(typeToString(typeDecl->typeExpr.get())) << ")\n";
+        return;
+    }
+
+    if (const auto* varDecl = dynamic_cast<const VarDeclNode*>(node)) {
+        out << "VarDecl(name: " << quote(varDecl->name)
+            << ", type: " << quote(typeToString(varDecl->typeExpr.get())) << ")\n";
+        return;
+    }
+
+    if (const auto* assign = dynamic_cast<const AssignNode*>(node)) {
+        out << "Assign(target: " << exprToString(assign->target.get())
+            << ", value: " << exprToString(assign->value.get()) << ")\n";
+        return;
+    }
+
+    if (const auto* call = dynamic_cast<const ProcCallNode*>(node)) {
+        out << exprToString(call) << '\n';
+        return;
+    }
+
+    if (const auto* proc = dynamic_cast<const ProcDeclNode*>(node)) {
+        out << "ProcedureDecl(name: " << quote(proc->name) << ")\n";
+        const std::string childPrefix = prefix + (last ? "    " : "|   ");
+        if (proc->block) {
+            printDeclSection(out, proc->block->declaration.get(), childPrefix, false);
+            printBlockSection(out, proc->block->statements.get(), childPrefix, true);
+        }
+        return;
+    }
+
+    if (const auto* func = dynamic_cast<const FuncDeclNode*>(node)) {
+        out << "FunctionDecl(name: " << quote(func->name)
+            << ", returnType: " << quote(typeToString(func->returnType.get())) << ")\n";
+        const std::string childPrefix = prefix + (last ? "    " : "|   ");
+        if (func->block) {
+            printDeclSection(out, func->block->declaration.get(), childPrefix, false);
+            printBlockSection(out, func->block->statements.get(), childPrefix, true);
+        }
+        return;
+    }
+
+    if (const auto* compound = dynamic_cast<const CompoundNode*>(node)) {
+        out << "Block\n";
+        const std::string childPrefix = prefix + (last ? "    " : "|   ");
+        std::vector<const AstNode*> statements;
+        for (const auto& statement : compound->statements) statements.push_back(statement.get());
+        printChildrenPretty(out, statements, childPrefix);
+        return;
+    }
+
+    if (const auto* ifNode = dynamic_cast<const IfNode*>(node)) {
+        out << "If(condition: " << exprToString(ifNode->condition.get()) << ")\n";
+        const std::string childPrefix = prefix + (last ? "    " : "|   ");
+        std::vector<const AstNode*> branches = {ifNode->thenStmt.get()};
+        if (ifNode->elseStmt) branches.push_back(ifNode->elseStmt.get());
+        printChildrenPretty(out, branches, childPrefix);
+        return;
+    }
+
+    if (const auto* whileNode = dynamic_cast<const WhileNode*>(node)) {
+        out << "While(condition: " << exprToString(whileNode->condition.get()) << ")\n";
+        const std::string childPrefix = prefix + (last ? "    " : "|   ");
+        printNodePretty(out, whileNode->body.get(), childPrefix, true);
+        return;
+    }
+
+    if (const auto* repeatNode = dynamic_cast<const RepeatNode*>(node)) {
+        out << "Repeat(until: " << exprToString(repeatNode->condition.get()) << ")\n";
+        const std::string childPrefix = prefix + (last ? "    " : "|   ");
+        std::vector<const AstNode*> body;
+        for (const auto& statement : repeatNode->body) body.push_back(statement.get());
+        printChildrenPretty(out, body, childPrefix);
+        return;
+    }
+
+    if (const auto* forNode = dynamic_cast<const ForNode*>(node)) {
+        out << "For(var: " << quote(forNode->controlVar)
+            << ", start: " << exprToString(forNode->startExpr.get())
+            << ", direction: " << (forNode->downto ? "downto" : "to")
+            << ", end: " << exprToString(forNode->endExpr.get()) << ")\n";
+        const std::string childPrefix = prefix + (last ? "    " : "|   ");
+        printNodePretty(out, forNode->body.get(), childPrefix, true);
+        return;
+    }
+
+    out << exprToString(node) << '\n';
+}
+
+}
+
+void printAst(std::ostream& out, const AstNode* root) { // EDIT MARK
+    if (!root) return;
+
+    if (const auto* program = dynamic_cast<const ProgramNode*>(root)) {
+        out << "ProgramNode(name: " << quote(program->name) << ")\n";
+        printDeclSection(out, program->declaration.get(), "", false);
+        printBlockSection(out, program->statements.get(), "", true);
+        return;
+    }
+
+    printNodePretty(out, root, "", true);
 }
 
 static void printLabeled(std::ostream& out, int depth, const char* label, const AstNode* node) {
@@ -127,32 +395,31 @@ static void printList(std::ostream& out, int depth, const char* label, const std
     }
 }
 
-BlockNode::BlockNode() : AstNode(AstKind::Block) {}
+DeclarationNode::DeclarationNode() : AstNode(AstKind::DeclPart) {} // EDIT MARK
 
-void BlockNode::printChildren(std::ostream& out, int depth) const {
+void DeclarationNode::printChildren(std::ostream& out, int depth) const { // EDIT MARK
     printList(out, depth, "consts", constDecls);
     printList(out, depth, "types", typeDecls);
     printList(out, depth, "vars", varDecls);
     printList(out, depth, "subprograms", subprogDecls);
-    printList(out, depth, "body", statements);
+}
+
+BlockNode::BlockNode() : AstNode(AstKind::Block) {}
+
+void BlockNode::printChildren(std::ostream& out, int depth) const {
+    printLabeled(out, depth, "declarations", declaration.get());
+    printLabeled(out, depth, "body", statements.get());
 }
 
 ProgramNode::ProgramNode() : AstNode(AstKind::Program) {}
 
 void ProgramNode::printSelf(std::ostream& out) const {
     out << "Program " << name;
-    if (!programParams.empty()) {
-        out << '(';
-        for (std::size_t i = 0; i < programParams.size(); ++i) {
-            if (i) out << ", ";
-            out << programParams[i];
-        }
-        out << ')';
-    }
 }
 
 void ProgramNode::printChildren(std::ostream& out, int depth) const {
-    if (block) block->print(out, depth);
+    printLabeled(out, depth, "declarations", declaration.get());
+    printLabeled(out, depth, "body", statements.get());
 }
 
 ConstDeclNode::ConstDeclNode() : AstNode(AstKind::ConstDecl) {}
@@ -178,11 +445,7 @@ void TypeDeclNode::printChildren(std::ostream& out, int depth) const {
 VarDeclNode::VarDeclNode() : AstNode(AstKind::VarDecl) {}
 
 void VarDeclNode::printSelf(std::ostream& out) const {
-    out << "VarDecl ";
-    for (std::size_t i = 0; i < names.size(); ++i) {
-        if (i) out << ", ";
-        out << names[i];
-    }
+    out << "VarDecl " << name;
 }
 
 void VarDeclNode::printChildren(std::ostream& out, int depth) const {
@@ -197,12 +460,7 @@ static void printParams(std::ostream& out, int depth, const std::vector<FormalPa
     for (const auto& param : params) {
         for (int i = 0; i < depth + 1; ++i) out << "  ";
         if (param.byReference) out << "var ";
-        out << '(';
-        for (std::size_t i = 0; i < param.names.size(); ++i) {
-            if (i) out << ", ";
-            out << param.names[i];
-        }
-        out << ")\n";
+        out << param.name << '\n';
         if (param.typeExpr) param.typeExpr->print(out, depth + 2);
     }
 }
