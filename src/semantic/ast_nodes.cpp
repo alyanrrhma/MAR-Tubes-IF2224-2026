@@ -266,10 +266,7 @@ void printDeclSection(std::ostream& out, const DeclarationNode* decl, const std:
 
     std::vector<const AstNode*> decls;
     if (decl) {
-        for (const auto& item : decl->constDecls) decls.push_back(item.get());
-        for (const auto& item : decl->typeDecls) decls.push_back(item.get());
-        for (const auto& item : decl->varDecls) decls.push_back(item.get());
-        for (const auto& item : decl->subprogDecls) decls.push_back(item.get());
+        for (const auto& item : decl->declarations) decls.push_back(item.get());
     }
     printChildrenPretty(out, decls, childPrefix);
 }
@@ -517,10 +514,7 @@ static void printList(std::ostream& out, int depth, const char* label, const std
 DeclarationNode::DeclarationNode() : AstNode(AstKind::DeclPart) {} // EDIT MARK
 
 void DeclarationNode::printChildren(std::ostream& out, int depth) const { // EDIT MARK
-    printList(out, depth, "consts", constDecls);
-    printList(out, depth, "types", typeDecls);
-    printList(out, depth, "vars", varDecls);
-    printList(out, depth, "subprograms", subprogDecls);
+    printList(out, depth, "declarations", declarations);
 }
 
 BlockNode::BlockNode() : AstNode(AstKind::Block) {}

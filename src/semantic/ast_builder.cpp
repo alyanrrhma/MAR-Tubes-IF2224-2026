@@ -1,7 +1,6 @@
 #include "ast_builder.hpp"
 
 #include <cctype>
-#include <iterator>
 #include <stdexcept>
 
 namespace {
@@ -94,24 +93,24 @@ std::unique_ptr<semantic::DeclarationNode> AstBuilder::visit_DeclarationPart(con
     for (const auto& child : children(node)) {
         if (isLabel(child, "const-declaration")) {
             auto decls = visit_ConstDeclaration(child);
-            result->constDecls.insert(result->constDecls.end(),
-                                      std::make_move_iterator(decls.begin()),
-                                      std::make_move_iterator(decls.end()));
+            for (auto& decl : decls) {
+                result->declarations.push_back(std::move(decl));
+            }
         } else if (isLabel(child, "type-declaration")) {
             auto decls = visit_TypeDeclaration(child);
-            result->typeDecls.insert(result->typeDecls.end(),
-                                     std::make_move_iterator(decls.begin()),
-                                     std::make_move_iterator(decls.end()));
+            for (auto& decl : decls) {
+                result->declarations.push_back(std::move(decl));
+            }
         } else if (isLabel(child, "var-declaration")) {
             auto decls = visit_VarDeclaration(child);
-            result->varDecls.insert(result->varDecls.end(),
-                                    std::make_move_iterator(decls.begin()),
-                                    std::make_move_iterator(decls.end()));
+            for (auto& decl : decls) {
+                result->declarations.push_back(std::move(decl));
+            }
         } else if (isLabel(child, "subprogram-declaration-part")) {
             auto decls = visit_SubprogramDeclarationPart(child);
-            result->subprogDecls.insert(result->subprogDecls.end(),
-                                        std::make_move_iterator(decls.begin()),
-                                        std::make_move_iterator(decls.end()));
+            for (auto& decl : decls) {
+                result->declarations.push_back(std::move(decl));
+            }
         }
     }
     return result;
