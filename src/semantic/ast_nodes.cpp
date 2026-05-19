@@ -157,6 +157,18 @@ std::string typeToString(const AstNode* node) { // EDIT MARK
     return node->kindName();
 }
 
+std::string paramsToString(const std::vector<FormalParam>& params) { // EDIT MARK
+    std::ostringstream out;
+    out << '[';
+    for (std::size_t i = 0; i < params.size(); ++i) {
+        if (i) out << ", ";
+        if (params[i].byReference) out << "var ";
+        out << typeToString(params[i].typeExpr.get()) << '(' << quote(params[i].name) << ')';
+    }
+    out << ']';
+    return out.str();
+}
+
 std::string exprToString(const AstNode* node) { // EDIT MARK
     if (!node) return "Empty";
 
@@ -297,7 +309,8 @@ void printNodePretty(std::ostream& out, const AstNode* node, const std::string& 
     }
 
     if (const auto* proc = dynamic_cast<const ProcDeclNode*>(node)) {
-        out << "ProcedureDecl(name: " << quote(proc->name) << ")\n";
+        out << "ProcedureDecl(name: " << quote(proc->name)
+            << ", params: " << paramsToString(proc->params) << ")\n";
         const std::string childPrefix = prefix + (last ? "    " : "|   ");
         if (proc->block) {
             printDeclSection(out, proc->block->declaration.get(), childPrefix, false);
@@ -308,6 +321,7 @@ void printNodePretty(std::ostream& out, const AstNode* node, const std::string& 
 
     if (const auto* func = dynamic_cast<const FuncDeclNode*>(node)) {
         out << "FunctionDecl(name: " << quote(func->name)
+            << ", params: " << paramsToString(func->params)
             << ", returnType: " << quote(typeToString(func->returnType.get())) << ")\n";
         const std::string childPrefix = prefix + (last ? "    " : "|   ");
         if (func->block) {
