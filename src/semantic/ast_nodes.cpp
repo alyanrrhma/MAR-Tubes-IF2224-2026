@@ -169,6 +169,17 @@ std::string paramsToString(const std::vector<FormalParam>& params) { // EDIT MAR
     return out.str();
 }
 
+std::string labelsToString(const std::vector<AstPtr>& labels) { // EDIT MARK
+    std::ostringstream out;
+    out << '[';
+    for (std::size_t i = 0; i < labels.size(); ++i) {
+        if (i) out << ", ";
+        out << exprToString(labels[i].get());
+    }
+    out << ']';
+    return out.str();
+}
+
 std::string exprToString(const AstNode* node) { // EDIT MARK
     if (!node) return "Empty";
 
@@ -323,6 +334,30 @@ void printExprPretty(std::ostream& out,
     out << exprToString(node) << '\n';
 }
 
+void printStatementBranch(std::ostream& out,
+                          const char* label,
+                          const AstNode* node,
+                          const std::string& prefix,
+                          bool last) { // EDIT MARK
+    if (!node) return;
+
+    out << prefix << (last ? "\\-- " : "+-- ") << label << '\n';
+    const std::string childPrefix = prefix + (last ? "    " : "|   ");
+    printNodePretty(out, node, childPrefix, true);
+}
+
+void printCaseBranchPretty(std::ostream& out,
+                           const CaseBranchNode* branch,
+                           const std::string& prefix,
+                           bool last) { // EDIT MARK
+    if (!branch) return;
+
+    out << prefix << (last ? "\\-- " : "+-- ")
+        << "branch(labels: " << labelsToString(branch->labels) << ")\n";
+    const std::string childPrefix = prefix + (last ? "    " : "|   ");
+    printStatementBranch(out, "statement", branch->statement.get(), childPrefix, true);
+}
+
 void printNodePretty(std::ostream& out, const AstNode* node, const std::string& prefix, bool last) { // EDIT MARK
     if (!node) return;
 
@@ -392,11 +427,30 @@ void printNodePretty(std::ostream& out, const AstNode* node, const std::string& 
     }
 
     if (const auto* ifNode = dynamic_cast<const IfNode*>(node)) {
-        out << "If(condition: " << exprToString(ifNode->condition.get()) << ")\n";
+        out << "If\n";
         const std::string childPrefix = prefix + (last ? "    " : "|   ");
-        std::vector<const AstNode*> branches = {ifNode->thenStmt.get()};
-        if (ifNode->elseStmt) branches.push_back(ifNode->elseStmt.get());
-        printChildrenPretty(out, branches, childPrefix);
+        printExprPretty(out, "condition", ifNode->condition.get(), childPrefix, false);
+        printStatementBranch(out, "then", ifNode->thenStmt.get(), childPrefix, ifNode->elseStmt == nullptr);
+        if (ifNode->elseStmt) {
+            printStatementBranch(out, "else", ifNode->elseStmt.get(), childPrefix, true);
+        }
+        return;
+    }
+
+    if (const auto* caseNode = dynamic_cast<const CaseNode*>(node)) {
+        out << "Case\n";
+        const std::string childPrefix = prefix + (last ? "    " : "|   ");
+        printExprPretty(out, "selector", caseNode->selector.get(), childPrefix, caseNode->branches.empty());
+        for (std::size_t i = 0; i < caseNode->branches.size(); ++i) {
+            printCaseBranchPretty(out, caseNode->branches[i].get(), childPrefix, i + 1 == caseNode->branches.size());
+        }
+        return;
+    }
+
+    if (const auto* branch = dynamic_cast<const CaseBranchNode*>(node)) {
+        out << "CaseBranch(labels: " << labelsToString(branch->labels) << ")\n";
+        const std::string childPrefix = prefix + (last ? "    " : "|   ");
+        printStatementBranch(out, "statement", branch->statement.get(), childPrefix, true);
         return;
     }
 
