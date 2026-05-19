@@ -274,6 +274,55 @@ void printBlockSection(std::ostream& out, const CompoundNode* block, const std::
     printChildrenPretty(out, statements, childPrefix);
 }
 
+void printExprPretty(std::ostream& out,
+                     const char* label,
+                     const AstNode* node,
+                     const std::string& prefix,
+                     bool last) { // EDIT MARK
+    if (!node) return;
+
+    out << prefix << (last ? "\\-- " : "+-- ") << label << ": ";
+    const std::string childPrefix = prefix + (last ? "    " : "|   ");
+
+    if (const auto* binop = dynamic_cast<const BinOpNode*>(node)) {
+        out << "BinOp(op: " << quote(toString(binop->op)) << ")\n";
+        printExprPretty(out, "left", binop->lhs.get(), childPrefix, false);
+        printExprPretty(out, "right", binop->rhs.get(), childPrefix, true);
+        return;
+    }
+
+    if (const auto* unary = dynamic_cast<const UnaryOpNode*>(node)) {
+        out << "UnaryOp(op: " << quote(toString(unary->op)) << ")\n";
+        printExprPretty(out, "value", unary->operand.get(), childPrefix, true);
+        return;
+    }
+
+    if (const auto* call = dynamic_cast<const ProcCallNode*>(node)) {
+        out << "ProcedureCall(name: " << quote(call->name) << ")\n";
+        for (std::size_t i = 0; i < call->args.size(); ++i) {
+            printExprPretty(out, "arg", call->args[i].get(), childPrefix, i + 1 == call->args.size());
+        }
+        return;
+    }
+
+    if (const auto* arrayAccess = dynamic_cast<const ArrayAccessNode*>(node)) {
+        out << "ArrayAccess\n";
+        printExprPretty(out, "base", arrayAccess->base.get(), childPrefix, arrayAccess->indices.empty());
+        for (std::size_t i = 0; i < arrayAccess->indices.size(); ++i) {
+            printExprPretty(out, "index", arrayAccess->indices[i].get(), childPrefix, i + 1 == arrayAccess->indices.size());
+        }
+        return;
+    }
+
+    if (const auto* fieldAccess = dynamic_cast<const FieldAccessNode*>(node)) {
+        out << "FieldAccess(field: " << quote(fieldAccess->field) << ")\n";
+        printExprPretty(out, "base", fieldAccess->base.get(), childPrefix, true);
+        return;
+    }
+
+    out << exprToString(node) << '\n';
+}
+
 void printNodePretty(std::ostream& out, const AstNode* node, const std::string& prefix, bool last) { // EDIT MARK
     if (!node) return;
 
@@ -298,8 +347,10 @@ void printNodePretty(std::ostream& out, const AstNode* node, const std::string& 
     }
 
     if (const auto* assign = dynamic_cast<const AssignNode*>(node)) {
-        out << "Assign(target: " << exprToString(assign->target.get())
-            << ", value: " << exprToString(assign->value.get()) << ")\n";
+        out << "Assign\n";
+        const std::string childPrefix = prefix + (last ? "    " : "|   ");
+        printExprPretty(out, "target", assign->target.get(), childPrefix, false);
+        printExprPretty(out, "value", assign->value.get(), childPrefix, true);
         return;
     }
 
