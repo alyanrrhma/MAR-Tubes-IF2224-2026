@@ -1,4 +1,5 @@
 #include "scope_builder.hpp"
+#include <sstream>
 
 const semantic::SymbolTable& ScopeBuilder::symbolTable() const {return *symTab;}
 semantic::SymbolTable& ScopeBuilder::symbolTable() {return *symTab;}
@@ -391,4 +392,255 @@ int ScopeBuilder::primitiveSize(semantic::TypeKind type)
         case semantic::TypeKind::Void: return 0;
         default: return 1;
     }
+}
+
+ScopeBuilder::TypeInfo ScopeBuilder::resolveTypeExpr(semantic::AstNode* node)
+{
+    if (!node) return {semantic::TypeKind::Unknown, semantic::NO_INDEX, 1};
+
+    switch (node->getKind())
+    {
+        case semantic::AstKind::SimpleType: return resolveSimpleType(static_cast<semantic::SimpleTypeNode&>(*node));
+        case semantic::AstKind::ArrayType: return resolveArrayType(static_cast<semantic::ArrayTypeNode&>(*node));
+        case semantic::AstKind::RecordType: return resolveRecordType(static_cast<semantic::RecordTypeNode&>(*node));
+        case semantic::AstKind::Range: return resolveRangeType(static_cast<semantic::RangeNode&>(*node));
+        case semantic::AstKind::EnumeratedType: return resolveEnumeratedType(static_cast<semantic::EnumeratedTypeNode&>(*node));
+        default:
+            visit(node);
+            return {node->inferredType, node->typeRef, primitiveSize(node->inferredType)};
+    }
+}
+
+ScopeBuilder::TypeInfo ScopeBuilder::resolveSimpleType(semantic::SimpleTypeNode& node)
+{
+    const int index = lookupIdentifier(node, node.name);
+    if (index == semantic::NO_INDEX) {
+        node.inferredType = semantic::TypeKind::Error;
+        return {semantic::TypeKind::Error, semantic::NO_INDEX, 1};
+    }
+
+    const auto& entry = symTab->tabAt(index);
+    if (entry.obj != semantic::ObjectKind::Type) {
+        report(node, "identifier '" + node.name + "' bukan bentuk tipe");
+        node.inferredType = semantic::TypeKind::Error;
+        return {semantic::TypeKind::Error, semantic::NO_INDEX, 1};
+    }
+
+    node.tabIdx = index;
+    node.inferredType = entry.type;
+    node.typeRef = entry.ref;
+    node.level = entry.lev;
+
+    int size = primitiveSize(entry.type);
+    if (entry.type == semantic::TypeKind::Array && entry.ref != semantic::NO_INDEX) {
+        size = symTab->atabAt(entry.ref).size;
+    }
+
+    return {entry.type, entry.ref, size};
+}
+
+ScopeBuilder::TypeInfo ScopeBuilder::resolveArrayType(semantic::ArrayTypeNode& node)
+{
+    TypeInfo element = resolveTypeExpr(node.elementType.get());
+
+    for (int i = static_cast<int>(node.indexTypes.size()) - 1; i >= 0; --i)
+    {
+        auto* range = node.indexTypes[static_cast<std::size_t>(i)].get();
+        bool lowOk = false;
+        bool highOk = false;
+        const int low = static_cast<int>(constIntValue(static_cast<semantic::RangeNode*>(range)->low.get(), lowOk));
+        const int high = static_cast<int>(constIntValue(static_cast<semantic::RangeNode*>(range)->high.get(), highOk));
+
+        TypeInfo indexType = resolveTypeExpr(range);
+        if (!lowOk || !highOk) {
+            report(*range, "batas array harus berupa integer");
+        }
+
+        const int arrayRef = symTab->addArrayType(
+            low,
+            high,
+            indexType.type,
+            element.type,
+            element.ref,
+            element.size);
+        element = {semantic::TypeKind::Array, arrayRef, symTab->atabAt(arrayRef).size};
+    }
+
+    node.inferredType = element.type;
+    node.typeRef = element.ref;
+    return element;
+}
+
+ScopeBuilder::TypeInfo ScopeBuilder::resolveRecordType(semantic::RecordTypeNode& node)
+{
+    const int blockIndex = symTab->pushBlock();
+    node.level = symTab->currentLevel();
+    int offset = 0;
+
+    for (auto& section : node.fields) {
+        TypeInfo fieldType = resolveTypeExpr(section.typeExpr.get());
+        for (const auto& fieldName : section.names) {
+            semantic::AstNode* owner = section.typeExpr.get();
+            if (!owner) continue;
+            if (symTab->lookupCurrentScope(fieldName) != semantic::NO_INDEX) {
+                report(*owner, "redeklarasi dari field '" + fieldName + "'");
+                continue;
+            }
+            symTab->insert(
+                fieldName,
+                semantic::ObjectKind::Field,
+                fieldType.type,
+                fieldType.ref,
+                offset,
+                true);
+            offset += fieldType.size;
+        }
+    }
+
+    symTab->popBlock();
+    node.inferredType = semantic::TypeKind::Record;
+    node.typeRef = blockIndex;
+    return {semantic::TypeKind::Record, blockIndex, offset > 0 ? offset : 1};
+
+}
+
+ScopeBuilder::TypeInfo ScopeBuilder::resolveRangeType(semantic::RangeNode& node)
+{
+    bool lowOk = false;
+    bool highOk = false;
+    constIntValue(node.low.get(), lowOk);
+    constIntValue(node.high.get(), highOk);
+
+    inferExpression(node.low.get());
+    inferExpression(node.high.get());
+
+    if (!lowOk || !highOk) {
+        report(node, "batas range harus berupa integer");
+        node.inferredType = semantic::TypeKind::Error;
+        return {semantic::TypeKind::Error, semantic::NO_INDEX, 1};
+    }
+
+    node.inferredType = semantic::TypeKind::Subrange;
+    node.typeRef = semantic::NO_INDEX;
+    return {semantic::TypeKind::Subrange, semantic::NO_INDEX, 1};
+}
+
+ScopeBuilder::TypeInfo ScopeBuilder::resolveEnumeratedType(semantic::EnumeratedTypeNode& node)
+{
+    int value = 0;
+    for (const auto& identifier : node.identifiers) {
+        if (symTab->lookupCurrentScope(identifier) != semantic::NO_INDEX) {
+            report(node, "redeklarasi dari konstanta enumerasi '" + identifier + "'");
+            continue;
+        }
+        symTab->insert(
+            identifier,
+            semantic::ObjectKind::Constant,
+            semantic::TypeKind::Enumerated,
+            semantic::NO_INDEX,
+            value++,
+            true);
+    }
+
+    node.inferredType = semantic::TypeKind::Enumerated;
+    node.typeRef = semantic::NO_INDEX;
+    return {semantic::TypeKind::Enumerated, semantic::NO_INDEX, 1};
+
+}
+
+
+ScopeBuilder::TypeInfo ScopeBuilder::inferExpression(semantic::AstNode* node)
+{
+    if (!node) return {semantic::TypeKind::Unknown, semantic::NO_INDEX, 1};
+    visit(node);
+
+    int size = primitiveSize(node->inferredType);
+    if (node->inferredType == semantic::TypeKind::Array && node->typeRef != semantic::NO_INDEX) {
+        size = symTab->atabAt(node->typeRef).size;
+    }
+
+    return {node->inferredType, node->typeRef, size};
+}
+
+long long ScopeBuilder::constIntValue(semantic::AstNode* node, bool& ok)
+{
+    ok = false;
+    if (!node) return 0;
+
+    switch (node->getKind()) {
+    case semantic::AstKind::IntLit: {
+        const auto& lit = static_cast<semantic::IntLitNode&>(*node);
+        ok = true;
+        return lit.value;
+    }
+    case semantic::AstKind::UnaryOp: {
+        auto& unary = static_cast<semantic::UnaryOpNode&>(*node);
+        if (unary.op != semantic::UnaryOpKind::Minus && unary.op != semantic::UnaryOpKind::Plus) {
+            return 0;
+        }
+        bool childOk = false;
+        const long long value = constIntValue(unary.operand.get(), childOk);
+        ok = childOk;
+        return unary.op == semantic::UnaryOpKind::Minus ? -value : value;
+    }
+    default:
+        return 0;
+    }
+}
+
+int ScopeBuilder::declareIdentifier(
+    semantic::AstNode& owner, const std::string& name,
+    semantic::ObjectKind obj,
+    TypeInfo type,
+    int adr = 0,
+    bool nrm = true
+)
+{
+    if (name.empty()) return semantic::NO_INDEX;
+
+    if (symTab->lookupCurrentScope(name) != semantic::NO_INDEX) {
+        report(owner, "redeklarasi identifier '" + name + "'");
+        owner.inferredType = semantic::TypeKind::Error;
+        return semantic::NO_INDEX;
+    }
+
+    const int index = symTab->insert(name, obj, type.type, type.ref, adr, nrm);
+    owner.tabIdx = index;
+    owner.inferredType = type.type;
+    owner.typeRef = type.ref;
+    owner.level = symTab->currentLevel();
+    return index;
+}
+
+int ScopeBuilder::lookupIdentifier(semantic::AstNode& owner, const std::string& name)
+{
+    const int index = symTab->lookup(name);
+    if (index == semantic::NO_INDEX) {
+        report(owner, "identifier '" + name + "' belum dideklarasikan");
+    }
+    return index;
+}
+
+int ScopeBuilder::allocateAddress(int size)
+{
+    const int block = symTab->currentBlock();
+    if (block == semantic::NO_INDEX) return 0;
+
+    auto& btab = symTab->btabAt(block);
+    const int adr = btab.vsze;
+    btab.vsze += size > 0 ? size : 1;
+    return adr;
+
+}
+
+void ScopeBuilder::report(const semantic::AstNode& node, const std::string& message)
+{
+    std::ostringstream out;
+    out << "[Semantic error]";
+    if (node.line != semantic::NO_INDEX) {
+        out << " line " << node.line;
+        if (node.column != semantic::NO_INDEX) out << ", column " << node.column;
+    }
+    out << ": " << message;
+    errorMsg.push_back(out.str());
 }
