@@ -2,7 +2,7 @@
 #include "symbol_table.hpp"
 #include "ast_nodes.hpp"
 #include "vector"
-#include "string"
+#include "iostream"
 
 class ScopeBuilder
 {
