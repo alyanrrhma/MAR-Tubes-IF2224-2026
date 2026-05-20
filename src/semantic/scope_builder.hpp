@@ -75,7 +75,7 @@ private:
     int allocateAddress(int size);
     void report(const semantic::AstNode& node, const std::string& message);
 
-    bool sameName(const std::string& lsh, const std::string& rhs);
+    bool sameName(const std::string& lhs, const std::string& rhs);
     int primitiveSize(semantic::TypeKind type);
 
 public:
