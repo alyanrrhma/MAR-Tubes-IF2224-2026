@@ -592,8 +592,8 @@ int ScopeBuilder::declareIdentifier(
     semantic::AstNode& owner, const std::string& name,
     semantic::ObjectKind obj,
     TypeInfo type,
-    int adr = 0,
-    bool nrm = true
+    int adr,
+    bool nrm
 )
 {
     if (name.empty()) return semantic::NO_INDEX;
@@ -643,4 +643,46 @@ void ScopeBuilder::report(const semantic::AstNode& node, const std::string& mess
     }
     out << ": " << message;
     errorMsg.push_back(out.str());
+}
+
+void ScopeBuilder::visit(semantic::AstNode* node)
+{
+    if (!node) return;
+    node->level = symTab->currentLevel();
+
+    switch (node->getKind())
+    {
+        case semantic::AstKind::Program: visitProgramNode(static_cast<semantic::ProgramNode&>(*node)); break;
+        case semantic::AstKind::DeclPart: visitDeclarationNode(static_cast<semantic::DeclarationNode&>(*node)); break;
+        case semantic::AstKind::Block: visitBlockNode(static_cast<semantic::BlockNode&>(*node), false); break;
+        case semantic::AstKind::ConstDecl: visitConstDeclNode(static_cast<semantic::ConstDeclNode&>(*node)); break;
+        case semantic::AstKind::TypeDecl: visitTypeDeclNode(static_cast<semantic::TypeDeclNode&>(*node)); break;
+        case semantic::AstKind::VarDecl: visitVarDeclNode(static_cast<semantic::VarDeclNode&>(*node)); break;
+        case semantic::AstKind::ProcDecl: visitProcDeclNode(static_cast<semantic::ProcDeclNode&>(*node)); break;
+        case semantic::AstKind::FuncDecl: visitFuncDeclNode(static_cast<semantic::FuncDeclNode&>(*node)); break;
+        case semantic::AstKind::SimpleType: visitSimpleTypeNode(static_cast<semantic::SimpleTypeNode&>(*node)); break;
+        case semantic::AstKind::ArrayType: visitArrayTypeNode(static_cast<semantic::ArrayTypeNode&>(*node)); break;
+        case semantic::AstKind::RecordType: visitRecordTypeNode(static_cast<semantic::RecordTypeNode&>(*node)); break;
+        case semantic::AstKind::Range: visitRangeNode(static_cast<semantic::RangeNode&>(*node)); break;
+        case semantic::AstKind::EnumeratedType: visitEnumeratedTypeNode(static_cast<semantic::EnumeratedTypeNode&>(*node)); break;
+        case semantic::AstKind::Assign: visitAssignNode(static_cast<semantic::AssignNode&>(*node)); break;
+        case semantic::AstKind::ProcCall: visitProcCallNode(static_cast<semantic::ProcCallNode&>(*node)); break;
+        case semantic::AstKind::If: visitIfNode(static_cast<semantic::IfNode&>(*node)); break;
+        case semantic::AstKind::Case: visitCaseNode(static_cast<semantic::CaseNode&>(*node)); break;
+        case semantic::AstKind::CaseBranch: visitCaseBranchNode(static_cast<semantic::CaseBranchNode&>(*node)); break;
+        case semantic::AstKind::While: visitWhileNode(static_cast<semantic::WhileNode&>(*node)); break;
+        case semantic::AstKind::Repeat: visitRepeatNode(static_cast<semantic::RepeatNode&>(*node)); break;
+        case semantic::AstKind::For: visitForNode(static_cast<semantic::ForNode&>(*node)); break;
+        case semantic::AstKind::Compound: visitCompoundNode(static_cast<semantic::CompoundNode&>(*node)); break;
+        case semantic::AstKind::BinOp: visitBinOpNode(static_cast<semantic::BinOpNode&>(*node)); break;
+        case semantic::AstKind::UnaryOp: visitUnaryOpNode(static_cast<semantic::UnaryOpNode&>(*node)); break;
+        case semantic::AstKind::Var: visitVarNode(static_cast<semantic::VarNode&>(*node)); break;
+        case semantic::AstKind::IntLit: visitIntLitNode(static_cast<semantic::IntLitNode&>(*node)); break;
+        case semantic::AstKind::RealLit: visitRealLitNode(static_cast<semantic::RealLitNode&>(*node)); break;
+        case semantic::AstKind::CharLit: visitCharLitNode(static_cast<semantic::CharLitNode&>(*node)); break;
+        case semantic::AstKind::StringLit: visitStringLitNode(static_cast<semantic::StringLitNode&>(*node)); break;
+        case semantic::AstKind::BoolLit: visitBoolLitNode(static_cast<semantic::BoolLitNode&>(*node)); break;
+        case semantic::AstKind::ArrayAccess: visitArrayAccessNode(static_cast<semantic::ArrayAccessNode&>(*node)); break;
+        case semantic::AstKind::FieldAccess: visitFieldAccessNode(static_cast<semantic::FieldAccessNode&>(*node)); break;
+    }
 }
