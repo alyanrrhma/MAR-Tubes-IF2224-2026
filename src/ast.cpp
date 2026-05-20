@@ -12,6 +12,7 @@
 #include "parser/parser.hpp"
 #include "semantic/ast_builder.hpp"
 #include "semantic/ast_nodes.hpp"
+#include "semantic/scope_builder.hpp"
 
 namespace fs = std::filesystem;
 
@@ -106,8 +107,21 @@ int main(int argc, char* argv[]) { // EDIT MARK
         AstBuilder builder;
         semantic::AstPtr astRoot = builder.build(parseRoot);
 
+        ScopeBuilder scopeBuilder;
+        scopeBuilder.build(astRoot);
+
+        const auto printSemanticResult = [&](std::ostream& out) {
+            semantic::printAst(out, astRoot.get());
+            out << "\n";
+            scopeBuilder.printTables(out);
+            if (scopeBuilder.hasErrors()) {
+                out << "\nSemantic errors\n";
+                scopeBuilder.printErrors(out);
+            }
+        };
+
         if (astOutputFilename.empty()) {
-            semantic::printAst(std::cout, astRoot.get());
+            printSemanticResult(std::cout);
         } else {
             ensureParentDirectoryExists(astOutputFilename);
             std::ofstream astOutputFile(astOutputFilename);
@@ -116,8 +130,8 @@ int main(int argc, char* argv[]) { // EDIT MARK
                           << astOutputFilename << "\n";
                 return 1;
             }
-            semantic::printAst(astOutputFile, astRoot.get());
-            std::cout << "AST output disimpan di: " << astOutputFilename << "\n";
+            printSemanticResult(astOutputFile);
+            std::cout << "AST dan symbol table output disimpan di: " << astOutputFilename << "\n";
         }
     } catch (const LexerException& e) {
         std::cerr << e.full_message() << "\n";
