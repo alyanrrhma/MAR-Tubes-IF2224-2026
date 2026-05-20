@@ -7,40 +7,74 @@
 class ScopeBuilder
 {
 private:
+    struct TypeInfo {
+        semantic::TypeKind type = semantic::TypeKind::Unknown;
+        int ref = semantic::NO_INDEX;
+        int size = 1;
+    };
     std::unique_ptr<semantic::SymbolTable> symTab;
     std::vector<std::string> errorMsg;
-    void visitBlockNode(semantic::BlockNode& astPtr);
-    void visitProgramNode(semantic::ProgramNode& astPtr);
-    void visitConstDeclNode(semantic::ConstDeclNode& astPtr);
-    void visitTypeDeclNode(semantic::TypeDeclNode& astPtr);
-    void visitVarDeclNode(semantic::VarDeclNode& astPtr);
-    void visitFormalParam(semantic::FormalParam& astPtr);
-    void visitProcDeclNode(semantic::ProcDeclNode& astPtr);
-    void visitFuncDeclNode(semantic::FuncDeclNode& astPtr);
-    void visitSimpleTypeNode(semantic::SimpleTypeNode& astPtr);
-    void visitRangeNode(semantic::RangeNode& astPtr);
-    void visitArrayTypeNode(semantic::ArrayTypeNode& astPtr);
-    void visitRecordTypeNode(semantic::RecordTypeNode& astPtr);
-    void visitEnumeratedTypeNode(semantic::EnumeratedTypeNode& astPtr);
-    void visitAssignNode(semantic::AssignNode& astPtr);
-    void visitProcCallNode(semantic::ProcCallNode& astPtr);
-    void visitIfNode(semantic::IfNode& astPtr);
-    void visitCaseBranchNode(semantic::CaseBranchNode& astPtr);
-    void visitCaseNode(semantic::CaseNode& astPtr);
-    void visitWhileNode(semantic::WhileNode& astPtr);
-    void visitRepeatNode(semantic::RepeatNode& astPtr);
-    void visitForNode(semantic::ForNode& astPtr);
-    void visitCompoundNode(semantic::CompoundNode& astPtr);
-    void visitBinOpNode(semantic::BinOpNode& astPtr);
-    void visitUnaryOpNode(semantic::UnaryOpNode& astPtr);
-    void visitVarNode(semantic::VarNode& astPtr);
-    void visitIntLitNode(semantic::IntLitNode& astPtr);
-    void visitRealLitNode(semantic::RealLitNode& astPtr);
-    void visitCharLitNode(semantic::CharLitNode& astPtr);
-    void visitStringLitNode(semantic::StringLitNode& astPtr);
-    void visitBoolLitNode(semantic::BoolLitNode& astPtr);
-    void visitArrayAccessNode(semantic::ArrayAccessNode& astPtr);
-    void visitFieldAccessNode(semantic::FieldAccessNode& astPtr);
+
+    void visit(semantic::AstNode* node);
+    void visit(semantic::AstPtr& astPtr) {visit(astPtr.get());}
+
+    void visitDeclarationNode(semantic::DeclarationNode& node);
+    void visitBlockNode(semantic::BlockNode& node, bool ownScope);
+    void visitProgramNode(semantic::ProgramNode& node);
+    void visitConstDeclNode(semantic::ConstDeclNode& node);
+    void visitTypeDeclNode(semantic::TypeDeclNode& node);
+    void visitVarDeclNode(semantic::VarDeclNode& node);
+    void visitFormalParam(semantic::FormalParam& param);
+    void visitProcDeclNode(semantic::ProcDeclNode& node);
+    void visitFuncDeclNode(semantic::FuncDeclNode& node);
+    void visitSimpleTypeNode(semantic::SimpleTypeNode& node);
+    void visitRangeNode(semantic::RangeNode& node);
+    void visitArrayTypeNode(semantic::ArrayTypeNode& node);
+    void visitRecordTypeNode(semantic::RecordTypeNode& node);
+    void visitEnumeratedTypeNode(semantic::EnumeratedTypeNode& node);
+    void visitAssignNode(semantic::AssignNode& node);
+    void visitProcCallNode(semantic::ProcCallNode& node);
+    void visitIfNode(semantic::IfNode& node);
+    void visitCaseBranchNode(semantic::CaseBranchNode& node);
+    void visitCaseNode(semantic::CaseNode& node);
+    void visitWhileNode(semantic::WhileNode& node);
+    void visitRepeatNode(semantic::RepeatNode& node);
+    void visitForNode(semantic::ForNode& node);
+    void visitCompoundNode(semantic::CompoundNode& node);
+    void visitBinOpNode(semantic::BinOpNode& node);
+    void visitUnaryOpNode(semantic::UnaryOpNode& node);
+    void visitVarNode(semantic::VarNode& node);
+    void visitIntLitNode(semantic::IntLitNode& node);
+    void visitRealLitNode(semantic::RealLitNode& node);
+    void visitCharLitNode(semantic::CharLitNode& node);
+    void visitStringLitNode(semantic::StringLitNode& node);
+    void visitBoolLitNode(semantic::BoolLitNode& node);
+    void visitArrayAccessNode(semantic::ArrayAccessNode& node);
+    void visitFieldAccessNode(semantic::FieldAccessNode& node);
+
+    TypeInfo resolveTypeExpr(semantic::AstNode* node);
+    TypeInfo resolveSimpleType(semantic::SimpleTypeNode& node);
+    TypeInfo resolveArrayType(semantic::ArrayTypeNode& node);
+    TypeInfo resolveRecordType(semantic::RecordTypeNode& node);
+    TypeInfo resolveRangeType(semantic::RangeNode& node);
+    TypeInfo resolveEnumeratedType(semantic::EnumeratedTypeNode& node);
+
+    TypeInfo inferExpression(semantic::AstNode* node);
+    long long constIntValue(semantic::AstNode* node, bool& ok);
+
+    int declareIdentifier(
+        semantic::AstNode& owner, const std::string& name,
+        semantic::ObjectKind obj,
+        TypeInfo type,
+        int adr = 0,
+        bool nrm = true
+    );
+
+    int lookupIdentifier(semantic::AstNode& owner, const std::string& name);
+
+    int allocateAddress(int size);
+    void report(const semantic::AstNode& node, const std::string& message);
+
 public:
     explicit ScopeBuilder();
     void build(semantic::AstPtr& astPtr);
