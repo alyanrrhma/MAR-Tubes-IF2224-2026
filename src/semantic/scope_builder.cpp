@@ -1,137 +1,147 @@
 #include "scope_builder.hpp"
 
+const semantic::SymbolTable& ScopeBuilder::symbolTable() const {return *symTab;}
+semantic::SymbolTable& ScopeBuilder::symbolTable() {return *symTab;}
+const std::vector<std::string>& ScopeBuilder::errors() const {return errorMsg;}
+bool ScopeBuilder::hasErrors() const {return !errorMsg.empty();}
 
-void ScopeBuilder::visitBlockNode(semantic::BlockNode& astPtr)
+void ScopeBuilder::visit(semantic::AstPtr& astPtr) {visit(astPtr.get());}
+
+
+void ScopeBuilder::visitBlockNode(semantic::BlockNode& node, bool ownScope)
 {
-    symTab->pushBlock();
-    node.level = symTab->currentLevel();
+    if (ownScope)
+    {
+        symTab->pushBlock();
+        node.level = symTab->currentLevel();
+    }
 
     visit(node.declaration.get());
     visit(node.statements.get());
-
-    symTab->popBlock();
+    
+    if (ownScope) symTab->popBlock();
 }
-void ScopeBuilder::visitProgramNode(semantic::ProgramNode& astPtr)
+void ScopeBuilder::visitProgramNode(semantic::ProgramNode& node)
 {
 
 }
-void ScopeBuilder::visitConstDeclNode(semantic::ConstDeclNode& astPtr)
+void ScopeBuilder::visitConstDeclNode(semantic::ConstDeclNode& node)
 {
 
 }
-void ScopeBuilder::visitTypeDeclNode(semantic::TypeDeclNode& astPtr)
+void ScopeBuilder::visitTypeDeclNode(semantic::TypeDeclNode& node)
 {
 
 }
-void ScopeBuilder::visitVarDeclNode(semantic::VarDeclNode& astPtr)
+void ScopeBuilder::visitVarDeclNode(semantic::VarDeclNode& node)
 {
 
 }
-void ScopeBuilder::visitFormalParam(semantic::FormalParam& astPtr)
+void ScopeBuilder::visitFormalParam(semantic::FormalParam& param)
 {
 
 }
-void ScopeBuilder::visitProcDeclNode(semantic::ProcDeclNode& astPtr)
+void ScopeBuilder::visitProcDeclNode(semantic::ProcDeclNode& node)
 {
 
 }
-void ScopeBuilder::visitFuncDeclNode(semantic::FuncDeclNode& astPtr)
+void ScopeBuilder::visitFuncDeclNode(semantic::FuncDeclNode& node)
 {
 
 }
-void ScopeBuilder::visitSimpleTypeNode(semantic::SimpleTypeNode& astPtr)
+void ScopeBuilder::visitSimpleTypeNode(semantic::SimpleTypeNode& node)
 {
 
 }
-void ScopeBuilder::visitRangeNode(semantic::RangeNode& astPtr)
+void ScopeBuilder::visitRangeNode(semantic::RangeNode& node)
 {
 
 }
-void ScopeBuilder::visitArrayTypeNode(semantic::ArrayTypeNode& astPtr)
+void ScopeBuilder::visitArrayTypeNode(semantic::ArrayTypeNode& node)
 {
 
 }
-void ScopeBuilder::visitRecordTypeNode(semantic::RecordTypeNode& astPtr)
+void ScopeBuilder::visitRecordTypeNode(semantic::RecordTypeNode& node)
 {
 
 }
-void ScopeBuilder::visitEnumeratedTypeNode(semantic::EnumeratedTypeNode& astPtr)
+void ScopeBuilder::visitEnumeratedTypeNode(semantic::EnumeratedTypeNode& node)
 {
 
 }
-void ScopeBuilder::visitAssignNode(semantic::AssignNode& astPtr)
+void ScopeBuilder::visitAssignNode(semantic::AssignNode& node)
 {
 
 }
-void ScopeBuilder::visitProcCallNode(semantic::ProcCallNode& astPtr)
+void ScopeBuilder::visitProcCallNode(semantic::ProcCallNode& node)
 {
 
 }
-void ScopeBuilder::visitIfNode(semantic::IfNode& astPtr)
+void ScopeBuilder::visitIfNode(semantic::IfNode& node)
 {
 
 }
-void ScopeBuilder::visitCaseBranchNode(semantic::CaseBranchNode& astPtr)
+void ScopeBuilder::visitCaseBranchNode(semantic::CaseBranchNode& node)
 {
 
 }
-void ScopeBuilder::visitCaseNode(semantic::CaseNode& astPtr)
+void ScopeBuilder::visitCaseNode(semantic::CaseNode& node)
 {
 
 }
-void ScopeBuilder::visitWhileNode(semantic::WhileNode& astPtr)
+void ScopeBuilder::visitWhileNode(semantic::WhileNode& node)
 {
 
 }
-void ScopeBuilder::visitRepeatNode(semantic::RepeatNode& astPtr)
+void ScopeBuilder::visitRepeatNode(semantic::RepeatNode& node)
 {
 
 }
-void ScopeBuilder::visitForNode(semantic::ForNode& astPtr)
+void ScopeBuilder::visitForNode(semantic::ForNode& node)
 {
 
 }
-void ScopeBuilder::visitCompoundNode(semantic::CompoundNode& astPtr)
+void ScopeBuilder::visitCompoundNode(semantic::CompoundNode& node)
 {
 
 }
-void ScopeBuilder::visitBinOpNode(semantic::BinOpNode& astPtr)
+void ScopeBuilder::visitBinOpNode(semantic::BinOpNode& node)
 {
 
 }
-void ScopeBuilder::visitUnaryOpNode(semantic::UnaryOpNode& astPtr)
+void ScopeBuilder::visitUnaryOpNode(semantic::UnaryOpNode& node)
 {
 
 }
-void ScopeBuilder::visitVarNode(semantic::VarNode& astPtr)
+void ScopeBuilder::visitVarNode(semantic::VarNode& node)
 {
 
 }
-void ScopeBuilder::visitIntLitNode(semantic::IntLitNode& astPtr)
+void ScopeBuilder::visitIntLitNode(semantic::IntLitNode& node)
 {
 
 }
-void ScopeBuilder::visitRealLitNode(semantic::RealLitNode& astPtr)
+void ScopeBuilder::visitRealLitNode(semantic::RealLitNode& node)
 {
 
 }
-void ScopeBuilder::visitCharLitNode(semantic::CharLitNode& astPtr)
+void ScopeBuilder::visitCharLitNode(semantic::CharLitNode& node)
 {
 
 }
-void ScopeBuilder::visitStringLitNode(semantic::StringLitNode& astPtr)
+void ScopeBuilder::visitStringLitNode(semantic::StringLitNode& node)
 {
 
 }
-void ScopeBuilder::visitBoolLitNode(semantic::BoolLitNode& astPtr)
+void ScopeBuilder::visitBoolLitNode(semantic::BoolLitNode& node)
 {
 
 }
-void ScopeBuilder::visitArrayAccessNode(semantic::ArrayAccessNode& astPtr)
+void ScopeBuilder::visitArrayAccessNode(semantic::ArrayAccessNode& node)
 {
 
 }
-void ScopeBuilder::visitFieldAccessNode(semantic::FieldAccessNode& astPtr)
+void ScopeBuilder::visitFieldAccessNode(semantic::FieldAccessNode& node)
 {
 
 }
