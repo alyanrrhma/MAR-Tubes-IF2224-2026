@@ -1,8 +1,8 @@
 #pragma once
 #include "symbol_table.hpp"
 #include "ast_nodes.hpp"
-#include "vector"
-#include "iostream"
+#include <vector>
+#include <iostream>
 
 class ScopeBuilder
 {
