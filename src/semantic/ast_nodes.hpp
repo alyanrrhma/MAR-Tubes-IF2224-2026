@@ -12,6 +12,7 @@ namespace semantic {
 
 enum class AstKind {
     Program,
+    DeclPart,
     Block,
     ConstDecl,
     TypeDecl,
@@ -104,17 +105,25 @@ using AstPtr = std::unique_ptr<AstNode>;
 
 void printAst(std::ostream& out, const AstNode* root);
 
+class DeclarationNode : public AstNode {
+public:
+    DeclarationNode();
+    std::vector<AstPtr> declarations; // EDIT MARK
+
+protected:
+    void printChildren(std::ostream& out, int depth) const override;
+};
+
+class CompoundNode;
+
 class BlockNode : public AstNode {
 public:
     BlockNode();
 
-    std::vector<AstPtr> constDecls;
-    std::vector<AstPtr> typeDecls;
-    std::vector<AstPtr> varDecls;
-    std::vector<AstPtr> subprogDecls;
-    std::vector<AstPtr> statements;
-
-protected:
+    std::unique_ptr<DeclarationNode> declaration;
+    std::unique_ptr<CompoundNode> statements;
+    
+    protected:
     void printChildren(std::ostream& out, int depth) const override;
 };
 
@@ -123,9 +132,9 @@ public:
     ProgramNode();
 
     std::string name;
-    std::vector<std::string> programParams;
-    std::unique_ptr<BlockNode> block;
-
+    std::unique_ptr<DeclarationNode> declaration;
+    std::unique_ptr<CompoundNode> statements;
+    
 protected:
     void printSelf(std::ostream& out) const override;
     void printChildren(std::ostream& out, int depth) const override;
@@ -159,7 +168,7 @@ class VarDeclNode : public AstNode {
 public:
     VarDeclNode();
 
-    std::vector<std::string> names;
+    std::string name;
     AstPtr typeExpr;
 
 protected:
@@ -168,7 +177,7 @@ protected:
 };
 
 struct FormalParam {
-    std::vector<std::string> names;
+    std::string name;
     AstPtr typeExpr;
     bool byReference = false;
 };
@@ -240,7 +249,6 @@ public:
     };
 
     RecordTypeNode();
-
     std::vector<FieldSection> fields;
 
 protected:

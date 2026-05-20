@@ -117,11 +117,6 @@ NodePtr Parser::parseProgramHeader() {
     NodePtr node = makeNonTerminal(NonTerminal::ProgramHeader);
     node->addChild(expectNode("PROGRAMSY"));
     node->addChild(expectNode("IDENT"));
-    if (check("LPARENT")) {
-        node->addChild(termNode());
-        node->addChild(parseIdentifierList());
-        node->addChild(expectNode("RPARENT"));
-    }
     node->addChild(expectNode("SEMICOLON"));
     return node;
 }
