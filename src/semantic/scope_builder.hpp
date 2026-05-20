@@ -16,7 +16,7 @@ private:
     std::vector<std::string> errorMsg;
 
     void visit(semantic::AstNode* node);
-    void visit(semantic::AstPtr& astPtr) {visit(astPtr.get());}
+    void visit(semantic::AstPtr& astPtr);
 
     void visitDeclarationNode(semantic::DeclarationNode& node);
     void visitBlockNode(semantic::BlockNode& node, bool ownScope);
@@ -78,4 +78,10 @@ private:
 public:
     explicit ScopeBuilder();
     void build(semantic::AstPtr& astPtr);
+    const semantic::SymbolTable& symbolTable() const;
+    semantic::SymbolTable& symbolTable();
+    const std::vector<std::string>& errors() const;
+    bool hasErrors() const;
+    void printTables(std::ostream& out) const;
+    void printErrors(std::ostream& out) const;
 };
