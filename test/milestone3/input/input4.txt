@@ -1,0 +1,21 @@
+program BranchingStatements;
+var
+  x, y, z: integer;
+begin
+  x := 10;
+  y := 20;
+  if x == y then
+    writeln('sama')
+  else begin
+    if x > y then
+      z := x
+    else
+      z := y;
+    writeln(z)
+  end;
+  case x of
+    1: writeln('satu');
+    2, 3: writeln('dua atau tiga');
+    10: writeln('sepuluh')
+  end
+end.
