@@ -4,9 +4,33 @@ const semantic::SymbolTable& ScopeBuilder::symbolTable() const {return *symTab;}
 semantic::SymbolTable& ScopeBuilder::symbolTable() {return *symTab;}
 const std::vector<std::string>& ScopeBuilder::errors() const {return errorMsg;}
 bool ScopeBuilder::hasErrors() const {return !errorMsg.empty();}
-
 void ScopeBuilder::visit(semantic::AstPtr& astPtr) {visit(astPtr.get());}
 
+ScopeBuilder::ScopeBuilder() : symTab(std::make_unique<semantic::SymbolTable>()) {}
+
+void ScopeBuilder::build(semantic::AstPtr& astPtr)
+{
+    symTab = std::make_unique<semantic::SymbolTable>();
+    symTab->initPredefined();
+    errorMsg.clear();
+    visit(astPtr);
+}
+
+void ScopeBuilder::printTables(std::ostream& out) const { symTab->printAll(out);}
+
+void ScopeBuilder::printErrors(std::ostream& out) const
+{
+    for (const auto& error: errorMsg)
+    {
+        out << error << '\n';
+    }
+}
+
+void ScopeBuilder::visitDeclarationNode(semantic::DeclarationNode& node) {
+    for (auto& decl : node.declarations) {
+        visit(decl);
+    }
+}
 
 void ScopeBuilder::visitBlockNode(semantic::BlockNode& node, bool ownScope)
 {
@@ -18,20 +42,26 @@ void ScopeBuilder::visitBlockNode(semantic::BlockNode& node, bool ownScope)
 
     visit(node.declaration.get());
     visit(node.statements.get());
-    
+
     if (ownScope) symTab->popBlock();
 }
+
 void ScopeBuilder::visitProgramNode(semantic::ProgramNode& node)
 {
-
+    node.level = symTab->currentLevel();
+    node.tabIdx = declareIdentifier(node, node.name, semantic::ObjectKind::Program, {semantic::TypeKind::Void, symTab->currentBlock(), 0});
 }
+
 void ScopeBuilder::visitConstDeclNode(semantic::ConstDeclNode& node)
 {
-
+    TypeInfo type = inferExpression(node.value.get());
+    node.inferredType = type.type;
+    node.typeRef = type.ref;
+    node.tabIdx = declareIdentifier(node, node.name, semantic::ObjectKind::Constant, type);
 }
 void ScopeBuilder::visitTypeDeclNode(semantic::TypeDeclNode& node)
 {
-
+    TypeInfo type = resolveTypeExpr(node.typeExpr.get());
 }
 void ScopeBuilder::visitVarDeclNode(semantic::VarDeclNode& node)
 {
