@@ -239,7 +239,7 @@ void ScopeBuilder::visitWhileNode(semantic::WhileNode& node)
 }
 void ScopeBuilder::visitRepeatNode(semantic::RepeatNode& node)
 {
-    for (auto& statement: node.body) visit(statement);
+    visit(node.body.get());
     inferExpression(node.condition.get());
 }
 

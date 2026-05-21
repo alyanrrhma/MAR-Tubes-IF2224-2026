@@ -317,20 +317,18 @@ semantic::FormalParam AstBuilder::visit_FormalParameterSection(const parse_tree:
 }
 
 std::unique_ptr<semantic::CompoundNode> AstBuilder::visit_CompoundStatement(const parse_tree::NodePtr& node) { // EDIT MARK
-    auto compound = std::make_unique<semantic::CompoundNode>();
-    annotate(compound.get(), node);
-    compound->statements = visit_StatementList(children(node).at(1));
-    return compound;
+    return visit_StatementList(children(node).at(1));
 }
 
-std::vector<semantic::AstPtr> AstBuilder::visit_StatementList(const parse_tree::NodePtr& node) { // EDIT MARK
-    std::vector<semantic::AstPtr> statements;
+std::unique_ptr<semantic::CompoundNode> AstBuilder::visit_StatementList(const parse_tree::NodePtr& node) { // EDIT MARK
+    auto compound = std::make_unique<semantic::CompoundNode>();
+    annotate(compound.get(), node);
     for (const auto& child : children(node)) {
         if (!isLabel(child, "statement")) continue;
         auto stmt = visit_Statement(child);
-        if (stmt) statements.push_back(std::move(stmt));
+        if (stmt) compound->statements.push_back(std::move(stmt));
     }
-    return statements;
+    return compound;
 }
 
 semantic::AstPtr AstBuilder::visit_Statement(const parse_tree::NodePtr& node) { // EDIT MARK

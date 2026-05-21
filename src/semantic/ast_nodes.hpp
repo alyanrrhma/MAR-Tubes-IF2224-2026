@@ -337,7 +337,7 @@ class RepeatNode : public AstNode {
 public:
     RepeatNode();
 
-    std::vector<AstPtr> body;
+    std::unique_ptr<CompoundNode> body;
     AstPtr condition;
 
 protected:

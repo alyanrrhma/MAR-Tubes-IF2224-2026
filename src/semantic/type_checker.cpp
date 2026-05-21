@@ -325,9 +325,7 @@ void TypeChecker::visitWhile(semantic::WhileNode& n)
 void TypeChecker::visitRepeat(semantic::RepeatNode& n)
 {
     ++loopDepth_;
-    for (auto& stmt : n.body) {
-        visit(stmt.get());
-    }
+    visit(n.body.get());
     --loopDepth_;
 
     visit(n.condition.get());

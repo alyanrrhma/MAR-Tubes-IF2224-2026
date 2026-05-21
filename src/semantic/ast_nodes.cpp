@@ -461,9 +461,7 @@ void printNodePretty(std::ostream& out, const AstNode* node, const std::string& 
     if (const auto* repeatNode = dynamic_cast<const RepeatNode*>(node)) {
         out << "Repeat(until: " << exprToString(repeatNode->condition.get()) << ")\n";
         const std::string childPrefix = prefix + (last ? "    " : "|   ");
-        std::vector<const AstNode*> body;
-        for (const auto& statement : repeatNode->body) body.push_back(statement.get());
-        printChildrenPretty(out, body, childPrefix);
+        printNodePretty(out, repeatNode->body.get(), childPrefix, true);
         return;
     }
 
@@ -698,7 +696,7 @@ void WhileNode::printChildren(std::ostream& out, int depth) const {
 RepeatNode::RepeatNode() : AstNode(AstKind::Repeat) {}
 
 void RepeatNode::printChildren(std::ostream& out, int depth) const {
-    printList(out, depth, "body", body);
+    printLabeled(out, depth, "body", body.get());
     printLabeled(out, depth, "until", condition.get());
 }
 

@@ -41,7 +41,7 @@ private:
     semantic::FormalParam visit_ParameterGroup(const parse_tree::NodePtr& node); // EDIT MARK
     semantic::FormalParam visit_FormalParameterSection(const parse_tree::NodePtr& node); // EDIT MARK
     std::unique_ptr<semantic::CompoundNode> visit_CompoundStatement(const parse_tree::NodePtr& node); // EDIT MARK
-    std::vector<semantic::AstPtr> visit_StatementList(const parse_tree::NodePtr& node); // EDIT MARK
+    std::unique_ptr<semantic::CompoundNode> visit_StatementList(const parse_tree::NodePtr& node); // EDIT MARK
     semantic::AstPtr visit_Statement(const parse_tree::NodePtr& node); // EDIT MARK
     std::unique_ptr<semantic::AssignNode> visit_AssignmentStatement(const parse_tree::NodePtr& node); // EDIT MARK
     std::unique_ptr<semantic::ProcCallNode> visit_ProcedureFunctionCall(const parse_tree::NodePtr& node); // EDIT MARK
