@@ -341,8 +341,16 @@ void TypeChecker::visitRepeat(semantic::RepeatNode& n)
 
 void TypeChecker::visitFor(semantic::ForNode& n)
 {
+    bool validControlVar = false;
+    const auto& entry = sym_->tabAt(n.tabIdx);
+    
+    if (entry.obj != semantic::ObjectKind::Variable)
+    {
+        report(n, "Variabel kontrol " + n.controlVar + " harus berupa variabel");
+    }
+    else validControlVar = true;
+    
     if (n.tabIdx != semantic::NO_INDEX) {
-        const auto& entry = sym_->tabAt(n.tabIdx);
         const semantic::TypeKind ct = entry.type;
         if (ct != semantic::TypeKind::Integer &&
             ct != semantic::TypeKind::Subrange &&
@@ -376,6 +384,8 @@ void TypeChecker::visitFor(semantic::ForNode& n)
             reportTypeMismatch(*n.endExpr, "nilai akhir for", semantic::TypeKind::Integer, et);
         }
     }
+
+    if (validControlVar) initialized_.insert(n.tabIdx);
 
     ++loopDepth_;
     visit(n.body.get());
