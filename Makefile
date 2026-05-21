@@ -23,7 +23,8 @@ SRCS = $(SRC_DIR)/main.cpp \
 	$(SEMANTIC_DIR)/ast_nodes.cpp \
 	$(SEMANTIC_DIR)/ast_builder.cpp \
 	$(SEMANTIC_DIR)/symbol_table.cpp \
-	$(SEMANTIC_DIR)/scope_builder.cpp
+	$(SEMANTIC_DIR)/scope_builder.cpp \
+	$(SEMANTIC_DIR)/type_checker.cpp
 
 AST_SRCS = $(SRC_DIR)/ast.cpp \
 	$(LEXER_DIR)/dfa.cpp \
@@ -34,7 +35,8 @@ AST_SRCS = $(SRC_DIR)/ast.cpp \
 	$(SEMANTIC_DIR)/ast_nodes.cpp \
 	$(SEMANTIC_DIR)/ast_builder.cpp \
 	$(SEMANTIC_DIR)/symbol_table.cpp \
-	$(SEMANTIC_DIR)/scope_builder.cpp
+	$(SEMANTIC_DIR)/scope_builder.cpp \
+	$(SEMANTIC_DIR)/type_checker.cpp
 
 # Object files
 OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS))
