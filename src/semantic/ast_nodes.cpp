@@ -452,16 +452,27 @@ void printNodePretty(std::ostream& out, const AstNode* node, const std::string& 
     }
 
     if (const auto* whileNode = dynamic_cast<const WhileNode*>(node)) {
-        out << "While(condition: " << exprToString(whileNode->condition.get()) << ")\n";
+        out << "While\n";
         const std::string childPrefix = prefix + (last ? "    " : "|   ");
+        printExprPretty(out, "condition", whileNode->condition.get(), childPrefix, false);
         printNodePretty(out, whileNode->body.get(), childPrefix, true);
         return;
     }
 
     if (const auto* repeatNode = dynamic_cast<const RepeatNode*>(node)) {
-        out << "Repeat(until: " << exprToString(repeatNode->condition.get()) << ")\n";
+        out << "Repeat\n";
         const std::string childPrefix = prefix + (last ? "    " : "|   ");
-        printNodePretty(out, repeatNode->body.get(), childPrefix, true);
+        // Print the block as the first child, and the `until` expression as a
+        // sibling so they appear at the same level in the tree output.
+        if (repeatNode->body) {
+            printNodePretty(out, repeatNode->body.get(), childPrefix, false);
+        } else {
+            // If there's no body, still emit an empty Block node
+            out << childPrefix << ("\\-- Block\n");
+        }
+
+        // Now print the until expression as the last child of Repeat
+        printExprPretty(out, "until", repeatNode->condition.get(), childPrefix, true);
         return;
     }
 
@@ -696,8 +707,13 @@ void WhileNode::printChildren(std::ostream& out, int depth) const {
 RepeatNode::RepeatNode() : AstNode(AstKind::Repeat) {}
 
 void RepeatNode::printChildren(std::ostream& out, int depth) const {
+    if (!body) {
+        printLabeled(out, depth, "until", condition.get());
+        return;
+    }
+
     printLabeled(out, depth, "body", body.get());
-    printLabeled(out, depth, "until", condition.get());
+    printLabeled(out, depth + 2, "until", condition.get());
 }
 
 ForNode::ForNode() : AstNode(AstKind::For) {}
