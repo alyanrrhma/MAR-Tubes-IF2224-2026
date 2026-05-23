@@ -69,10 +69,9 @@ atab (array table)
   ---  ----------  ----------  ----  ----  ----  ----  ----
     0  unknown     unknown       -1     0     0     1     0
     1  char        char          -1    65    69     1     5
-    2  subrange    integer       -1    65    69     1     5
+    2  char        integer       -1    65    69     1     5
     3  integer     integer       -1     0   127     1   128
-    4  subrange    integer       -1     0   127     1   128
+    4  integer     integer       -1     0   127     1   128
 
 Type errors
-[Type error]: type mismatch pada indeks array: diharapkan 'integer', tetapi mendapat 'char'
 [Type error]: type mismatch pada indeks array: diharapkan 'integer', tetapi mendapat 'char'

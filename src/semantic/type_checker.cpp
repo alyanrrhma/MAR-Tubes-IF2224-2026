@@ -634,13 +634,6 @@ void TypeChecker::visitArrayAccess(semantic::ArrayAccessNode& n)
     for (auto& idx : n.indices) {
         visit(idx.get());
         if (!idx) continue;
-        const semantic::TypeKind it = idx->inferredType;
-        if (it != semantic::TypeKind::Integer &&
-            it != semantic::TypeKind::Subrange &&
-            it != semantic::TypeKind::Error &&
-            it != semantic::TypeKind::Unknown) {
-            reportTypeMismatch(*idx, "indeks array", semantic::TypeKind::Integer, it);
-        }
 
         if (currentType != semantic::TypeKind::Array || currentRef == semantic::NO_INDEX) {
             report(n, "jumlah indeks melebihi dimensi array");
@@ -649,6 +642,14 @@ void TypeChecker::visitArrayAccess(semantic::ArrayAccessNode& n)
         }
 
         const auto& ent = sym_->atabAt(currentRef);
+        const semantic::TypeKind it = idx->inferredType;
+        const semantic::TypeKind expectedIndexType = ent.xtyp;
+        if (it != semantic::TypeKind::Error &&
+            it != semantic::TypeKind::Unknown &&
+            expectedIndexType != semantic::TypeKind::Unknown &&
+            !compatibleWithRef(expectedIndexType, semantic::NO_INDEX, it, idx->typeRef)) {
+            reportTypeMismatch(*idx, "indeks array", expectedIndexType, it);
+        }
         long long literalValue = 0;
         bool hasLiteral = false;
 

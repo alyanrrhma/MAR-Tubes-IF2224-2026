@@ -478,13 +478,19 @@ ScopeBuilder::TypeInfo ScopeBuilder::resolveArrayType(semantic::ArrayTypeNode& n
 
         TypeInfo indexType = resolveTypeExpr(range);
         if (!lowOk || !highOk) {
-            report(*range, "batas array harus berupa integer");
+            report(*range, "batas array harus berupa konstanta ordinal");
+        }
+
+        semantic::TypeKind indexBaseType = indexType.type;
+        if (indexType.type == semantic::TypeKind::Subrange &&
+            indexType.ref != semantic::NO_INDEX) {
+            indexBaseType = symTab->atabAt(indexType.ref).xtyp;
         }
 
         const int arrayRef = symTab->addArrayType(
             low,
             high,
-            indexType.type,
+            indexBaseType,
             element.type,
             element.ref,
             element.size);
