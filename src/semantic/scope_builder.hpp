@@ -33,6 +33,7 @@ private:
     void visitRecordTypeNode(semantic::RecordTypeNode& node);
     void visitEnumeratedTypeNode(semantic::EnumeratedTypeNode& node);
     void visitAssignNode(semantic::AssignNode& node);
+    void visitReturnNode(semantic::ReturnNode& node);
     void visitProcCallNode(semantic::ProcCallNode& node);
     void visitIfNode(semantic::IfNode& node);
     void visitCaseBranchNode(semantic::CaseBranchNode& node);

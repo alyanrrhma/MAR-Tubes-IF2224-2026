@@ -267,7 +267,11 @@ std::unique_ptr<semantic::FuncDeclNode> AstBuilder::visit_FunctionDeclaration(co
     decl->name = std::move(std::get<0>(heading));
     decl->params = std::move(std::get<1>(heading));
     decl->returnType = makeSimpleType(std::get<2>(heading), children(node).at(0));
+
+    const auto savedFunctionName = currentFunctionName_;
+    currentFunctionName_ = decl->name;
     decl->block = visit_Block(children(node).at(2));
+    currentFunctionName_ = savedFunctionName;
     return decl;
 }
 
@@ -345,11 +349,25 @@ semantic::AstPtr AstBuilder::visit_Statement(const parse_tree::NodePtr& node) { 
     return visit_Empty(child);
 }
 
-std::unique_ptr<semantic::AssignNode> AstBuilder::visit_AssignmentStatement(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::AstPtr AstBuilder::visit_AssignmentStatement(const parse_tree::NodePtr& node) { // EDIT MARK
+    auto target = visit_Variable(children(node).at(0));
+    auto value = visit_Expression(children(node).at(2));
+
+    if (!currentFunctionName_.empty()) {
+        if (auto* varNode = dynamic_cast<semantic::VarNode*>(target.get())) {
+            if (varNode->name == currentFunctionName_) {
+                auto ret = std::make_unique<semantic::ReturnNode>();
+                annotate(ret.get(), node);
+                ret->value = std::move(value);
+                return ret;
+            }
+        }
+    }
+
     auto assign = std::make_unique<semantic::AssignNode>();
     annotate(assign.get(), node);
-    assign->target = visit_Variable(children(node).at(0));
-    assign->value = visit_Expression(children(node).at(2));
+    assign->target = std::move(target);
+    assign->value = std::move(value);
     return assign;
 }
 

@@ -23,7 +23,9 @@ private:
 
     int loopDepth_ = 0;
     int assignmentTargetDepth_ = 0;
+    bool suppressGlobalInitCheck_ = false;
     std::unordered_set<int> initialized_;
+    int currentFunctionIdx_ = semantic::NO_INDEX;
 
     void visit(semantic::AstNode* node);
 
@@ -37,6 +39,7 @@ private:
     void visitFuncDecl(semantic::FuncDeclNode& n);
 
     void visitAssign(semantic::AssignNode& n);
+    void visitReturn(semantic::ReturnNode& n);
     void visitProcCall(semantic::ProcCallNode& n);
     void visitIf(semantic::IfNode& n);
     void visitCase(semantic::CaseNode& n);
@@ -84,6 +87,13 @@ private:
     void markInitialized(semantic::AstNode* node);
     void seedInitiallyInitialized();
     bool constantValue(const semantic::AstNode* node, long long& value) const;
+
+    bool isFunctionReturnAssign(const semantic::AssignNode& node, int functionIdx) const;
+    bool statementMustReturn(const semantic::AstNode* node, int functionIdx) const;
+    bool compoundMustReturn(const semantic::CompoundNode& node, int functionIdx) const;
+    bool ifMustReturn(const semantic::IfNode& node, int functionIdx) const;
+    bool caseMustReturn(const semantic::CaseNode& node, int functionIdx) const;
+    bool repeatMustReturn(const semantic::RepeatNode& node, int functionIdx) const;
 
     void report(const semantic::AstNode& node, const std::string& msg);
     void reportTypeMismatch(const semantic::AstNode& node,

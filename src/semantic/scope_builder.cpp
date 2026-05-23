@@ -195,6 +195,15 @@ void ScopeBuilder::visitAssignNode(semantic::AssignNode& node)
     if (node.target) node.tabIdx = node.target->tabIdx;
     (void) lhs;
 }
+
+void ScopeBuilder::visitReturnNode(semantic::ReturnNode& node)
+{
+    TypeInfo value = inferExpression(node.value.get());
+    node.inferredType = value.type;
+    node.typeRef = value.ref;
+    if (node.value) node.tabIdx = node.value->tabIdx;
+}
+
 void ScopeBuilder::visitProcCallNode(semantic::ProcCallNode& node)
 {
     const int index = lookupIdentifier(node, node.name);
@@ -798,6 +807,7 @@ void ScopeBuilder::visit(semantic::AstNode* node)
         case semantic::AstKind::Range: visitRangeNode(static_cast<semantic::RangeNode&>(*node)); break;
         case semantic::AstKind::EnumeratedType: visitEnumeratedTypeNode(static_cast<semantic::EnumeratedTypeNode&>(*node)); break;
         case semantic::AstKind::Assign: visitAssignNode(static_cast<semantic::AssignNode&>(*node)); break;
+        case semantic::AstKind::Return: visitReturnNode(static_cast<semantic::ReturnNode&>(*node)); break;
         case semantic::AstKind::ProcCall: visitProcCallNode(static_cast<semantic::ProcCallNode&>(*node)); break;
         case semantic::AstKind::If: visitIfNode(static_cast<semantic::IfNode&>(*node)); break;
         case semantic::AstKind::Case: visitCaseNode(static_cast<semantic::CaseNode&>(*node)); break;

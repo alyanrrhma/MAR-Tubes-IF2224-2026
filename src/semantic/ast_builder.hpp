@@ -43,7 +43,7 @@ private:
     std::unique_ptr<semantic::CompoundNode> visit_CompoundStatement(const parse_tree::NodePtr& node); // EDIT MARK
     std::unique_ptr<semantic::CompoundNode> visit_StatementList(const parse_tree::NodePtr& node); // EDIT MARK
     semantic::AstPtr visit_Statement(const parse_tree::NodePtr& node); // EDIT MARK
-    std::unique_ptr<semantic::AssignNode> visit_AssignmentStatement(const parse_tree::NodePtr& node); // EDIT MARK
+    semantic::AstPtr visit_AssignmentStatement(const parse_tree::NodePtr& node); // EDIT MARK
     std::unique_ptr<semantic::ProcCallNode> visit_ProcedureFunctionCall(const parse_tree::NodePtr& node); // EDIT MARK
     std::unique_ptr<semantic::ProcCallNode> visit_ProcedureCallStatement(const parse_tree::NodePtr& node); // EDIT MARK
     std::unique_ptr<semantic::IfNode> visit_IfStatement(const parse_tree::NodePtr& node); // EDIT MARK
@@ -66,6 +66,9 @@ private:
     std::vector<semantic::AstPtr> visit_IndexList(const parse_tree::NodePtr& node); // EDIT MARK
     semantic::AstPtr visit_Constant(const parse_tree::NodePtr& node); // EDIT MARK
     semantic::AstPtr visit_Empty(const parse_tree::NodePtr& node); // EDIT MARK
+private:
+    std::string currentFunctionName_;
+
 public:
     semantic::AstPtr build(const parse_tree::NodePtr& root); // EDIT MARK
 };

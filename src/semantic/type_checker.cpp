@@ -15,6 +15,7 @@ void TypeChecker::check(semantic::AstNode* root, semantic::SymbolTable& symTab)
     errors_.clear();
     loopDepth_ = 0;
     assignmentTargetDepth_ = 0;
+    suppressGlobalInitCheck_ = false;
     initialized_.clear();
     seedInitiallyInitialized();
     visit(root);
@@ -50,6 +51,8 @@ void TypeChecker::visit(semantic::AstNode* node)
             visitFuncDecl(static_cast<semantic::FuncDeclNode&>(*node)); break;
         case semantic::AstKind::Assign:
             visitAssign(static_cast<semantic::AssignNode&>(*node)); break;
+        case semantic::AstKind::Return:
+            visitReturn(static_cast<semantic::ReturnNode&>(*node)); break;
         case semantic::AstKind::ProcCall:
             visitProcCall(static_cast<semantic::ProcCallNode&>(*node)); break;
         case semantic::AstKind::If:
@@ -143,16 +146,29 @@ void TypeChecker::visitVarDecl(semantic::VarDeclNode& /*n*/){}
 void TypeChecker::visitProcDecl(semantic::ProcDeclNode& n)
 {
     if (n.block) {
+        const bool previous = suppressGlobalInitCheck_;
+        suppressGlobalInitCheck_ = true;
         visit(n.block->declaration.get());
         visit(n.block->statements.get());
+        suppressGlobalInitCheck_ = previous;
     }
 }
 
 void TypeChecker::visitFuncDecl(semantic::FuncDeclNode& n)
 {
     if (n.block) {
+        const bool previousInit = suppressGlobalInitCheck_;
+        const int previousFunction = currentFunctionIdx_;
+        suppressGlobalInitCheck_ = true;
+        currentFunctionIdx_ = n.tabIdx;
         visit(n.block->declaration.get());
         visit(n.block->statements.get());
+        currentFunctionIdx_ = previousFunction;
+        suppressGlobalInitCheck_ = previousInit;
+
+        if (!statementMustReturn(n.block->statements.get(), n.tabIdx)) {
+            report(n, "fungsi '" + n.name + "' tidak memiliki return statement");
+        }
     }
 }
 
@@ -215,6 +231,34 @@ void TypeChecker::visitAssign(semantic::AssignNode& n)
 
     markInitialized(n.target.get());
     n.inferredType = semantic::TypeKind::Void;
+}
+
+void TypeChecker::visitReturn(semantic::ReturnNode& n)
+{
+    visit(n.value.get());
+
+    if (currentFunctionIdx_ == semantic::NO_INDEX || !n.value) {
+        return;
+    }
+
+    const auto& functionEntry = sym_->tabAt(currentFunctionIdx_);
+    if (functionEntry.obj != semantic::ObjectKind::Function) {
+        return;
+    }
+
+    if (n.value->inferredType == semantic::TypeKind::Error ||
+        n.value->inferredType == semantic::TypeKind::Unknown) {
+        return;
+    }
+
+    if (!assignmentCompatible(functionEntry.type, functionEntry.ref,
+                              n.value->inferredType, n.value->typeRef)) {
+        std::ostringstream msg;
+        msg << "type mismatch pada return: diharapkan '"
+            << typeName(functionEntry.type) << "', mendapat '"
+            << typeName(n.value->inferredType) << "'";
+        report(n, msg.str());
+    }
 }
 
 void TypeChecker::visitProcCall(semantic::ProcCallNode& n)
@@ -651,6 +695,7 @@ void TypeChecker::visitVar(semantic::VarNode& n)
     if (assignmentTargetDepth_ > 0 || n.tabIdx == semantic::NO_INDEX) return;
 
     const auto& entry = sym_->tabAt(n.tabIdx);
+    if (suppressGlobalInitCheck_ && entry.lev == 0) return;
     if (entry.obj == semantic::ObjectKind::Variable && !isInitialized(n.tabIdx)) {
         report(n, "variabel '" + entry.identifier + "' digunakan sebelum diinisialisasi");
     }
@@ -1015,6 +1060,81 @@ bool TypeChecker::constantValue(const semantic::AstNode* node, long long& value)
         default:
             return false;
     }
+}
+
+bool TypeChecker::isFunctionReturnAssign(const semantic::AssignNode& node, int functionIdx) const
+{
+    if (node.target == nullptr || node.target->getKind() != semantic::AstKind::Var) {
+        return false;
+    }
+
+    const auto& target = static_cast<const semantic::VarNode&>(*node.target);
+    return target.tabIdx == functionIdx;
+}
+
+bool TypeChecker::statementMustReturn(const semantic::AstNode* node, int functionIdx) const
+{
+    if (!node) return false;
+
+    switch (node->getKind()) {
+        case semantic::AstKind::Return:
+            return true;
+        case semantic::AstKind::Assign:
+            return isFunctionReturnAssign(static_cast<const semantic::AssignNode&>(*node), functionIdx);
+        case semantic::AstKind::Compound:
+            return compoundMustReturn(static_cast<const semantic::CompoundNode&>(*node), functionIdx);
+        case semantic::AstKind::If:
+            return ifMustReturn(static_cast<const semantic::IfNode&>(*node), functionIdx);
+        case semantic::AstKind::Case:
+            return caseMustReturn(static_cast<const semantic::CaseNode&>(*node), functionIdx);
+        case semantic::AstKind::Repeat:
+            return repeatMustReturn(static_cast<const semantic::RepeatNode&>(*node), functionIdx);
+        case semantic::AstKind::While:
+        case semantic::AstKind::For:
+            return false;
+        default:
+            return false;
+    }
+}
+
+bool TypeChecker::compoundMustReturn(const semantic::CompoundNode& node, int functionIdx) const
+{
+    for (const auto& statement : node.statements) {
+        if (statementMustReturn(statement.get(), functionIdx)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool TypeChecker::ifMustReturn(const semantic::IfNode& node, int functionIdx) const
+{
+    if (!node.thenStmt || !node.elseStmt) {
+        return false;
+    }
+
+    return statementMustReturn(node.thenStmt.get(), functionIdx) &&
+           statementMustReturn(node.elseStmt.get(), functionIdx);
+}
+
+bool TypeChecker::caseMustReturn(const semantic::CaseNode& node, int functionIdx) const
+{
+    if (node.branches.empty()) {
+        return false;
+    }
+
+    for (const auto& branch : node.branches) {
+        if (!branch || !statementMustReturn(branch->statement.get(), functionIdx)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool TypeChecker::repeatMustReturn(const semantic::RepeatNode& node, int functionIdx) const
+{
+    return statementMustReturn(node.body.get(), functionIdx);
 }
 
 void TypeChecker::report(const semantic::AstNode& node, const std::string& msg)

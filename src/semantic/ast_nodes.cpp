@@ -21,6 +21,7 @@ const char* toString(AstKind kind) {
     case AstKind::Range:          return "Range";
     case AstKind::EnumeratedType: return "EnumeratedType";
     case AstKind::Assign:         return "Assign";
+    case AstKind::Return:         return "Return";
     case AstKind::ProcCall:       return "ProcCall";
     case AstKind::If:             return "If";
     case AstKind::Case:           return "Case";
@@ -459,6 +460,13 @@ void printNodePretty(std::ostream& out, const AstNode* node, const std::string& 
         return;
     }
 
+    if (const auto* returnNode = dynamic_cast<const ReturnNode*>(node)) {
+        out << "Return\n";
+        const std::string childPrefix = prefix + (last ? "    " : "|   ");
+        printExprPretty(out, "value", returnNode->value.get(), childPrefix, true);
+        return;
+    }
+
     if (const auto* repeatNode = dynamic_cast<const RepeatNode*>(node)) {
         out << "Repeat\n";
         const std::string childPrefix = prefix + (last ? "    " : "|   ");
@@ -660,6 +668,12 @@ AssignNode::AssignNode() : AstNode(AstKind::Assign) {}
 
 void AssignNode::printChildren(std::ostream& out, int depth) const {
     printLabeled(out, depth, "target", target.get());
+    printLabeled(out, depth, "value", value.get());
+}
+
+ReturnNode::ReturnNode() : AstNode(AstKind::Return) {}
+
+void ReturnNode::printChildren(std::ostream& out, int depth) const {
     printLabeled(out, depth, "value", value.get());
 }
 

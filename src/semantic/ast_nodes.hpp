@@ -25,6 +25,7 @@ enum class AstKind {
     Range,
     EnumeratedType,
     Assign,
+    Return,
     ProcCall,
     If,
     Case,
@@ -270,6 +271,16 @@ public:
     AssignNode();
 
     AstPtr target;
+    AstPtr value;
+
+protected:
+    void printChildren(std::ostream& out, int depth) const override;
+};
+
+class ReturnNode : public AstNode {
+public:
+    ReturnNode();
+
     AstPtr value;
 
 protected:
