@@ -1,4 +1,4 @@
-ProgramNode(name: 'missingReturn')
+ProgramNode(name: 'functionReturn')
 +-- Declarations
 |   +-- VarDecl(name: 'someInt', type: 'integer')
 |   +-- VarDecl(name: 'someBool', type: 'boolean')
@@ -9,10 +9,17 @@ ProgramNode(name: 'missingReturn')
 |               +-- condition: BinOp(op: '<')
 |               |   +-- left: Var('x')
 |               |   \-- right: Num(0)
-|               \-- then
-|                   \-- Assign
-|                       +-- target: Var('isNegative')
-|                       \-- value: Var('true')
+|               +-- then
+|               |   \-- Return
+|               |       \-- value: Var('true')
+|               \-- else
+|                   \-- If
+|                       +-- condition: BinOp(op: '==')
+|                       |   +-- left: Var('x')
+|                       |   \-- right: Num(0)
+|                       \-- then
+|                           \-- Return
+|                               \-- value: Num(1)
 \-- Block
     +-- Assign
     |   +-- target: Var('someInt')
@@ -72,7 +79,7 @@ tab (identifier table)
    34  true                 33  constant    boolean      -1    1    0    1
    35  writeln              34  procedure   void         -1    1    0    0
    36  readln               35  procedure   void         -1    1    0    0
-   37  missingReturn        36  program     void          0    1    0    0
+   37  functionReturn       36  program     void          0    1    0    0
    38  someInt              37  variable    integer      -1    1    0    0
    39  someBool             38  variable    boolean      -1    1    0    1
    40  isNegative           39  function    boolean       1    1    0    0
@@ -89,3 +96,7 @@ atab (array table)
   idx  xtyp        etyp        eref   low  high  elsz  size
   ---  ----------  ----------  ----  ----  ----  ----  ----
     0  unknown     unknown       -1     0     0     1     0
+
+Type errors
+[Type error]: type mismatch pada return: diharapkan 'boolean', mendapat 'integer'
+[Type error]: fungsi 'isNegative' tidak memiliki return statement

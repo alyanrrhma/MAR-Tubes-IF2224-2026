@@ -68,5 +68,7 @@ Semantic errors
 [Semantic error]: lower bound (2) tidak boleh lebih besar dari upper bound (1)
 
 Type errors
+[Type error]: type mismatch pada indeks array: diharapkan 'error', tetapi mendapat 'integer'
 [Type error]: indeks array 1 di luar batas [2..1]
+[Type error]: type mismatch pada indeks array: diharapkan 'error', tetapi mendapat 'integer'
 [Type error]: indeks array 1 di luar batas [2..1]

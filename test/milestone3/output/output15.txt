@@ -67,4 +67,5 @@ Semantic errors
 [Semantic error]: batas range harus memiliki tipe ordinal yang sama
 
 Type errors
+[Type error]: type mismatch pada indeks array: diharapkan 'error', tetapi mendapat 'integer'
 [Type error]: indeks array 1 di luar batas [97..1]

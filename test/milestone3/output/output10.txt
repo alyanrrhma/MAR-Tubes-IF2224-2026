@@ -11,8 +11,7 @@ ProgramNode(name: 'argTypeMismatch')
 |           +-- Assign
 |           |   +-- target: Var('temp')
 |           |   \-- value: Var('x')
-|           \-- Assign
-|               +-- target: Var('doNothing')
+|           \-- Return
 |               \-- value: Var('temp')
 \-- Block
     +-- ProcedureCall(name: 'greet', args: [Num(13524045)])

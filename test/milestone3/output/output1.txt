@@ -47,8 +47,7 @@ ProgramNode(name: 'FullFeatures')
 |           |           \-- right: ArrayAccess
 |           |               +-- base: Var('nums')
 |           |               \-- index: Var('k')
-|           \-- Assign
-|               +-- target: Var('Sum')
+|           \-- Return
 |               \-- value: Var('s')
 \-- Block
     +-- Assign
@@ -81,6 +80,9 @@ ProgramNode(name: 'FullFeatures')
     |   +-- target: Var('total')
     |   \-- value: ProcedureCall(name: 'Sum')
     |       \-- arg: Var('N')
+    +-- For(var: 'i', start: Num(1), direction: to, end: Var('N'))
+    |   \-- ProcedureCall(name: 'writeln', args: [ArrayAccess(base: Var('nums'), indices: [Var('i')])])
+    +-- ProcedureCall(name: 'writeln', args: [Var('total')])
     +-- Assign
     |   +-- target: FieldAccess(field: 'x')
     |   |   \-- base: Var('pos')
@@ -211,16 +213,6 @@ atab (array table)
   ---  ----------  ----------  ----  ----  ----  ----  ----
     0  unknown     unknown       -1     0     0     1     0
     1  integer     integer       -1     1     5     1     5
-    2  subrange    integer       -1     1     5     1     5
+    2  integer     integer       -1     1     5     1     5
     3  char        char          -1    97   122     1    26
-    4  subrange    integer       -1    97   122     1    26
-
-Semantic errors
-[Semantic error]: redeklarasi dari konstanta enumerasi 'North'
-[Semantic error]: redeklarasi dari konstanta enumerasi 'South'
-[Semantic error]: redeklarasi dari konstanta enumerasi 'East'
-[Semantic error]: redeklarasi dari konstanta enumerasi 'West'
-
-Type errors
-[Type error]: variabel 'nums' digunakan sebelum diinisialisasi
-[Type error]: variabel 'k' digunakan sebelum diinisialisasi
+    4  char        integer       -1    97   122     1    26
