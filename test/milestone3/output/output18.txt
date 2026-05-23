@@ -1,9 +1,13 @@
-ProgramNode(name: 'undeclared')
+ProgramNode(name: 'invalidRange')
 +-- Declarations
+|   \-- VarDecl(name: 'x', type: 'array[Num(2)..Num(1)] of integer')
 \-- Block
-    \-- Assign
-        +-- target: Var('x')
-        \-- value: Num(5)
+    +-- Assign
+    |   +-- target: ArrayAccess
+    |   |   +-- base: Var('x')
+    |   |   \-- index: Num(1)
+    |   \-- value: Num(1)
+    \-- ProcedureCall(name: 'writeln', args: [ArrayAccess(base: Var('x'), indices: [Num(1)])])
 
 tab (identifier table)
   idx  identifier         link  obj         type        ref  nrm  lev  adr
@@ -45,18 +49,24 @@ tab (identifier table)
    34  true                 33  constant    boolean      -1    1    0    1
    35  writeln              34  procedure   void         -1    1    0    0
    36  readln               35  procedure   void         -1    1    0    0
-   37  undeclared           36  program     void          0    1    0    0
+   37  invalidRange         36  program     void          0    1    0    0
+   38  x                    37  variable    array         1    1    0    0
   firstUserIndex = 37
 
 btab (block table)
   idx  last  lpar  psze  vsze
   ---  ----  ----  ----  ----
-    0    37    -1     0     0
+    0    38    -1     0     1
 
 atab (array table)
   idx  xtyp        etyp        eref   low  high  elsz  size
   ---  ----------  ----------  ----  ----  ----  ----  ----
     0  unknown     unknown       -1     0     0     1     0
+    1  error       integer       -1     2     1     1     0
 
 Semantic errors
-[Semantic error]: identifier 'x' belum dideklarasikan
+[Semantic error]: lower bound (2) tidak boleh lebih besar dari upper bound (1)
+
+Type errors
+[Type error]: indeks array 1 di luar batas [2..1]
+[Type error]: indeks array 1 di luar batas [2..1]

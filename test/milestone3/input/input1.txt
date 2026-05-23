@@ -1,8 +1,69 @@
-program HelloWorld;
+program FullFeatures;
+
+const
+  N == 5;
+  TRUEVAL == 1;
+  North == 1;
+  South == 2;
+  East == 3;
+  West == 4;
+
+type
+  Arr == array[1..5] of integer;
+  Map == array['a'..'z'] of integer;
+  Direction == (North, South, East, West);
+  Coord == record
+    x: integer;
+    y: integer
+  end;
+
 var
-  a, b: integer;
+  nums: Arr;
+  letterCount: Map;
+  dir: Direction;
+  pos: Coord;
+  i, j, temp, total: integer;
+
+procedure Swap(a, b: integer);
+var
+  temp: integer;
 begin
-  a := 5;
-  b := a + 10;
-  writeln('Result = ', b);
+  temp := a;
+  a := b;
+  b := temp
+end;
+
+function Sum(size: integer): integer;
+var
+  k, s: integer;
+begin
+  s := 0;
+  for k := 1 to size do
+    s := s + nums[k];
+  Sum := s
+end;
+
+begin
+  nums[1] := 64;
+  nums[2] := 34;
+  nums[3] := 25;
+  nums[4] := 12;
+  nums[5] := 22;
+  Swap(nums[1], nums[2]);
+  total := Sum(N);
+  for i := 1 to N do
+    writeln(nums[i]);
+  writeln(total);
+  pos.x := 0;
+  pos.y := 0;
+  i := 1;
+  repeat
+    if i mod 2 == 0 then
+      pos.x := pos.x + 1
+    else
+      pos.y := pos.y + 1;
+    i := i + 1
+  until i > 10;
+  writeln(pos.x);
+  writeln(pos.y)
 end.

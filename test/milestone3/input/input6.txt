@@ -1,0 +1,15 @@
+program enumMismatch;
+const
+  SATU == 1;
+  DUA == '2';
+  TIGA == 3;
+type
+  WrongEnum == (SATU, DUA);
+  ValidEnum == (SATU, TIGA);
+var
+  x : WrongEnum;
+  y : ValidEnum;
+begin
+  x := SATU;
+  y := SATU
+end.

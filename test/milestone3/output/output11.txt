@@ -1,9 +1,36 @@
-ProgramNode(name: 'undeclared')
+ProgramNode(name: 'missingReturn')
 +-- Declarations
+|   +-- VarDecl(name: 'someInt', type: 'integer')
+|   +-- VarDecl(name: 'someBool', type: 'boolean')
+|   \-- FunctionDecl(name: 'isNegative', params: [integer('x')], returnType: 'boolean')
+|       +-- Declarations
+|       \-- Block
+|           \-- If
+|               +-- condition: BinOp(op: '<')
+|               |   +-- left: Var('x')
+|               |   \-- right: Num(0)
+|               \-- then
+|                   \-- Assign
+|                       +-- target: Var('isNegative')
+|                       \-- value: Var('true')
 \-- Block
+    +-- Assign
+    |   +-- target: Var('someInt')
+    |   \-- value: UnaryOp(op: '-')
+    |       \-- value: Num(1)
+    +-- Assign
+    |   +-- target: Var('someBool')
+    |   \-- value: ProcedureCall(name: 'isNegative')
+    |       \-- arg: Var('someInt')
+    +-- Assign
+    |   +-- target: Var('someBool')
+    |   \-- value: ProcedureCall(name: 'isNegative')
+    |       \-- arg: UnaryOp(op: '-')
+    |           \-- value: Num(3)
     \-- Assign
-        +-- target: Var('x')
-        \-- value: Num(5)
+        +-- target: Var('someBool')
+        \-- value: ProcedureCall(name: 'isNegative')
+            \-- arg: Num(1)
 
 tab (identifier table)
   idx  identifier         link  obj         type        ref  nrm  lev  adr
@@ -45,18 +72,20 @@ tab (identifier table)
    34  true                 33  constant    boolean      -1    1    0    1
    35  writeln              34  procedure   void         -1    1    0    0
    36  readln               35  procedure   void         -1    1    0    0
-   37  undeclared           36  program     void          0    1    0    0
+   37  missingReturn        36  program     void          0    1    0    0
+   38  someInt              37  variable    integer      -1    1    0    0
+   39  someBool             38  variable    boolean      -1    1    0    1
+   40  isNegative           39  function    boolean       1    1    0    0
+   41  x                    -1  parameter   integer      -1    1    1    0
   firstUserIndex = 37
 
 btab (block table)
   idx  last  lpar  psze  vsze
   ---  ----  ----  ----  ----
-    0    37    -1     0     0
+    0    40    -1     0     2
+    1    41    41     1     1
 
 atab (array table)
   idx  xtyp        etyp        eref   low  high  elsz  size
   ---  ----------  ----------  ----  ----  ----  ----  ----
     0  unknown     unknown       -1     0     0     1     0
-
-Semantic errors
-[Semantic error]: identifier 'x' belum dideklarasikan

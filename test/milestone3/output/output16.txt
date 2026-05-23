@@ -1,9 +1,18 @@
-ProgramNode(name: 'undeclared')
+ProgramNode(name: 'arrayAccessTypeMismatch')
 +-- Declarations
+|   +-- VarDecl(name: 'validArray', type: 'array[Char('A')..Char('E')] of integer')
+|   \-- VarDecl(name: 'someArray', type: 'array[Num(0)..Num(127)] of integer')
 \-- Block
+    +-- Assign
+    |   +-- target: ArrayAccess
+    |   |   +-- base: Var('validArray')
+    |   |   \-- index: Char('B')
+    |   \-- value: Num(10)
     \-- Assign
-        +-- target: Var('x')
-        \-- value: Num(5)
+        +-- target: ArrayAccess
+        |   +-- base: Var('someArray')
+        |   \-- index: Char('1')
+        \-- value: Num(1)
 
 tab (identifier table)
   idx  identifier         link  obj         type        ref  nrm  lev  adr
@@ -45,18 +54,25 @@ tab (identifier table)
    34  true                 33  constant    boolean      -1    1    0    1
    35  writeln              34  procedure   void         -1    1    0    0
    36  readln               35  procedure   void         -1    1    0    0
-   37  undeclared           36  program     void          0    1    0    0
+   37  arrayAccessTypeMismatch     36  program     void          0    1    0    0
+   38  validArray           37  variable    array         2    1    0    0
+   39  someArray            38  variable    array         4    1    0    5
   firstUserIndex = 37
 
 btab (block table)
   idx  last  lpar  psze  vsze
   ---  ----  ----  ----  ----
-    0    37    -1     0     0
+    0    39    -1     0   133
 
 atab (array table)
   idx  xtyp        etyp        eref   low  high  elsz  size
   ---  ----------  ----------  ----  ----  ----  ----  ----
     0  unknown     unknown       -1     0     0     1     0
+    1  char        char          -1    65    69     1     5
+    2  subrange    integer       -1    65    69     1     5
+    3  integer     integer       -1     0   127     1   128
+    4  subrange    integer       -1     0   127     1   128
 
-Semantic errors
-[Semantic error]: identifier 'x' belum dideklarasikan
+Type errors
+[Type error]: type mismatch pada indeks array: diharapkan 'integer', tetapi mendapat 'char'
+[Type error]: type mismatch pada indeks array: diharapkan 'integer', tetapi mendapat 'char'

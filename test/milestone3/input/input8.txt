@@ -1,0 +1,10 @@
+program invalidOp;
+var
+  x: integer;
+  y: char;
+begin
+  x := 1;
+  y := '1';
+  writeln(x + y);
+  x := x + y
+end.

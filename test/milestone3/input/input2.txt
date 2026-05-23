@@ -1,17 +1,4 @@
-program ConstAndType;
-const
-  MAX == 100;
-  PI == 3.14;
-  INITIAL == 'A';
-  GREETING == 'Hello';
-type
-  SmallRange == 1..10;
-  Season == (Spring, Summer, Fall, Winter);
-var
-  x: integer;
-  ch: char;
+program undeclared;
 begin
-  x := MAX;
-  ch := INITIAL;
-  writeln(x);
+  x := 5
 end.

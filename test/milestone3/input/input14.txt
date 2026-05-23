@@ -1,0 +1,7 @@
+program declaredButUninitialized;
+var
+  x: integer;
+  y: integer;
+begin
+  y := x
+end.

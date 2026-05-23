@@ -1,0 +1,6 @@
+program xtypeMismatch;
+var
+  someArray: array['a'..1] of integer;
+begin
+  someArray[1] := 1
+end.

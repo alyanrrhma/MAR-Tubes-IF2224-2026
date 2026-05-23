@@ -1,8 +1,10 @@
-ProgramNode(name: 'undeclared')
+ProgramNode(name: 'duplicateDeclaration1')
 +-- Declarations
+|   +-- VarDecl(name: 'i', type: 'integer')
+|   \-- VarDecl(name: 'i', type: 'integer')
 \-- Block
     \-- Assign
-        +-- target: Var('x')
+        +-- target: Var('i')
         \-- value: Num(5)
 
 tab (identifier table)
@@ -45,13 +47,14 @@ tab (identifier table)
    34  true                 33  constant    boolean      -1    1    0    1
    35  writeln              34  procedure   void         -1    1    0    0
    36  readln               35  procedure   void         -1    1    0    0
-   37  undeclared           36  program     void          0    1    0    0
+   37  duplicateDeclaration1     36  program     void          0    1    0    0
+   38  i                    37  variable    integer      -1    1    0    0
   firstUserIndex = 37
 
 btab (block table)
   idx  last  lpar  psze  vsze
   ---  ----  ----  ----  ----
-    0    37    -1     0     0
+    0    38    -1     0     2
 
 atab (array table)
   idx  xtyp        etyp        eref   low  high  elsz  size
@@ -59,4 +62,4 @@ atab (array table)
     0  unknown     unknown       -1     0     0     1     0
 
 Semantic errors
-[Semantic error]: identifier 'x' belum dideklarasikan
+[Semantic error]: redeklarasi identifier 'i'

@@ -1,0 +1,15 @@
+program missingReturn;
+var
+  someInt: integer;
+  someBool: boolean;
+function isNegative(x: integer): boolean;
+begin
+  if x < 0 then
+    isNegative := true
+end;
+begin
+  someInt := -1;
+  someBool := isNegative(someInt);
+  someBool := isNegative(-3);
+  someBool := isNegative(1);
+end.

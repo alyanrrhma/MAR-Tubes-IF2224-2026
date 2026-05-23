@@ -1,0 +1,6 @@
+program assignmentToConstant;
+const
+  PI == 3.14;
+begin
+  PI := 3.00
+end.

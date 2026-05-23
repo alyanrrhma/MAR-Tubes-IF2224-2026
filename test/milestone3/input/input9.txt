@@ -1,0 +1,16 @@
+program argCountMismatch;
+procedure greet(name: string);
+begin
+  writeln(name)
+end;
+function doNothing(x: integer): integer;
+var
+  temp: integer;
+begin
+  temp := x;
+  doNothing := temp
+end;
+begin
+  greet('john', 'doe');
+  doNothing()
+end.

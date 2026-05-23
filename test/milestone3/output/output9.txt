@@ -1,9 +1,22 @@
-ProgramNode(name: 'undeclared')
+ProgramNode(name: 'argCountMismatch')
 +-- Declarations
+|   +-- ProcedureDecl(name: 'greet', params: [string('name')])
+|   |   +-- Declarations
+|   |   \-- Block
+|   |       \-- ProcedureCall(name: 'writeln', args: [Var('name')])
+|   \-- FunctionDecl(name: 'doNothing', params: [integer('x')], returnType: 'integer')
+|       +-- Declarations
+|       |   \-- VarDecl(name: 'temp', type: 'integer')
+|       \-- Block
+|           +-- Assign
+|           |   +-- target: Var('temp')
+|           |   \-- value: Var('x')
+|           \-- Assign
+|               +-- target: Var('doNothing')
+|               \-- value: Var('temp')
 \-- Block
-    \-- Assign
-        +-- target: Var('x')
-        \-- value: Num(5)
+    +-- ProcedureCall(name: 'greet', args: [String('john'), String('doe')])
+    \-- ProcedureCall(name: 'doNothing', args: [])
 
 tab (identifier table)
   idx  identifier         link  obj         type        ref  nrm  lev  adr
@@ -45,18 +58,26 @@ tab (identifier table)
    34  true                 33  constant    boolean      -1    1    0    1
    35  writeln              34  procedure   void         -1    1    0    0
    36  readln               35  procedure   void         -1    1    0    0
-   37  undeclared           36  program     void          0    1    0    0
+   37  argCountMismatch     36  program     void          0    1    0    0
+   38  greet                37  procedure   void          1    1    0    0
+   39  name                 -1  parameter   string       -1    1    1    0
+   40  doNothing            38  function    integer       2    1    0    0
+   41  x                    -1  parameter   integer      -1    1    1    0
+   42  temp                 41  variable    integer      -1    1    1    1
   firstUserIndex = 37
 
 btab (block table)
   idx  last  lpar  psze  vsze
   ---  ----  ----  ----  ----
-    0    37    -1     0     0
+    0    40    -1     0     0
+    1    39    39     1     1
+    2    42    41     1     2
 
 atab (array table)
   idx  xtyp        etyp        eref   low  high  elsz  size
   ---  ----------  ----------  ----  ----  ----  ----  ----
     0  unknown     unknown       -1     0     0     1     0
 
-Semantic errors
-[Semantic error]: identifier 'x' belum dideklarasikan
+Type errors
+[Type error]: jumlah argumen untuk 'greet' tidak sesuai: diharapkan 1, mendapat 2
+[Type error]: jumlah argumen untuk 'doNothing' tidak sesuai: diharapkan 1, mendapat 0

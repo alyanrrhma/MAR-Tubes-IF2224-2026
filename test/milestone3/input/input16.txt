@@ -1,0 +1,8 @@
+program arrayAccessTypeMismatch;
+var
+  validArray: array['A'..'E'] of integer;
+  someArray: array[0..127] of integer;
+begin
+  validArray['B'] := 10;
+  someArray['1'] := 1
+end.

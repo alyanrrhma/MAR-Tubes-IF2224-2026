@@ -1,9 +1,11 @@
-ProgramNode(name: 'undeclared')
+ProgramNode(name: 'declaredButUninitialized')
 +-- Declarations
+|   +-- VarDecl(name: 'x', type: 'integer')
+|   \-- VarDecl(name: 'y', type: 'integer')
 \-- Block
     \-- Assign
-        +-- target: Var('x')
-        \-- value: Num(5)
+        +-- target: Var('y')
+        \-- value: Var('x')
 
 tab (identifier table)
   idx  identifier         link  obj         type        ref  nrm  lev  adr
@@ -45,18 +47,20 @@ tab (identifier table)
    34  true                 33  constant    boolean      -1    1    0    1
    35  writeln              34  procedure   void         -1    1    0    0
    36  readln               35  procedure   void         -1    1    0    0
-   37  undeclared           36  program     void          0    1    0    0
+   37  declaredButUninitialized     36  program     void          0    1    0    0
+   38  x                    37  variable    integer      -1    1    0    0
+   39  y                    38  variable    integer      -1    1    0    1
   firstUserIndex = 37
 
 btab (block table)
   idx  last  lpar  psze  vsze
   ---  ----  ----  ----  ----
-    0    37    -1     0     0
+    0    39    -1     0     2
 
 atab (array table)
   idx  xtyp        etyp        eref   low  high  elsz  size
   ---  ----------  ----------  ----  ----  ----  ----  ----
     0  unknown     unknown       -1     0     0     1     0
 
-Semantic errors
-[Semantic error]: identifier 'x' belum dideklarasikan
+Type errors
+[Type error]: variabel 'x' digunakan sebelum diinisialisasi

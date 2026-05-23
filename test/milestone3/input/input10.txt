@@ -1,0 +1,16 @@
+program argTypeMismatch;
+procedure greet(name: string);
+begin
+  writeln(name)
+end;
+function doNothing(x: integer): integer;
+var
+  temp: integer;
+begin
+  temp := x;
+  doNothing := temp
+end;
+begin
+  greet(13524045);
+  doNothing('1')
+end.

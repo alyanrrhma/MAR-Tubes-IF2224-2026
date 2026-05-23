@@ -1,0 +1,10 @@
+program duplicateCaseBranch;
+var
+  x: integer;
+begin
+  x := 1;
+  case x of
+    0: writeln('nol');
+    1, 0: writeln('mungkin nol')
+  end
+end.

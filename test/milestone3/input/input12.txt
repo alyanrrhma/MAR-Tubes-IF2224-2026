@@ -1,0 +1,12 @@
+program scopeViolation;
+procedure doSomething;
+var
+  localVar: integer;
+begin
+  localVar := 1
+end;
+begin
+  doSomething;
+  writeln(localVar)
+end.
+  
