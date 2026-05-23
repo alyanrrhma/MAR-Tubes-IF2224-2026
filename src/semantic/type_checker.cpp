@@ -164,6 +164,21 @@ void TypeChecker::visitAssign(semantic::AssignNode& n)
         return;
     }
 
+    const int baseIndex = assignmentBaseIndex(n.target.get());
+    if (baseIndex != semantic::NO_INDEX) {
+        const auto& entry = sym_->tabAt(baseIndex);
+        if (entry.obj == semantic::ObjectKind::Constant) {
+            report(n, "tidak boleh melakukan assignment terhadap konstanta '" + entry.identifier + "'");
+            n.inferredType = semantic::TypeKind::Error;
+            return;
+        }
+        if (!isAssignableObject(entry.obj)) {
+            report(n, "sisi kiri assignment harus berupa variabel, parameter, atau elemen array/record");
+            n.inferredType = semantic::TypeKind::Error;
+            return;
+        }
+    }
+
     if (!assignmentCompatible(lhsType, n.target->typeRef,
                               rhsType, n.value->typeRef)) {
         std::ostringstream msg;
@@ -782,6 +797,34 @@ void TypeChecker::checkSubrangeBounds(const semantic::AstNode& node,
         msg << "nilai " << val << " di luar batas subrange ["
             << entry.low << ".." << entry.high << "]";
         const_cast<TypeChecker*>(this)->report(node, msg.str());
+    }
+}
+
+bool TypeChecker::isAssignableObject(semantic::ObjectKind obj) const
+{
+    return obj == semantic::ObjectKind::Variable ||
+           obj == semantic::ObjectKind::Parameter ||
+           obj == semantic::ObjectKind::Field ||
+           obj == semantic::ObjectKind::Function;
+}
+
+int TypeChecker::assignmentBaseIndex(const semantic::AstNode* node) const
+{
+    if (!node) return semantic::NO_INDEX;
+
+    switch (node->getKind()) {
+        case semantic::AstKind::Var:
+            return node->tabIdx;
+        case semantic::AstKind::ArrayAccess: {
+            const auto& access = static_cast<const semantic::ArrayAccessNode&>(*node);
+            return assignmentBaseIndex(access.base.get());
+        }
+        case semantic::AstKind::FieldAccess: {
+            const auto& access = static_cast<const semantic::FieldAccessNode&>(*node);
+            return assignmentBaseIndex(access.base.get());
+        }
+        default:
+            return node->tabIdx;
     }
 }
 

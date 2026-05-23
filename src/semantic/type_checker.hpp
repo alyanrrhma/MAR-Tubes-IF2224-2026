@@ -71,6 +71,9 @@ private:
     bool assignmentCompatible(semantic::TypeKind lhsType, int lhsRef,
                               semantic::TypeKind rhsType, int rhsRef) const;
 
+    bool isAssignableObject(semantic::ObjectKind obj) const;
+    int assignmentBaseIndex(const semantic::AstNode* node) const;
+
     void checkSubrangeBounds(const semantic::AstNode& node,
                               int lhsRef, const semantic::AstNode* rhsNode) const;
 
