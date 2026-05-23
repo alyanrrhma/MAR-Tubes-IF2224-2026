@@ -5,6 +5,7 @@
 #include <ostream>
 #include <sstream>
 #include <iostream>
+#include <unordered_map>
 
 TypeChecker::TypeChecker() = default;
 
@@ -114,8 +115,27 @@ void TypeChecker::visitConstDecl(semantic::ConstDeclNode& n)
     visit(n.value.get());
 }
 
-void TypeChecker::visitTypeDecl(semantic::TypeDeclNode& /*n*/)
+void TypeChecker::visitTypeDecl(semantic::TypeDeclNode& n)
 {
+    if (!n.typeExpr ||
+        n.typeExpr->getKind() != semantic::AstKind::EnumeratedType) {
+        return;
+    }
+
+    const auto& enumerated = static_cast<const semantic::EnumeratedTypeNode&>(*n.typeExpr);
+    for (const auto& identifier : enumerated.identifiers) {
+        const int index = sym_->lookup(identifier);
+        if (index == semantic::NO_INDEX) continue;
+
+        const auto& entry = sym_->tabAt(index);
+        if (entry.obj != semantic::ObjectKind::Constant) continue;
+
+        if (entry.type != semantic::TypeKind::Integer) {
+            report(n, "type mismatch dalam deklarasi tipe enumerated, expected integer found " +
+                      std::string(semantic::toString(entry.type)) + " (" + identifier + ")");
+            return;
+        }
+    }
 }
 
 void TypeChecker::visitVarDecl(semantic::VarDeclNode& /*n*/){}
@@ -272,6 +292,7 @@ void TypeChecker::visitCase(semantic::CaseNode& n)
     visit(n.selector.get());
     if (n.selector) {
         const semantic::TypeKind st = n.selector->inferredType;
+        std::unordered_map<long long, const semantic::AstNode*> seenLabels;
         if (st != semantic::TypeKind::Integer &&
             st != semantic::TypeKind::Char &&
             st != semantic::TypeKind::Boolean &&
@@ -303,6 +324,18 @@ void TypeChecker::visitCase(semantic::CaseNode& n)
                         << "' tidak kompatibel dengan selector bertipe '"
                         << typeName(st) << "'";
                     report(*label, msg.str());
+                    continue;
+                }
+
+                long long labelValue = 0;
+                if (constantValue(label.get(), labelValue)) {
+                    if (seenLabels.find(labelValue) != seenLabels.end()) {
+                        std::ostringstream msg;
+                        msg << "duplicate case (" << labelValue << ")";
+                        report(*label, msg.str());
+                    } else {
+                        seenLabels.emplace(labelValue, label.get());
+                    }
                 }
             }
             visit(branch->statement.get());
@@ -855,6 +888,10 @@ bool TypeChecker::assignmentCompatible(semantic::TypeKind lhsType, int lhsRef,
         return true;
     }
 
+    if (lhsType == semantic::TypeKind::Enumerated && rhsType == semantic::TypeKind::Integer) {
+        return true;
+    }
+
     if (lhsType == semantic::TypeKind::Subrange && rhsType == semantic::TypeKind::Subrange) {
         return subrangeBase(lhsRef) == subrangeBase(rhsRef);
     }
@@ -935,6 +972,48 @@ void TypeChecker::seedInitiallyInitialized()
             entry.obj == semantic::ObjectKind::Parameter) {
             initialized_.insert(i);
         }
+    }
+}
+
+bool TypeChecker::constantValue(const semantic::AstNode* node, long long& value) const
+{
+    if (!node) return false;
+
+    switch (node->getKind()) {
+        case semantic::AstKind::IntLit:
+            value = static_cast<const semantic::IntLitNode&>(*node).value;
+            return true;
+        case semantic::AstKind::CharLit:
+            value = static_cast<unsigned char>(
+                static_cast<const semantic::CharLitNode&>(*node).value);
+            return true;
+        case semantic::AstKind::BoolLit:
+            value = static_cast<const semantic::BoolLitNode&>(*node).value ? 1 : 0;
+            return true;
+        case semantic::AstKind::UnaryOp: {
+            const auto& unary = static_cast<const semantic::UnaryOpNode&>(*node);
+            if (unary.op != semantic::UnaryOpKind::Plus &&
+                unary.op != semantic::UnaryOpKind::Minus) {
+                return false;
+            }
+
+            long long operandValue = 0;
+            if (!constantValue(unary.operand.get(), operandValue)) return false;
+            value = unary.op == semantic::UnaryOpKind::Minus ? -operandValue : operandValue;
+            return true;
+        }
+        case semantic::AstKind::Var: {
+            const auto& var = static_cast<const semantic::VarNode&>(*node);
+            if (var.tabIdx == semantic::NO_INDEX) return false;
+
+            const auto& entry = sym_->tabAt(var.tabIdx);
+            if (entry.obj != semantic::ObjectKind::Constant) return false;
+
+            value = entry.adr;
+            return true;
+        }
+        default:
+            return false;
     }
 }
 

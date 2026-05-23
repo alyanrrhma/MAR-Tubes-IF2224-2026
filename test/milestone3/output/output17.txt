@@ -67,3 +67,6 @@ atab (array table)
   idx  xtyp        etyp        eref   low  high  elsz  size
   ---  ----------  ----------  ----  ----  ----  ----  ----
     0  unknown     unknown       -1     0     0     1     0
+
+Type errors
+[Type error]: duplicate case (0)

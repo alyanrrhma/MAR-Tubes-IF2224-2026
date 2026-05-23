@@ -12,18 +12,15 @@ public:
 
     void check(semantic::AstNode* root, semantic::SymbolTable& symTab);
 
-    // Akses hasil
     const std::vector<std::string>& errors() const { return errors_; }
     bool hasErrors() const { return !errors_.empty(); }
 
-    // Cetak semua pesan error ke stream
     void printErrors(std::ostream& out) const;
 
 private:
     semantic::SymbolTable* sym_ = nullptr; 
     std::vector<std::string> errors_;
 
-    // Depth loop (digunakan untuk validasi break/continue)
     int loopDepth_ = 0;
     int assignmentTargetDepth_ = 0;
     std::unordered_set<int> initialized_;
@@ -86,6 +83,7 @@ private:
     bool isInitialized(int tabIdx) const;
     void markInitialized(semantic::AstNode* node);
     void seedInitiallyInitialized();
+    bool constantValue(const semantic::AstNode* node, long long& value) const;
 
     void report(const semantic::AstNode& node, const std::string& msg);
     void reportTypeMismatch(const semantic::AstNode& node,

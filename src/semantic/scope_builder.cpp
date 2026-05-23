@@ -610,19 +610,36 @@ ScopeBuilder::TypeInfo ScopeBuilder::resolveRangeType(semantic::RangeNode& node)
 
 ScopeBuilder::TypeInfo ScopeBuilder::resolveEnumeratedType(semantic::EnumeratedTypeNode& node)
 {
-    int value = 0;
+    std::vector<int> constantIndexes;
+    bool hasError = false;
+
     for (const auto& identifier : node.identifiers) {
-        if (symTab->lookupCurrentScope(identifier) != semantic::NO_INDEX) {
-            report(node, "redeklarasi dari konstanta enumerasi '" + identifier + "'");
+        const int index = symTab->lookup(identifier);
+        if (index == semantic::NO_INDEX) {
+            report(node, "identifier '" + identifier + "' belum dideklarasikan");
+            hasError = true;
             continue;
         }
-        symTab->insert(
-            identifier,
-            semantic::ObjectKind::Constant,
-            semantic::TypeKind::Enumerated,
-            semantic::NO_INDEX,
-            value++,
-            true);
+
+        const auto& entry = symTab->tabAt(index);
+        if (entry.obj != semantic::ObjectKind::Constant) {
+            report(node, "identifier '" + identifier + "' pada enumerated harus berupa konstanta");
+            hasError = true;
+            continue;
+        }
+
+        if (entry.type != semantic::TypeKind::Integer) {
+            hasError = true;
+            continue;
+        }
+
+        constantIndexes.push_back(index);
+    }
+
+    if (hasError) {
+        node.inferredType = semantic::TypeKind::Error;
+        node.typeRef = semantic::NO_INDEX;
+        return {semantic::TypeKind::Error, semantic::NO_INDEX, 1};
     }
 
     node.inferredType = semantic::TypeKind::Enumerated;
