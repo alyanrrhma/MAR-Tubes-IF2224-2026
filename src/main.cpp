@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -10,35 +11,38 @@
 #include "lexer/lexer_exception.hpp"
 #include "parser/parser.hpp"
 #include "parser/parse_tree.hpp"
+#include "semantic/ast_builder.hpp"
+#include "semantic/ast_nodes.hpp"
+#include "semantic/scope_builder.hpp"
+#include "semantic/type_checker.hpp"
 
 namespace fs = std::filesystem;
 
+namespace {
+
+struct Options {
+    std::string inputFile;
+    std::string saveTokens;
+    std::string saveParseTree;
+    std::string saveAst;
+    bool verbose = false;
+};
+
 void printUsage(const char* programName) {
-    std::cerr
+    std::cout
         << "Usage:\n"
-        << "  " << programName
-        << " <program.txt> [-o <token_output.txt>] [-p <parse_tree_output.txt>] [--lex-only]\n\n"
+        << "  " << programName << " <program.txt> [--verbose]\n"
+        << "  " << programName << " <program.txt> --save-tokens <file> [--save-parse-tree <file>] [--save-ast <file>] [--verbose]\n\n"
         << "Options:\n"
-        << "  -o <file>     Save lexer/token output to <file>\n"
-        << "  -p <file>     Save parser/parse-tree output to <file>\n"
-        << "  --lex-only    Run only lexer, do not run parser\n";
-}
-
-std::string defaultOutputPath(const std::string& inputFilename,
-                              const std::string& milestoneFolder) {
-    fs::path inputPath(inputFilename);
-    std::string stem = inputPath.stem().string();
-
-    if (stem.rfind("input", 0) == 0) {
-        stem = "output" + stem.substr(5);
-    }
-
-    return (fs::path("test") / milestoneFolder / "output" / (stem + ".txt")).string();
+        << "  --verbose               Print tokens, parse tree, and decorated AST to stdout\n"
+        << "  --save-tokens <file>    Save tokens to <file>\n"
+        << "  --save-parse-tree <file> Save parse tree to <file>\n"
+        << "  --save-ast <file>       Save decorated AST, tab, btab, and atab to <file>\n"
+        << "  -o <file>               Alias for --save-ast <file>\n";
 }
 
 void ensureParentDirectoryExists(const std::string& filename) {
     fs::path path(filename);
-
     if (path.has_parent_path()) {
         fs::create_directories(path.parent_path());
     }
@@ -52,96 +56,132 @@ bool isLexicalErrorToken(const Token& token) {
     return token.get_type_name() == "UNKNOWN";
 }
 
-int main(int argc, char* argv[]) {
+void writeOutputFile(const std::string& filename, const std::string& content) {
+    ensureParentDirectoryExists(filename);
+    std::ofstream out(filename);
+    if (!out.is_open()) {
+        throw std::runtime_error("Gagal membuka file output: " + filename);
+    }
+    out << content;
+}
+
+Options parseOptions(int argc, char* argv[]) {
+    Options options;
+
     if (argc < 2) {
-        printUsage(argv[0]);
-        return 1;
+        throw std::runtime_error("Argumen input tidak diberikan");
     }
 
-    std::string inputFilename = argv[1];
-    std::string tokenOutputFilename;
-    std::string parseTreeOutputFilename;
-    bool lexOnly = false;
+    int i = 1;
+    bool inputSet = false;
 
-    for (int i = 2; i < argc; ++i) {
+    while (i < argc) {
         std::string arg = argv[i];
 
-        if (arg == "-o") {
-            if (i + 1 >= argc) {
-                std::cerr << "ERROR: -o membutuhkan nama file output.\n";
-                printUsage(argv[0]);
-                return 1;
-            }
-
-            tokenOutputFilename = argv[++i];
-        } else if (arg == "-p") {
-            if (i + 1 >= argc) {
-                std::cerr << "ERROR: -p membutuhkan nama file output parse tree.\n";
-                printUsage(argv[0]);
-                return 1;
-            }
-
-            parseTreeOutputFilename = argv[++i];
-        } else if (arg == "--lex-only") {
-            lexOnly = true;
-        } else {
-            std::cerr << "ERROR: Argumen tidak dikenal: " << arg << "\n";
-            printUsage(argv[0]);
-            return 1;
+        if (arg == "--verbose") {
+            options.verbose = true;
+            ++i;
+            continue;
         }
+
+        if (arg == "--save-tokens") {
+            if (i + 1 >= argc) {
+                throw std::runtime_error("--save-tokens membutuhkan nama file");
+            }
+            options.saveTokens = argv[++i];
+            ++i;
+            continue;
+        }
+
+        if (arg == "--save-parse-tree") {
+            if (i + 1 >= argc) {
+                throw std::runtime_error("--save-parse-tree membutuhkan nama file");
+            }
+            options.saveParseTree = argv[++i];
+            ++i;
+            continue;
+        }
+
+        if (arg == "--save-ast" || arg == "-o") {
+            if (i + 1 >= argc) {
+                throw std::runtime_error("--save-ast membutuhkan nama file");
+            }
+            options.saveAst = argv[++i];
+            ++i;
+            continue;
+        }
+
+        if (!inputSet && arg[0] != '-') {
+            options.inputFile = arg;
+            inputSet = true;
+            ++i;
+            continue;
+        }
+
+        throw std::runtime_error("Argumen tidak dikenal: " + arg);
     }
 
-    if (tokenOutputFilename.empty()) {
-        tokenOutputFilename = defaultOutputPath(inputFilename, "milestone1");
+    if (!inputSet) {
+        throw std::runtime_error("Argumen input tidak diberikan");
     }
 
-    if (parseTreeOutputFilename.empty()) {
-        parseTreeOutputFilename = defaultOutputPath(inputFilename, "milestone2");
+    return options;
+}
+
+void printSemanticResult(std::ostream& out,
+                         semantic::AstPtr& astRoot,
+                         ScopeBuilder& scopeBuilder,
+                         TypeChecker& typeChecker) {
+    semantic::printAst(out, astRoot.get());
+    out << "\n";
+    scopeBuilder.printTables(out);
+
+    if (scopeBuilder.hasErrors()) {
+        out << "\nSemantic errors\n";
+        scopeBuilder.printErrors(out);
     }
 
-    std::ifstream inputFile(inputFilename);
-    if (!inputFile.is_open()) {
-        std::cerr << "Gagal membuka file input: " << inputFilename << "\n";
-        return 1;
+    if (typeChecker.hasErrors()) {
+        out << "\nType errors\n";
+        typeChecker.printErrors(out);
     }
+}
+
+}  // namespace
+
+int main(int argc, char* argv[]) {
+    const char* programName = (argc > 0 && argv[0] != nullptr) ? argv[0] : "arion";
 
     try {
-        ensureParentDirectoryExists(tokenOutputFilename);
+        Options options = parseOptions(argc, argv);
 
-        std::ofstream tokenOutputFile(tokenOutputFilename);
-        if (!tokenOutputFile.is_open()) {
-            std::cerr << "Gagal membuka file output token: " << tokenOutputFilename << "\n";
+        std::ifstream inputFile(options.inputFile);
+        if (!inputFile.is_open()) {
+            std::cout << "Gagal membuka file input: " << options.inputFile << "\n";
             return 1;
         }
+
+        std::ostringstream tokenBuffer;
+        std::ostringstream parseTreeBuffer;
+        std::ostringstream decoratedAstBuffer;
 
         auto dfa = std::make_shared<DFA>();
         dfa->loadConfig("config/config_lexer.txt");
 
-        Lexer lexer(inputFile, dfa, &tokenOutputFile);
-
+        Lexer lexer(inputFile, dfa, &tokenBuffer);
         while (!lexer.eof()) {
             lexer.process_next_token();
         }
 
-        tokenOutputFile.close();
-
-        std::cout << "Lexing selesai.\n";
-        std::cout << "Output token disimpan di: " << tokenOutputFilename << "\n";
-
-        if (lexOnly) {
-            return 0;
-        }
-
         std::vector<Token> parserTokens;
         parserTokens.reserve(lexer.getResult().size());
-
         for (const Token& token : lexer.getResult()) {
             if (isIgnoredByParser(token)) {
                 continue;
             }
 
             if (isLexicalErrorToken(token)) {
-                std::cerr << "Lexical error: token tidak dikenal "
+                std::cout << "Lexical error: token tidak dikenal "
                           << token.to_string() << "\n";
                 return 1;
             }
@@ -150,34 +190,54 @@ int main(int argc, char* argv[]) {
         }
 
         Parser parser(parserTokens);
-        parse_tree::NodePtr root = parser.parse();
+        parse_tree::NodePtr parseRoot = parser.parse();
+        parse_tree::printTree(parseRoot.get(), parseTreeBuffer);
 
-        ensureParentDirectoryExists(parseTreeOutputFilename);
+        AstBuilder builder;
+        semantic::AstPtr astRoot = builder.build(parseRoot);
 
-        std::ofstream parseTreeOutputFile(parseTreeOutputFilename);
-        if (!parseTreeOutputFile.is_open()) {
-            std::cerr << "Gagal membuka file output parse tree: "
-                      << parseTreeOutputFilename << "\n";
-            return 1;
+        ScopeBuilder scopeBuilder;
+        scopeBuilder.build(astRoot);
+
+        TypeChecker typeChecker;
+        typeChecker.check(astRoot.get(), scopeBuilder.symbolTable());
+
+        printSemanticResult(decoratedAstBuffer, astRoot, scopeBuilder, typeChecker);
+
+        if (options.verbose) {
+            std::cout << "=== Lexical analysis ===\n\n";
+            std::cout << tokenBuffer.str();
+            std::cout << "\n=== Syntax analysis ===\n\n";
+            std::cout << parseTreeBuffer.str();
+            std::cout << "\n=== Semantic analysis ===\n\n";
+            std::cout << decoratedAstBuffer.str();
         }
 
-        parse_tree::printTree(root.get(), std::cout);
-        parse_tree::printTree(root.get(), parseTreeOutputFile);
-        parseTreeOutputFile.close();
+        if (!options.saveTokens.empty()) {
+            writeOutputFile(options.saveTokens, tokenBuffer.str());
+        }
 
-        std::cout << "Parsing selesai.\n";
-        std::cout << "Output parse tree disimpan di: "
-                  << parseTreeOutputFilename << "\n";
+        if (!options.saveParseTree.empty()) {
+            writeOutputFile(options.saveParseTree, parseTreeBuffer.str());
+        }
+
+        if (!options.saveAst.empty()) {
+            writeOutputFile(options.saveAst, decoratedAstBuffer.str());
+        }
+
+        return 0;
     } catch (const LexerException& e) {
-        std::cerr << e.full_message() << "\n";
+        std::cout << e.full_message() << "\n";
         return 1;
     } catch (const ParseException& e) {
-        std::cerr << e.full_message() << "\n";
+        std::cout << e.full_message() << "\n";
+        return 1;
+    } catch (const std::runtime_error& e) {
+        std::cout << e.what() << "\n";
+        printUsage(programName);
         return 1;
     } catch (const std::exception& e) {
-        std::cerr << "ERROR: " << e.what() << "\n";
+        std::cout << "ERROR: " << e.what() << "\n";
         return 1;
     }
-
-    return 0;
 }
