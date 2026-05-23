@@ -151,12 +151,13 @@ Clean and rebuild the main program.
 test/milestone3/
 ├── input/
 │   ├── input1.txt
-│   ├── input2.txt
-│   ├── input3.txt
-│   ├── input4.txt
-│   └── input5.txt
+│   ├── ...
+│   └── input18.txt
 ├── output/
-│   └── output2.txt
+│   ├── output1.txt
+│   ├── ...
+│   └── output18.txt
+├── test3.txt
 └── README.md
 ```
 
