@@ -4,7 +4,6 @@
 #include <istream>
 #include <ostream>
 #include <memory>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -25,11 +24,9 @@ private:
     std::shared_ptr<DFA> dfa;
     std::ostream* out;
 
-    int  line_counter; // Baris yang sedang/sudah dibaca   
-    int  col_counter;  // Kolom yang sedang/sudah dibaca
-
-    std::optional<char> reprocess_input; // Karakter yang harus diproses ulang pada pemanggilan berikutnya
-    bool reached_eof;     // Penanda apakah sudah sampai EOF
+    int line_counter;
+    int col_counter;
+    bool reached_eof;
 
     bool read_char(char& c);
     void update_position(char c);

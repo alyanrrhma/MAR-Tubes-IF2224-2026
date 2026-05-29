@@ -1,27 +1,22 @@
 #include "lexer.hpp"
 
+#include <cctype>
+#include <optional>
+
 Lexer::Lexer(std::istream& source, std::shared_ptr<DFA> automaton, std::ostream* output)
     : src(source),
       dfa(automaton),
       out(output),
       line_counter(1),
       col_counter(0),
-      reprocess_input(std::nullopt),
       reached_eof(false)
 {}
 
 bool Lexer::eof() const {
-    if (reprocess_input.has_value()) return false;
     return reached_eof;
 }
 
 bool Lexer::read_char(char& c) {
-    if (reprocess_input.has_value()) {
-        c = reprocess_input.value();
-        reprocess_input = std::nullopt;
-        return true;
-    }
-
     if (!src.get(c)) {
         reached_eof = true;
         return false;
@@ -36,6 +31,29 @@ void Lexer::update_position(char c) {
     } else {
         ++col_counter;
     }
+}
+
+static bool isWhitespace(char c) {
+    return c == ' ' || c == '\t' || c == '\r' || c == '\n';
+}
+
+static bool isTokenBoundary(char c) {
+    switch (c) {
+        case ' ': case '\t': case '\r': case '\n':
+        case '+': case '-': case '*': case '/':
+        case '<': case '>': case '=': case ':':
+        case '.': case ',': case ';':
+        case '(': case ')': case '[': case ']':
+        case '{': case '}': case '\'':
+            return true;
+        default:
+            return false;
+    }
+}
+
+static bool isValueLikeToken(const std::string& name) {
+    return name == "IDENT" || name == "INTCON" ||
+           name == "REALCON" || name == "RANGE";
 }
 
 static std::string decodeQuotedValue(const std::string& raw) {
@@ -73,17 +91,12 @@ void Lexer::write_token(const Token& t) {
 }
 
 void Lexer::process_next_token() {
-    dfa->resetState();
+    if (reached_eof) {
+        return;
+    }
 
-    std::string lexeme;
-    char c;
-
-    auto write_unknown = [&]() {
-        if (!lexeme.empty()) {
-            Token tok(dfa->getCurrToken(), lexeme);
-            write_token(tok);
-        }
-    };
+    TokenType unknownType = dfa->getTokenTypeFromTypeName("UNKNOWN");
+    TokenType commentType = dfa->getTokenTypeFromTypeName("COMMENT");
 
     auto make_token = [&](TokenType tt, const std::string& lex) -> Token {
         const std::string& name = tt.get_name();
@@ -93,94 +106,161 @@ void Lexer::process_next_token() {
         return Token(tt, lex);
     };
 
-    auto munch_until_whitespace = [&]() {
-        while (read_char(c)) {
-            update_position(c);
-            if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
-                break;
-            }
-            lexeme += c;
+    auto emit_unknown = [&](const std::string& lex) {
+        if (!lex.empty()) {
+            write_token(Token(unknownType, lex));
         }
-        write_unknown();
     };
 
-    while (true) {
-        bool got_char = read_char(c);
-
-        if (!got_char) {
-            const State& cur = dfa->getState();
-
-            if (cur.isNullState()) {
-                if (!lexeme.empty()) {
-                    write_unknown();
-                    return;
-                }
-                return;
-            }
-
-            if (!cur.isFinalState()) {
-                write_unknown();
-                return;
-            }
-
-            TokenType tt = dfa->getCurrToken();
-            if (tt.get_name() == "RANGE") {
-                write_range_tokens(lexeme);
-                return;
-            }
-            write_token(make_token(tt, lexeme));
+    auto emit_accepted = [&](TokenType tt, const std::string& lex) {
+        if (lex.empty()) {
             return;
         }
-
-        update_position(c);
-
-        if (lexeme.empty() && (c == ' ' || c == '\t' || c == '\r' || c == '\n')) {
-            dfa->resetState();
-            continue;
+        if (tt.get_name() == "RANGE") {
+            write_range_tokens(lex);
+            return;
         }
+        write_token(make_token(tt, lex));
+    };
 
-        const State& prev_state = dfa->getState();
-        dfa->next(static_cast<unsigned char>(c));
-        const State& next_state = dfa->getState();
+    std::optional<char> pending;
 
-        if (next_state.isNullState()) {
-            TokenType tt = dfa->getTokenForState(prev_state.getStateIdx());
-            if (prev_state.isFinalState() && tt.get_name() != "UNKNOWN") {
-                reprocess_input = c;
-                if (c == '\n') {
-                    --line_counter;
-                    col_counter = 0;
-                } else {
-                    --col_counter;
-                }
-
-                if (tt.get_name() == "RANGE") {
-                    write_range_tokens(lexeme);
-                    return;
-                }
-                write_token(make_token(tt, lexeme));
+    auto scan_comment = [&](std::string lexeme, char prev) {
+        char c;
+        while (read_char(c)) {
+            update_position(c);
+            lexeme += c;
+            if (c == '}' || (prev == '*' && c == ')')) {
+                write_token(Token(commentType, lexeme));
                 return;
             }
+            prev = c;
+        }
+        emit_unknown(lexeme);
+    };
 
-            if (c == ' ' || c == '\t' || c == '\r' || c == '\n') {
-                write_unknown();
+    auto scan_unknown_tail = [&](std::string lexeme) {
+        char c;
+        while (read_char(c)) {
+            update_position(c);
+            if (isWhitespace(c)) {
+                emit_unknown(lexeme);
                 return;
+            }
+            if (isTokenBoundary(c)) {
+                emit_unknown(lexeme);
+                pending = c;
+                return;
+            }
+            lexeme += c;
+        }
+        emit_unknown(lexeme);
+    };
+
+    dfa->resetState();
+    std::string lexeme;
+    char c;
+
+    while (pending.has_value() || read_char(c)) {
+        if (pending.has_value()) {
+            c = pending.value();
+            pending = std::nullopt;
+        } else {
+            update_position(c);
+        }
+
+        bool consume_current = true;
+        while (consume_current) {
+            consume_current = false;
+
+            if (lexeme.empty() && isWhitespace(c)) {
+                dfa->resetState();
+                break;
+            }
+
+            if (lexeme.empty() && c == '{') {
+                dfa->resetState();
+                scan_comment("{", '{');
+                break;
+            }
+
+            const State prev_state = dfa->getState();
+            dfa->next(static_cast<unsigned char>(c));
+            const State next_state = dfa->getState();
+
+            if (!next_state.isNullState()) {
+                lexeme += c;
+
+                if (lexeme == "(*") {
+                    dfa->resetState();
+                    scan_comment(lexeme, '*');
+                    lexeme.clear();
+                }
+                break;
+            }
+
+            TokenType prev_token = dfa->getTokenForState(prev_state.getStateIdx());
+            if (prev_state.isFinalState() && prev_token.get_name() != "UNKNOWN") {
+                if (isValueLikeToken(prev_token.get_name()) && !isTokenBoundary(c)) {
+                    lexeme += c;
+                    dfa->resetState();
+                    scan_unknown_tail(lexeme);
+                    lexeme.clear();
+                    break;
+                }
+
+                emit_accepted(prev_token, lexeme);
+                lexeme.clear();
+                dfa->resetState();
+
+                if (!isWhitespace(c)) {
+                    consume_current = true;
+                    continue;
+                }
+                break;
+            }
+
+            if (lexeme.empty()) {
+                if (!isWhitespace(c)) {
+                    emit_unknown(std::string(1, c));
+                }
+                dfa->resetState();
+                break;
+            }
+
+            if (isWhitespace(c)) {
+                emit_unknown(lexeme);
+                lexeme.clear();
+                dfa->resetState();
+                break;
+            }
+
+            if (isTokenBoundary(c)) {
+                emit_unknown(lexeme);
+                lexeme.clear();
+                dfa->resetState();
+                consume_current = true;
+                continue;
             }
 
             lexeme += c;
-            munch_until_whitespace();
-            return;
+            dfa->resetState();
+            scan_unknown_tail(lexeme);
+            lexeme.clear();
+            break;
         }
-
-        if ((c == ' ' || c == '\t' || c == '\r' || c == '\n') &&
-            next_state.isFinalState() &&
-            dfa->getTokenForState(next_state.getStateIdx()).get_name() == "UNKNOWN") {
-            write_unknown();
-            return;
-        }
-
-        lexeme += c;
     }
+
+    const State cur = dfa->getState();
+    if (!lexeme.empty()) {
+        if (cur.isFinalState()) {
+            emit_accepted(dfa->getCurrToken(), lexeme);
+        } else {
+            emit_unknown(lexeme);
+        }
+    }
+
+    reached_eof = true;
 }
 
 const std::vector<Token>& Lexer::getResult() const {
