@@ -198,6 +198,7 @@ std::unique_ptr<semantic::ArrayTypeNode> AstBuilder::visit_ArrayType(const parse
     annotate(arrayType.get(), node);
     for (const auto& child : children(node)) {
         if (isLabel(child, "range")) arrayType->indexTypes.push_back(visit_Range(child));
+        else if (isLabel(child, "ident")) arrayType->indexTypes.push_back(makeSimpleType(child->getValue(), child));
     }
     arrayType->elementType = visit_Type(children(node).at(children(node).size() - 1));
     return arrayType;
@@ -432,7 +433,7 @@ std::unique_ptr<semantic::WhileNode> AstBuilder::visit_WhileStatement(const pars
     auto stmt = std::make_unique<semantic::WhileNode>();
     annotate(stmt.get(), node);
     stmt->condition = visit_Expression(children(node).at(1));
-    stmt->body = visit_Statement(children(node).at(3));
+    stmt->body = visit_CompoundStatement(children(node).at(3));
     return stmt;
 }
 
@@ -443,7 +444,7 @@ std::unique_ptr<semantic::ForNode> AstBuilder::visit_ForStatement(const parse_tr
     stmt->startExpr = visit_Expression(children(node).at(3));
     stmt->downto = isLabel(children(node).at(4), "downtosy");
     stmt->endExpr = visit_Expression(children(node).at(5));
-    stmt->body = visit_Statement(children(node).at(7));
+    stmt->body = visit_CompoundStatement(children(node).at(7));
     return stmt;
 }
 
@@ -556,7 +557,7 @@ semantic::AstPtr AstBuilder::visit_Variable(const parse_tree::NodePtr& node) { /
     semantic::AstPtr current = makeVar(children(node).at(0)->getValue(), children(node).at(0));
     for (std::size_t i = 1; i < children(node).size(); ++i) {
         const auto& selector = children(node).at(i);
-        if (!isLabel(selector, "selector")) continue;
+        if (!isLabel(selector, "component-variable") && !isLabel(selector, "selector")) continue;
         if (isLabel(children(selector).at(0), "lbrack")) {
             auto access = std::make_unique<semantic::ArrayAccessNode>();
             annotate(access.get(), selector);

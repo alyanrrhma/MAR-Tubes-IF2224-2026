@@ -96,6 +96,19 @@ void ScopeBuilder::visitFormalParam(semantic::FormalParam& param)
     semantic::AstNode* owner = param.typeExpr.get();
     if(!owner) return;
 
+    const int outerIndex = symTab->lookup(param.name);
+    if (outerIndex != semantic::NO_INDEX) {
+        const auto& outer = symTab->tabAt(outerIndex);
+        if (outer.lev < symTab->currentLevel() &&
+            (outer.obj == semantic::ObjectKind::Constant ||
+             outer.obj == semantic::ObjectKind::Variable)) {
+            report(*owner, "parameter formal '" + param.name +
+                           "' tidak boleh men-shadow identifier global '" +
+                           outer.identifier + "'");
+            return;
+        }
+    }
+
     const int index = declareIdentifier(*owner, param.name, semantic::ObjectKind::Parameter, type, adr, !param.byReference);
     owner->tabIdx = index;
     owner->inferredType = type.type;
@@ -480,20 +493,53 @@ ScopeBuilder::TypeInfo ScopeBuilder::resolveArrayType(semantic::ArrayTypeNode& n
     for (int i = static_cast<int>(node.indexTypes.size()) - 1; i >= 0; --i)
     {
         auto* range = node.indexTypes[static_cast<std::size_t>(i)].get();
-        bool lowOk = false;
-        bool highOk = false;
-        const int low = static_cast<int>(constIntValue(static_cast<semantic::RangeNode*>(range)->low.get(), lowOk));
-        const int high = static_cast<int>(constIntValue(static_cast<semantic::RangeNode*>(range)->high.get(), highOk));
-
         TypeInfo indexType = resolveTypeExpr(range);
-        if (!lowOk || !highOk) {
-            report(*range, "batas array harus berupa konstanta ordinal");
-        }
-
+        int low = 0;
+        int high = 0;
         semantic::TypeKind indexBaseType = indexType.type;
-        if (indexType.type == semantic::TypeKind::Subrange &&
-            indexType.ref != semantic::NO_INDEX) {
-            indexBaseType = symTab->atabAt(indexType.ref).xtyp;
+
+        if (range && range->getKind() == semantic::AstKind::Range) {
+            auto* rangeNode = static_cast<semantic::RangeNode*>(range);
+            bool lowOk = false;
+            bool highOk = false;
+            low = static_cast<int>(constIntValue(rangeNode->low.get(), lowOk));
+            high = static_cast<int>(constIntValue(rangeNode->high.get(), highOk));
+
+            if (!lowOk || !highOk) {
+                report(*range, "batas array harus berupa konstanta ordinal");
+            }
+
+            if (indexType.type == semantic::TypeKind::Subrange &&
+                indexType.ref != semantic::NO_INDEX) {
+                indexBaseType = symTab->atabAt(indexType.ref).xtyp;
+            }
+        } else {
+            switch (indexType.type) {
+                case semantic::TypeKind::Char:
+                    low = 0;
+                    high = 255;
+                    break;
+                case semantic::TypeKind::Boolean:
+                    low = 0;
+                    high = 1;
+                    break;
+                case semantic::TypeKind::Subrange:
+                    if (indexType.ref != semantic::NO_INDEX) {
+                        const auto& entry = symTab->atabAt(indexType.ref);
+                        low = entry.low;
+                        high = entry.high;
+                        indexBaseType = entry.xtyp;
+                    }
+                    break;
+                case semantic::TypeKind::Integer:
+                case semantic::TypeKind::Enumerated:
+                    low = 0;
+                    high = 0;
+                    break;
+                default:
+                    if (range) report(*range, "tipe indeks array harus ordinal dan bukan Real/String/Record/Array");
+                    break;
+            }
         }
 
         const int arrayRef = symTab->addArrayType(
@@ -621,6 +667,14 @@ ScopeBuilder::TypeInfo ScopeBuilder::resolveEnumeratedType(semantic::EnumeratedT
 {
     std::vector<int> constantIndexes;
     bool hasError = false;
+    semantic::TypeKind commonType = semantic::TypeKind::Unknown;
+
+    const auto baseOrdinalType = [&](const semantic::TabEntry& entry) {
+        if (entry.type == semantic::TypeKind::Subrange && entry.ref != semantic::NO_INDEX) {
+            return symTab->atabAt(entry.ref).xtyp;
+        }
+        return entry.type;
+    };
 
     for (const auto& identifier : node.identifiers) {
         const int index = symTab->lookup(identifier);
@@ -637,7 +691,20 @@ ScopeBuilder::TypeInfo ScopeBuilder::resolveEnumeratedType(semantic::EnumeratedT
             continue;
         }
 
-        if (entry.type != semantic::TypeKind::Integer) {
+        const semantic::TypeKind baseType = baseOrdinalType(entry);
+        if (baseType != semantic::TypeKind::Integer &&
+            baseType != semantic::TypeKind::Char &&
+            baseType != semantic::TypeKind::Boolean &&
+            baseType != semantic::TypeKind::Enumerated) {
+            report(node, "identifier '" + identifier + "' pada enumerated harus bertipe ordinal");
+            hasError = true;
+            continue;
+        }
+
+        if (commonType == semantic::TypeKind::Unknown) {
+            commonType = baseType;
+        } else if (commonType != baseType) {
+            report(node, "semua identifier pada enumerated harus memiliki tipe yang sama");
             hasError = true;
             continue;
         }

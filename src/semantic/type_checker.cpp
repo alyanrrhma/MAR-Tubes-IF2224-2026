@@ -434,15 +434,15 @@ void TypeChecker::visitRepeat(semantic::RepeatNode& n)
 void TypeChecker::visitFor(semantic::ForNode& n)
 {
     bool validControlVar = false;
-    const auto& entry = sym_->tabAt(n.tabIdx);
-    
-    if (entry.obj != semantic::ObjectKind::Variable)
-    {
-        report(n, "Variabel kontrol " + n.controlVar + " harus berupa variabel");
-    }
-    else validControlVar = true;
-    
     if (n.tabIdx != semantic::NO_INDEX) {
+        const auto& entry = sym_->tabAt(n.tabIdx);
+
+        if (entry.obj != semantic::ObjectKind::Variable)
+        {
+            report(n, "Variabel kontrol " + n.controlVar + " harus berupa variabel");
+        }
+        else validControlVar = true;
+
         const semantic::TypeKind ct = entry.type;
         if (ct != semantic::TypeKind::Integer &&
             ct != semantic::TypeKind::Subrange &&
@@ -453,6 +453,8 @@ void TypeChecker::visitFor(semantic::ForNode& n)
                 << "' harus bertipe integer, bukan '" << typeName(ct) << "'";
             report(n, msg.str());
         }
+    } else {
+        report(n, "Variabel kontrol " + n.controlVar + " belum dideklarasikan");
     }
 
     visit(n.startExpr.get());
@@ -795,7 +797,9 @@ void TypeChecker::visitCharLit(semantic::CharLitNode& n)
 void TypeChecker::visitStringLit(semantic::StringLitNode& n)
 {
     n.inferredType = semantic::TypeKind::String;
-    n.typeRef = semantic::NO_INDEX;
+    if (n.typeRef == semantic::NO_INDEX) {
+        n.typeRef = static_cast<int>(n.value.size());
+    }
 }
 
 void TypeChecker::visitBoolLit(semantic::BoolLitNode& n)

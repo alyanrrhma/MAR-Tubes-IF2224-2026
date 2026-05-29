@@ -101,7 +101,17 @@ bool Parser::isMultiplicativeOp() const {
 }
 
 NodePtr Parser::parse() {
-    return parseProgram();
+    NodePtr root = parseProgram();
+    if (!atEnd()) {
+        std::ostringstream msg;
+        msg << "Token tambahan setelah akhir program: '"
+            << current().get_type_name() << "'";
+        if (!current().get_value().empty()) {
+            msg << " (" << current().get_value() << ")";
+        }
+        throw ParseException(msg.str());
+    }
+    return root;
 }
 
 NodePtr Parser::parseProgram() {
@@ -140,16 +150,24 @@ NodePtr Parser::parseBlock() {
 
 NodePtr Parser::parseDeclarationPart() {
     NodePtr node = makeNonTerminal(NonTerminal::DeclarationPart);
-    while (isDeclarationStart()) {
-        if (check("CONSTSY")) {
-            node->addChild(parseConstDeclaration());
-        } else if (check("TYPESY")) {
-            node->addChild(parseTypeDeclaration());
-        } else if (check("VARSY")) {
-            node->addChild(parseVarDeclaration());
-        } else {
-            node->addChild(parseSubprogramDeclarationPart());
-        }
+
+    while (check("CONSTSY")) {
+        node->addChild(parseConstDeclaration());
+    }
+    while (check("TYPESY")) {
+        node->addChild(parseTypeDeclaration());
+    }
+    while (check("VARSY")) {
+        node->addChild(parseVarDeclaration());
+    }
+    while (checkAny({"PROCEDURESY", "FUNCTIONSY"})) {
+        node->addChild(parseSubprogramDeclarationPart());
+    }
+
+    if (isDeclarationStart()) {
+        throw ParseException(
+            "Urutan declaration-part tidak valid: gunakan urutan const, type, var, lalu procedure/function; mendapat '" +
+            current().get_type_name() + "'");
     }
     return node;
 }
@@ -246,15 +264,23 @@ NodePtr Parser::parseArrayType() {
     NodePtr node = makeNonTerminal(NonTerminal::ArrayType);
     node->addChild(expectNode("ARRAYSY"));
     node->addChild(expectNode("LBRACK"));
-    node->addChild(parseRange());
+    node->addChild(parseArrayIndexType());
     while (check("COMMA")) {
         node->addChild(termNode());
-        node->addChild(parseRange());
+        node->addChild(parseArrayIndexType());
     }
     node->addChild(expectNode("RBRACK"));
     node->addChild(expectNode("OFSY"));
     node->addChild(parseType());
     return node;
+}
+
+NodePtr Parser::parseArrayIndexType() {
+    if (check("IDENT") &&
+        !(lookAhead(1).get_type_name() == "PERIOD" && lookAhead(2).get_type_name() == "PERIOD")) {
+        return termNode();
+    }
+    return parseRange();
 }
 
 NodePtr Parser::parseRange() {
@@ -518,7 +544,7 @@ NodePtr Parser::parseWhileStatement() {
     node->addChild(expectNode("WHILESY"));
     node->addChild(parseExpression());
     node->addChild(expectNode("DOSY"));
-    node->addChild(parseStatement());
+    node->addChild(parseCompoundStatement());
     return node;
 }
 
@@ -539,7 +565,7 @@ NodePtr Parser::parseForStatement() {
     }
     node->addChild(parseExpression());
     node->addChild(expectNode("DOSY"));
-    node->addChild(parseStatement());
+    node->addChild(parseCompoundStatement());
     return node;
 }
 
@@ -646,13 +672,13 @@ NodePtr Parser::parseVariable() {
     NodePtr node = makeNonTerminal(NonTerminal::Variable);
     node->addChild(expectNode("IDENT"));
     while (checkAny({"LBRACK", "PERIOD"})) {
-        node->addChild(parseSelector());
+        node->addChild(parseComponentVariable());
     }
     return node;
 }
 
-NodePtr Parser::parseSelector() {
-    NodePtr node = makeNonTerminal(NonTerminal::Selector);
+NodePtr Parser::parseComponentVariable() {
+    NodePtr node = makeNonTerminal(NonTerminal::ComponentVariable);
     if (check("LBRACK")) {
         node->addChild(termNode());
         node->addChild(parseIndexList());

@@ -502,14 +502,18 @@ void printNodePretty(std::ostream& out, const AstNode* node, const std::string& 
 void printAst(std::ostream& out, const AstNode* root) { // EDIT MARK
     if (!root) return;
 
+    out << "Decorated AST (pretty)\n";
+
     if (const auto* program = dynamic_cast<const ProgramNode*>(root)) {
         out << "ProgramNode(name: " << quote(program->name) << ")\n";
         printDeclSection(out, program->declaration.get(), "", false);
         printBlockSection(out, program->statements.get(), "", true);
-        return;
+    } else {
+        printNodePretty(out, root, "", true);
     }
 
-    printNodePretty(out, root, "", true);
+    out << "\nAnnotated AST nodes\n";
+    root->print(out);
 }
 
 static void printLabeled(std::ostream& out, int depth, const char* label, const AstNode* node) {

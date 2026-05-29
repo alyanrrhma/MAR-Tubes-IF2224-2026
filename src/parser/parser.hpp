@@ -71,6 +71,7 @@ private:
 
     parse_tree::NodePtr parseType();
     parse_tree::NodePtr parseArrayType();
+    parse_tree::NodePtr parseArrayIndexType();
     parse_tree::NodePtr parseRange();
     parse_tree::NodePtr parseEnumerated();
     parse_tree::NodePtr parseRecordType();
@@ -107,7 +108,7 @@ private:
     parse_tree::NodePtr parseFactor();
 
     parse_tree::NodePtr parseVariable();
-    parse_tree::NodePtr parseSelector();
+    parse_tree::NodePtr parseComponentVariable();
     parse_tree::NodePtr parseIndexList();
     parse_tree::NodePtr parseConstant();
 };
