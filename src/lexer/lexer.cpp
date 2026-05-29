@@ -1,6 +1,7 @@
 #include "lexer.hpp"
 
 #include <cctype>
+#include <iostream>
 #include <optional>
 
 Lexer::Lexer(std::istream& source, std::shared_ptr<DFA> automaton, std::ostream* output)
@@ -97,6 +98,7 @@ void Lexer::process_next_token() {
 
     TokenType unknownType = dfa->getTokenTypeFromTypeName("UNKNOWN");
     TokenType commentType = dfa->getTokenTypeFromTypeName("COMMENT");
+    TokenType identType = dfa->getTokenTypeFromTypeName("IDENT");
 
     auto make_token = [&](TokenType tt, const std::string& lex) -> Token {
         const std::string& name = tt.get_name();
@@ -112,6 +114,22 @@ void Lexer::process_next_token() {
         }
     };
 
+    auto report_lexical_error = [&](const std::string& message,
+                                    int line,
+                                    int col,
+                                    const std::string& lex) {
+        std::cerr << "[" << line << ":" << col << "] Lexical error: "
+                  << message;
+        if (!lex.empty()) {
+            std::cerr << " (near '" << lex << "')";
+        }
+        std::cerr << "\n";
+    };
+
+    auto report_unclosed_quote = [&](int line, int col, const std::string& lex) {
+        report_lexical_error("string/char literal belum ditutup", line, col, lex);
+    };
+
     auto emit_accepted = [&](TokenType tt, const std::string& lex) {
         if (lex.empty()) {
             return;
@@ -125,7 +143,7 @@ void Lexer::process_next_token() {
 
     std::optional<char> pending;
 
-    auto scan_comment = [&](std::string lexeme, char prev) {
+    auto scan_comment = [&](std::string lexeme, char prev, int start_line, int start_col) {
         char c;
         while (read_char(c)) {
             update_position(c);
@@ -136,6 +154,8 @@ void Lexer::process_next_token() {
             }
             prev = c;
         }
+
+        report_lexical_error("komentar belum ditutup", start_line, start_col, lexeme);
         emit_unknown(lexeme);
     };
 
@@ -157,8 +177,24 @@ void Lexer::process_next_token() {
         emit_unknown(lexeme);
     };
 
+    auto scan_identifier_tail = [&](std::string lexeme) {
+        char c;
+        while (read_char(c)) {
+            update_position(c);
+            if (std::isalnum(static_cast<unsigned char>(c))) {
+                lexeme += c;
+                continue;
+            }
+            pending = c;
+            break;
+        }
+        write_token(Token(identType, lexeme));
+    };
+
     dfa->resetState();
     std::string lexeme;
+    int token_start_line = line_counter;
+    int token_start_col = col_counter;
     char c;
 
     while (pending.has_value() || read_char(c)) {
@@ -178,9 +214,14 @@ void Lexer::process_next_token() {
                 break;
             }
 
+            if (lexeme.empty()) {
+                token_start_line = line_counter;
+                token_start_col = col_counter;
+            }
+
             if (lexeme.empty() && c == '{') {
                 dfa->resetState();
-                scan_comment("{", '{');
+                scan_comment("{", '{', token_start_line, token_start_col);
                 break;
             }
 
@@ -189,11 +230,23 @@ void Lexer::process_next_token() {
             const State next_state = dfa->getState();
 
             if (!next_state.isNullState()) {
+                TokenType next_token = dfa->getTokenForState(next_state.getStateIdx());
+                if (next_state.isFinalState() && next_token.get_name() == "UNKNOWN" &&
+                    !lexeme.empty() &&
+                    std::isalpha(static_cast<unsigned char>(lexeme.front())) &&
+                    std::isalnum(static_cast<unsigned char>(c))) {
+                    lexeme += c;
+                    dfa->resetState();
+                    scan_identifier_tail(lexeme);
+                    lexeme.clear();
+                    break;
+                }
+
                 lexeme += c;
 
                 if (lexeme == "(*") {
                     dfa->resetState();
-                    scan_comment(lexeme, '*');
+                    scan_comment(lexeme, '*', token_start_line, token_start_col);
                     lexeme.clear();
                 }
                 break;
@@ -201,6 +254,15 @@ void Lexer::process_next_token() {
 
             TokenType prev_token = dfa->getTokenForState(prev_state.getStateIdx());
             if (prev_state.isFinalState() && prev_token.get_name() != "UNKNOWN") {
+                if (prev_token.get_name() == "IDENT" &&
+                    std::isalnum(static_cast<unsigned char>(c))) {
+                    lexeme += c;
+                    dfa->resetState();
+                    scan_identifier_tail(lexeme);
+                    lexeme.clear();
+                    break;
+                }
+
                 if (isValueLikeToken(prev_token.get_name()) && !isTokenBoundary(c)) {
                     lexeme += c;
                     dfa->resetState();
@@ -229,6 +291,9 @@ void Lexer::process_next_token() {
             }
 
             if (isWhitespace(c)) {
+                if (!lexeme.empty() && lexeme.front() == '\'') {
+                    report_unclosed_quote(token_start_line, token_start_col, lexeme);
+                }
                 emit_unknown(lexeme);
                 lexeme.clear();
                 dfa->resetState();
@@ -241,6 +306,16 @@ void Lexer::process_next_token() {
                 dfa->resetState();
                 consume_current = true;
                 continue;
+            }
+
+            if (!lexeme.empty() &&
+                std::isalpha(static_cast<unsigned char>(lexeme.front())) &&
+                std::isalnum(static_cast<unsigned char>(c))) {
+                lexeme += c;
+                dfa->resetState();
+                scan_identifier_tail(lexeme);
+                lexeme.clear();
+                break;
             }
 
             lexeme += c;
@@ -256,6 +331,9 @@ void Lexer::process_next_token() {
         if (cur.isFinalState()) {
             emit_accepted(dfa->getCurrToken(), lexeme);
         } else {
+            if (lexeme.front() == '\'') {
+                report_unclosed_quote(token_start_line, token_start_col, lexeme);
+            }
             emit_unknown(lexeme);
         }
     }
