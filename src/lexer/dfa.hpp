@@ -10,7 +10,7 @@
 #include <string>
 #include "token.hpp"
 
-#define MAX_ASCII_USED 128
+#define MAX_ASCII_USED 256
 
 class State
 {

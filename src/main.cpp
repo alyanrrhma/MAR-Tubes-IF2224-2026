@@ -25,20 +25,24 @@ struct Options {
     std::string saveTokens;
     std::string saveParseTree;
     std::string saveAst;
+    std::string outputFile;
+    bool lexOnly = false;
     bool verbose = false;
 };
 
 void printUsage(const char* programName) {
     std::cout
         << "Usage:\n"
+        << "  " << programName << " <program.txt> --lex-only -o <tokens.txt>\n"
         << "  " << programName << " <program.txt> [--verbose]\n"
         << "  " << programName << " <program.txt> --save-tokens <file> [--save-parse-tree <file>] [--save-ast <file>] [--verbose]\n\n"
         << "Options:\n"
+        << "  --lex-only              Run lexical analysis only, print tokens, then stop\n"
         << "  --verbose               Print tokens, parse tree, and decorated AST to stdout\n"
         << "  --save-tokens <file>    Save tokens to <file>\n"
         << "  --save-parse-tree <file> Save parse tree to <file>\n"
         << "  --save-ast <file>       Save decorated AST, tab, btab, and atab to <file>\n"
-        << "  -o <file>               Alias for --save-ast <file>\n";
+        << "  -o <file>               Output file. With --lex-only this saves tokens; otherwise it saves AST\n";
 }
 
 void ensureParentDirectoryExists(const std::string& filename) {
@@ -84,6 +88,12 @@ Options parseOptions(int argc, char* argv[]) {
             continue;
         }
 
+        if (arg == "--lex-only") {
+            options.lexOnly = true;
+            ++i;
+            continue;
+        }
+
         if (arg == "--save-tokens") {
             if (i + 1 >= argc) {
                 throw std::runtime_error("--save-tokens membutuhkan nama file");
@@ -102,11 +112,20 @@ Options parseOptions(int argc, char* argv[]) {
             continue;
         }
 
-        if (arg == "--save-ast" || arg == "-o") {
+        if (arg == "--save-ast") {
             if (i + 1 >= argc) {
                 throw std::runtime_error("--save-ast membutuhkan nama file");
             }
             options.saveAst = argv[++i];
+            ++i;
+            continue;
+        }
+
+        if (arg == "-o") {
+            if (i + 1 >= argc) {
+                throw std::runtime_error("-o membutuhkan nama file");
+            }
+            options.outputFile = argv[++i];
             ++i;
             continue;
         }
@@ -123,6 +142,14 @@ Options parseOptions(int argc, char* argv[]) {
 
     if (!inputSet) {
         throw std::runtime_error("Argumen input tidak diberikan");
+    }
+
+    if (!options.outputFile.empty()) {
+        if (options.lexOnly) {
+            options.saveTokens = options.outputFile;
+        } else {
+            options.saveAst = options.outputFile;
+        }
     }
 
     return options;
@@ -173,6 +200,15 @@ int main(int argc, char* argv[]) {
             lexer.process_next_token();
         }
 
+        if (!options.saveTokens.empty()) {
+            writeOutputFile(options.saveTokens, tokenBuffer.str());
+        }
+
+        if (options.lexOnly) {
+            std::cout << tokenBuffer.str();
+            return 0;
+        }
+
         std::vector<Token> parserTokens;
         parserTokens.reserve(lexer.getResult().size());
         for (const Token& token : lexer.getResult()) {
@@ -211,10 +247,6 @@ int main(int argc, char* argv[]) {
             std::cout << parseTreeBuffer.str();
             std::cout << "\n=== Semantic analysis ===\n\n";
             std::cout << decoratedAstBuffer.str();
-        }
-
-        if (!options.saveTokens.empty()) {
-            writeOutputFile(options.saveTokens, tokenBuffer.str());
         }
 
         if (!options.saveParseTree.empty()) {

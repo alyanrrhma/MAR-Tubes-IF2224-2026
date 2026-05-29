@@ -264,11 +264,11 @@ void Lexer::process_next_token() {
                 }
 
                 if (isValueLikeToken(prev_token.get_name()) && !isTokenBoundary(c)) {
-                    lexeme += c;
-                    dfa->resetState();
-                    scan_unknown_tail(lexeme);
+                    emit_accepted(prev_token, lexeme);
                     lexeme.clear();
-                    break;
+                    dfa->resetState();
+                    consume_current = true;
+                    continue;
                 }
 
                 emit_accepted(prev_token, lexeme);

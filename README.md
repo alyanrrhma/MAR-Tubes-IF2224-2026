@@ -99,6 +99,29 @@ MAR-Tubes-IF2224-2026/
 ├── Makefile
 └── README.md
 ```
+
+## Usage
+
+Build the program with:
+
+```bash
+make all
+```
+
+Run Milestone 1 lexical analysis only and save the token output with:
+
+```bash
+./bin/arion <program.txt> --lex-only -o <tokens.txt>
+```
+
+Run the full compiler pipeline with:
+
+```bash
+./bin/arion <program.txt> --save-tokens <tokens.txt> --save-parse-tree <parse-tree.txt> --save-ast <ast.txt>
+```
+
+`-o <file>` saves token output when used together with `--lex-only`; otherwise it saves the decorated AST output.
+
 ## Contributors
 
 | **NIM** | **Name** |

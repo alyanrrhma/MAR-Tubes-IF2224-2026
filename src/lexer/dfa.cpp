@@ -255,6 +255,12 @@ void DFA::next(unsigned char c)
         // std::cout << "Gagal melakukan pergantian state, DFA belum terinisiasi\n";
         return;
     }
+    if (currStateIdx < 0 || currStateIdx >= static_cast<int>(transTable.size()))
+    {
+        currStateIdx = -1;
+        return;
+    }
+
     int16_t newStateIdx = transTable[currStateIdx][c];
     // menghasilkan -1 jika state tidak ditemukan, artinya pada saat demikian state menjadi tidak valid atau null;
     currStateIdx = newStateIdx;
@@ -373,6 +379,11 @@ void DFA::setCurrentState(int16_t newStateIdx)
 
 void DFA::addTransition(int16_t state1, int input, int16_t state2)
 {
+    if (input < 0 || input >= MAX_ASCII_USED)
+    {
+        return;
+    }
+
     while (transTable.size() <= static_cast<size_t>(state1))
     {
         std::array<int16_t, MAX_ASCII_USED> row;
