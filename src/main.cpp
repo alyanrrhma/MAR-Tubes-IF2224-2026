@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "backend/code_generator.hpp"
+#include "backend/interpreter.hpp"
 #include "lexer/dfa.hpp"
 #include "lexer/lexer.hpp"
 #include "lexer/lexer_exception.hpp"
@@ -28,6 +30,8 @@ struct Options {
     std::string outputFile;
     bool lexOnly = false;
     bool verbose = false;
+    bool printTac = false;
+    bool run = false;
 };
 
 void printUsage(const char* programName) {
@@ -35,10 +39,14 @@ void printUsage(const char* programName) {
         << "Usage:\n"
         << "  " << programName << " <program.txt> --lex-only -o <tokens.txt>\n"
         << "  " << programName << " <program.txt> [--verbose]\n"
+        << "  " << programName << " <program.txt> --print-tac\n"
+        << "  " << programName << " <program.txt> --run\n"
         << "  " << programName << " <program.txt> --save-tokens <file> [--save-parse-tree <file>] [--save-ast <file>] [--verbose]\n\n"
         << "Options:\n"
         << "  --lex-only              Run lexical analysis only, print tokens, then stop\n"
         << "  --verbose               Print tokens, parse tree, and decorated AST to stdout\n"
+        << "  --print-tac             Generate TAC, print it, then stop\n"
+        << "  --run                   Generate TAC and run it with the interpreter\n"
         << "  --save-tokens <file>    Save tokens to <file>\n"
         << "  --save-parse-tree <file> Save parse tree to <file>\n"
         << "  --save-ast <file>       Save decorated AST, tab, btab, and atab to <file>\n"
@@ -84,6 +92,18 @@ Options parseOptions(int argc, char* argv[]) {
 
         if (arg == "--verbose") {
             options.verbose = true;
+            ++i;
+            continue;
+        }
+
+        if (arg == "--print-tac") {
+            options.printTac = true;
+            ++i;
+            continue;
+        }
+
+        if (arg == "--run") {
+            options.run = true;
             ++i;
             continue;
         }
@@ -255,6 +275,43 @@ int main(int argc, char* argv[]) {
 
         if (!options.saveAst.empty()) {
             writeOutputFile(options.saveAst, decoratedAstBuffer.str());
+        }
+
+        if (options.printTac || options.run) {
+            if (scopeBuilder.hasErrors() || typeChecker.hasErrors()) {
+                if (scopeBuilder.hasErrors()) {
+                    std::cout << "Semantic errors\n";
+                    scopeBuilder.printErrors(std::cout);
+                }
+                if (typeChecker.hasErrors()) {
+                    std::cout << "Type errors\n";
+                    typeChecker.printErrors(std::cout);
+                }
+                return 1;
+            }
+
+            backend::InstructionProgram tac;
+            try {
+                backend::CodeGenerator codeGenerator;
+                tac = codeGenerator.generate(astRoot.get(), scopeBuilder.symbolTable());
+            } catch (const std::runtime_error& e) {
+                std::cout << e.what() << "\n";
+                return 1;
+            }
+
+            if (options.printTac) {
+                tac.prettyPrint(std::cout);
+                return 0;
+            }
+
+            try {
+                backend::Interpreter interpreter;
+                interpreter.execute(tac);
+                std::cout << interpreter.getOutput();
+            } catch (const std::runtime_error& e) {
+                std::cout << e.what() << "\n";
+                return 1;
+            }
         }
 
         return 0;

@@ -8,6 +8,7 @@ SRC_DIR   = src
 LEXER_DIR = $(SRC_DIR)/lexer
 PARSE_DIR = $(SRC_DIR)/parser
 SEMANTIC_DIR = $(SRC_DIR)/semantic
+BACKEND_DIR = $(SRC_DIR)/backend
 BIN_DIR = bin
 BUILD_DIR = build
 # Output binary
@@ -24,7 +25,11 @@ SRCS = $(SRC_DIR)/main.cpp \
 	$(SEMANTIC_DIR)/ast_builder.cpp \
 	$(SEMANTIC_DIR)/symbol_table.cpp \
 	$(SEMANTIC_DIR)/scope_builder.cpp \
-	$(SEMANTIC_DIR)/type_checker.cpp
+	$(SEMANTIC_DIR)/type_checker.cpp \
+	$(BACKEND_DIR)/instruction.cpp \
+	$(BACKEND_DIR)/code_generator.cpp \
+	$(BACKEND_DIR)/stack_machine.cpp \
+	$(BACKEND_DIR)/interpreter.cpp
 
 # Object files
 OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS))
