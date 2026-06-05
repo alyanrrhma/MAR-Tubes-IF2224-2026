@@ -33,6 +33,8 @@ private:
 
 class StackMachine {
 public:
+    static constexpr std::size_t MAX_STACK_SIZE = 65536;
+
     void allocate(std::size_t count);
 
     void push(RuntimeValue value);

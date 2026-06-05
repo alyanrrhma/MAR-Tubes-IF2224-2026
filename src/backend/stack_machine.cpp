@@ -44,6 +44,10 @@ void StackMachine::allocate(std::size_t count) {
 }
 
 void StackMachine::push(RuntimeValue value) {
+    if (stack_.size() >= MAX_STACK_SIZE) {
+        throw std::runtime_error("stack overflow: ukuran stack melebihi batas runtime");
+    }
+
     stack_.push_back(value);
 }
 
