@@ -148,16 +148,38 @@ Clean and rebuild the main program.
 ## Project Structure
 
 ```text
-test/milestone3/
-├── input/
-│   ├── input1.txt
-│   ├── ...
-│   └── input18.txt
-├── output/
-│   ├── output1.txt
-│   ├── ...
-│   └── output18.txt
-├── test3.txt
+├── config/
+│   └── config_lexer.txt
+├── doc/
+├── src/
+│   ├── ast.cpp
+│   ├── main.cpp
+│   ├── lexer/
+│   ├── parser/
+│   └── semantic/
+│       ├── ast_builder.cpp
+│       ├── ast_builder.hpp
+│       ├── ast_nodes.cpp
+│       ├── ast_nodes.hpp
+│       ├── scope_builder.cpp
+│       ├── scope_builder.hpp
+│       ├── symbol_table.cpp
+│       ├── symbol_table.hpp
+│       ├── type_checker.cpp
+│       └── type_checker.hpp
+├── test/
+│   └── milestone3/
+│       ├── input/
+│       │   ├── input1.txt
+│       │   ├── ...
+│       │   └── input18.txt
+│       ├── output/
+│       │   ├── output1.txt
+│       │   ├── ...
+│       │   └── output18.txt
+│       ├── test3.txt
+│       └── README.md
+├── Makefile
 └── README.md
 ```
 
