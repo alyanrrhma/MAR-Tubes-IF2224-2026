@@ -8,6 +8,7 @@ namespace backend {
 namespace {
 
 std::size_t checkedAddress(int address, std::size_t limit, const char* context) {
+    // Memastikan alamat memori yang digunakan instruksi LOD/STO berada dalam area memori runtime yang valid
     if (address < 0 || static_cast<std::size_t>(address) >= limit) {
         throw std::out_of_range(std::string("invalid address: ") + context);
     }
@@ -15,15 +16,17 @@ std::size_t checkedAddress(int address, std::size_t limit, const char* context) 
 }
 
 std::size_t checkedJumpTarget(int address, std::size_t limit) {
+    // Memastikan target JMP/JPC menunjuk ke alamat instruksi yang valid sebelum instruction pointer diperbarui/ namespace
     if (address < 0 || static_cast<std::size_t>(address) > limit) {
         throw std::out_of_range("invalid address: jump target di luar program");
     }
     return static_cast<std::size_t>(address);
 }
 
-}  // namespace
+}  
 
 void Interpreter::execute(const InstructionProgram& program) {
+    // Setiap eksekusi program dimulai dengan runtime state baru agar tidak ada data yang tersisa dari eksekusi sebelumnya
     machine_ = StackMachine{};
     output_.clear();
 
@@ -32,24 +35,29 @@ void Interpreter::execute(const InstructionProgram& program) {
     bool running = true;
 
     while (running && ip < instructions.size()) {
+        // Siklus fetch-decode-execute:
+        // 1. Ambil instruksi pada IP
+        // 2. Decode opcode
+        // 3. Jalankan operasi
+        // 4. Perbarui IP bila diperlukan
         const Instruction instruction = instructions[ip++];
 
         switch (instruction.opcode) {
-        case OpCode::INT:
+        case OpCode::INT: // Mengalokasikan area memori runtime sesuai ukuran frame yang dihitung saat code generation
             if (instruction.operand < 0) {
                 throw std::out_of_range("invalid address: ukuran frame negatif");
             }
             machine_.allocate(static_cast<std::size_t>(instruction.operand));
             break;
-        case OpCode::LIT:
+        case OpCode::LIT: // Push literal ke evaluation stack
             machine_.push(RuntimeValue::integer(instruction.operand));
             break;
-        case OpCode::LOD:
+        case OpCode::LOD: // LOD: membaca nilai dari memori runtime ke evaluation stack
             machine_.push(machine_.load(checkedAddress(instruction.operand,
                                                        machine_.memorySize(),
                                                        "load")));
             break;
-        case OpCode::STO:
+        case OpCode::STO: // STO: menyimpan nilai dari evaluation stack ke memori runtime
             machine_.store(checkedAddress(instruction.operand,
                                           machine_.memorySize(),
                                           "store"),
@@ -58,7 +66,7 @@ void Interpreter::execute(const InstructionProgram& program) {
         case OpCode::JMP:
             ip = checkedJumpTarget(instruction.operand, instructions.size());
             break;
-        case OpCode::JPC:
+        case OpCode::JPC: // JPC melakukan lompatan hanya ketika kondisi bernilai false
             if (!popCondition()) {
                 ip = checkedJumpTarget(instruction.operand, instructions.size());
             }
@@ -69,7 +77,7 @@ void Interpreter::execute(const InstructionProgram& program) {
         case OpCode::RET:
             running = false;
             break;
-        case OpCode::CAL:
+        case OpCode::CAL: // CALL procedure/function belum diimplementasikan pada subset Milestone 4 yang digunakan interpreter ini
             throw std::runtime_error("invalid opcode: CAL belum didukung interpreter");
         default:
             throw std::runtime_error("invalid opcode");
@@ -81,7 +89,7 @@ std::string Interpreter::getOutput() const {
     return output_;
 }
 
-RuntimeValue Interpreter::executeOpr(int operand) {
+RuntimeValue Interpreter::executeOpr(int operand) { // Menjalankan seluruh operasi OPR sesuai tabel opcode pada spesifikasi Milestone 4
     const OprCode opcode = static_cast<OprCode>(operand);
 
     switch (opcode) {
@@ -92,14 +100,14 @@ RuntimeValue Interpreter::executeOpr(int operand) {
     case OprCode::MUL:
     case OprCode::DIV:
     case OprCode::MOD:
-        return binaryArithmetic(opcode);
+        return binaryArithmetic(opcode); // Operasi aritmetika selalu mengambil dua operand dari evaluation stack lalu mendorong hasilnya kembali
     case OprCode::EQL:
     case OprCode::NEQ:
     case OprCode::LSS:
     case OprCode::GEQ:
     case OprCode::GTR:
     case OprCode::LEQ:
-        return binaryComparison(opcode);
+        return binaryComparison(opcode); // Operasi perbandingan menghasilkan RuntimeValue bertipe Boolean yang kemudian dapat digunakan oleh JPC
     case OprCode::WRT: {
         const RuntimeValue value = machine_.pop();
         output_ += value.toString();
@@ -117,7 +125,7 @@ RuntimeValue Interpreter::executeOpr(int operand) {
 }
 
 RuntimeValue Interpreter::unaryNeg() {
-    const int value = popInteger();
+    const int value = popInteger(); // Boolean direpresentasikan sebagai 0/1 pada runtime, sehingga dapat diperlakukan sebagai integer ketika diperlukan
     const RuntimeValue result = RuntimeValue::integer(-value);
     machine_.push(result);
     return result;
@@ -201,6 +209,8 @@ int Interpreter::popInteger() {
 }
 
 bool Interpreter::popCondition() {
+    // Mengevaluasi nilai kondisi untuk instruksi JPC
+    // Boolean digunakan langsung, sedangkan integer dianggap true jika tidak bernilai nol
     const RuntimeValue value = machine_.pop();
     if (value.kind() == RuntimeValue::Kind::Boolean) {
         return value.asBoolean();
@@ -208,4 +218,4 @@ bool Interpreter::popCondition() {
     return value.asInteger() != 0;
 }
 
-}  // namespace backend
+}  

@@ -4,6 +4,8 @@
 
 namespace backend {
 
+// RuntimeValue merepresentasikan nilai yang dapat disimpan pada stack evaluasi maupun area memori interpreter
+// Milestone 4 saat ini mendukung Integer dan Boolean.
 RuntimeValue RuntimeValue::integer(int value) {
     return RuntimeValue(Kind::Integer, value);
 }
@@ -40,6 +42,8 @@ RuntimeValue::RuntimeValue(Kind kind, int value)
     : kind_(kind), value_(value) {}
 
 void StackMachine::allocate(std::size_t count) {
+    // Mengalokasikan area memori runtime
+    // Seluruh slot diinisialisasi dengan nilai default (0)
     memory_.assign(count, defaultValue());
 }
 
@@ -70,6 +74,7 @@ const RuntimeValue& StackMachine::peek() const {
 }
 
 RuntimeValue StackMachine::load(std::size_t address) const {
+    // LOD pada interpreter membaca nilai dari alamat absolut yang telah ditentukan oleh CodeGenerator
     if (address >= memory_.size()) {
         throw std::out_of_range("invalid memory access: load address " +
                                 std::to_string(address) +
@@ -81,6 +86,7 @@ RuntimeValue StackMachine::load(std::size_t address) const {
 }
 
 void StackMachine::store(std::size_t address, RuntimeValue value) {
+    // STO pada interpreter menulis nilai ke alamat memori runtime.
     if (address >= memory_.size()) {
         throw std::out_of_range("invalid memory access: store address " +
                                 std::to_string(address) +
@@ -100,6 +106,7 @@ std::size_t StackMachine::memorySize() const {
 }
 
 RuntimeValue StackMachine::defaultValue() {
+    // Seluruh variabel diinisialisasi ke integer 0 ketika area memori runtime dibuat
     return RuntimeValue::integer(0);
 }
 
@@ -116,4 +123,4 @@ auto lhs = machine.pop();
 machine.store(4, backend::RuntimeValue::integer(lhs.asInteger() + rhs.asInteger()));
 */
 
-}  // namespace backend
+} 

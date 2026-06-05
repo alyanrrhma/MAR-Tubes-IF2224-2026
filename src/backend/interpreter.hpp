@@ -26,6 +26,6 @@ private:
     bool popCondition();
 };
 
-}  // namespace backend
+}  
 
 #endif

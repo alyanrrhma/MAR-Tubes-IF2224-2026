@@ -10,6 +10,7 @@ namespace backend {
 namespace {
 
 std::string unsupported(const semantic::AstNode& node) {
+    // Membantu menghasilkan pesan error yang konsisten ketika backend menemukan node AST yang belum didukung
     return std::string("CodeGenerator belum mendukung node ") + node.kindName();
 }
 
@@ -24,12 +25,14 @@ std::string lowerName(std::string value) {
     return value;
 }
 
-}  // namespace
+} 
 
 CodeGenerator::CodeGenerator() = default;
 
 InstructionProgram CodeGenerator::generate(const semantic::AstNode* root,
                                            const semantic::SymbolTable& symbolTable) {
+    // Titik masuk utama code generation.
+    // Input berupa Decorated AST dan Symbol Table hasil Milestone 3, sedangkan output berupa program TAC yang siap diinterpretasikan
     symbolTable_ = &symbolTable;
     program_ = InstructionProgram{};
     currentLevel_ = 0;
@@ -39,6 +42,8 @@ InstructionProgram CodeGenerator::generate(const semantic::AstNode* root,
 }
 
 void CodeGenerator::generateNode(const semantic::AstNode* node) {
+    // Dispatcher utama AST
+    // Node tingkat atas diterjemahkan ke fungsi generator yang sesuai
     if (!node) return;
 
     switch (node->getKind()) {
@@ -58,6 +63,7 @@ void CodeGenerator::generateNode(const semantic::AstNode* node) {
 }
 
 void CodeGenerator::generateStatement(const semantic::AstNode* node) {
+    // Mengubah statement AST menjadi rangkaian instruksi TAC
     if (!node) return;
 
     switch (node->getKind()) {
@@ -93,6 +99,8 @@ void CodeGenerator::generateStatement(const semantic::AstNode* node) {
 }
 
 void CodeGenerator::generateExpression(const semantic::AstNode* node) {
+    // Menghasilkan kode evaluasi ekspresi
+    // Hasil evaluasi selalu ditempatkan pada evaluation stack
     if (!node) return;
 
     switch (node->getKind()) {
@@ -117,6 +125,8 @@ void CodeGenerator::generateExpression(const semantic::AstNode* node) {
 }
 
 void CodeGenerator::generateStore(const semantic::AstNode* target) {
+    // Menyimpan hasil ekspresi ke lokasi tujuan assignment
+    // Pada Milestone 4 hanya assignment ke variabel biasa yang didukung
     if (!target) return;
 
     if (target->getKind() != semantic::AstKind::Var) {
@@ -127,6 +137,8 @@ void CodeGenerator::generateStore(const semantic::AstNode* target) {
 }
 
 void CodeGenerator::generateProgram(const semantic::ProgramNode& node) {
+    // Menghasilkan TAC untuk program utama
+    // Instruksi pertama selalu INT untuk mengalokasikan frame, sedangkan instruksi terakhir adalah RET
     currentLevel_ = node.level == semantic::NO_INDEX ? 0 : node.level;
 
     program_.emit(OpCode::INT, 0, initialFrameSize(node));
@@ -153,17 +165,22 @@ void CodeGenerator::generateBlock(const semantic::BlockNode& node) {
 }
 
 void CodeGenerator::generateCompound(const semantic::CompoundNode& node) {
+    // Compound statement diterjemahkan dengan menghasilkan kode untuk setiap statement secara berurutan
     for (const auto& statement : node.statements) {
         generateStatement(statement.get());
     }
 }
 
 void CodeGenerator::generateAssign(const semantic::AssignNode& node) {
+    // Assignment dievaluasi dalam dua tahap:
+    // 1. Hitung nilai ekspresi
+    // 2. Simpan hasil ke alamat target menggunakan STO
     generateExpression(node.value.get());
     generateStore(node.target.get());
 }
 
 void CodeGenerator::generateProcCall(const semantic::ProcCallNode& node) {
+    // Milestone 4 hanya mendukung prosedur output bawaan (write/writeln) yang diterjemahkan menjadi operasi OPR
     const std::string name = lowerName(node.name);
     const bool isWrite = name == "write";
     const bool isWriteln = name == "writeln";
@@ -185,6 +202,15 @@ void CodeGenerator::generateProcCall(const semantic::ProcCallNode& node) {
 }
 
 void CodeGenerator::generateIf(const semantic::IfNode& node) {
+    // IF diterjemahkan menggunakan teknik backpatching:
+    //
+    // condition
+    // JPC <else>
+    // then-part
+    // JMP <end>
+    // else-part
+    //
+    // Target lompatan diperbaiki setelah alamat akhir diketahui.
     generateExpression(node.condition.get());
 
     const int falseJump = program_.emit(OpCode::JPC, 0, 0);
@@ -203,6 +229,14 @@ void CodeGenerator::generateIf(const semantic::IfNode& node) {
 }
 
 void CodeGenerator::generateWhile(const semantic::WhileNode& node) {
+    // WHILE diterjemahkan menjadi:
+    //
+    // loopStart:
+    //   condition
+    //   JPC exit
+    //   body
+    //   JMP loopStart
+    // exit:
     const int loopStart = program_.currentAddress();
 
     generateExpression(node.condition.get());
@@ -214,6 +248,7 @@ void CodeGenerator::generateWhile(const semantic::WhileNode& node) {
 }
 
 void CodeGenerator::generateVar(const semantic::VarNode& node) {
+    // Variabel diterjemahkan menjadi instruksi LOD, sedangkan konstanta diterjemahkan menjadi LIT
     if (!symbolTable_ || node.tabIdx == semantic::NO_INDEX) {
         throw std::runtime_error("variabel '" + node.name + "' belum memiliki entri symbol table");
     }
@@ -241,6 +276,8 @@ void CodeGenerator::generateBoolLit(const semantic::BoolLitNode& node) {
 }
 
 void CodeGenerator::generateUnaryOp(const semantic::UnaryOpNode& node) {
+    // Operasi unary diterjemahkan ke opcode TAC yang ekuivalen
+    // NOT direalisasikan sebagai perbandingan terhadap nol
     generateExpression(node.operand.get());
 
     switch (node.op) {
@@ -257,6 +294,7 @@ void CodeGenerator::generateUnaryOp(const semantic::UnaryOpNode& node) {
 }
 
 void CodeGenerator::generateBinOp(const semantic::BinOpNode& node) {
+    // Evaluasi operator biner menggunakan model stack machine dengan operand kiri dan kanan dievaluasi terlebih dahulu, kemudian instruksi OPR dijalankan terhadap keduanya
     generateExpression(node.lhs.get());
     generateExpression(node.rhs.get());
 
@@ -271,6 +309,12 @@ void CodeGenerator::generateBinOp(const semantic::BinOpNode& node) {
 }
 
 int CodeGenerator::variableAddress(const semantic::AstNode& node) const {
+    // Mengubah alamat simbol menjadi alamat runtime
+    // FRAME_HEADER_SIZE ditambahkan untuk melewati:
+    //
+    // 0 = Static Link
+    // 1 = Dynamic Link
+    // 2 = Return Address
     if (!symbolTable_ || node.tabIdx == semantic::NO_INDEX) {
         throw std::runtime_error("node belum memiliki alamat symbol table");
     }
@@ -278,6 +322,8 @@ int CodeGenerator::variableAddress(const semantic::AstNode& node) const {
 }
 
 int CodeGenerator::levelDifference(const semantic::AstNode& node) const {
+    // Menghitung selisih level lexical antara lokasi penggunaan dan lokasi deklarasi identifier
+    //Saat ini interpreter hanya menggunakan alamat absolut, tetapi informasi level tetap dihasilkan agar format TAC sesuai spesifikasi
     if (!symbolTable_ || node.tabIdx == semantic::NO_INDEX) {
         return 0;
     }
@@ -286,6 +332,7 @@ int CodeGenerator::levelDifference(const semantic::AstNode& node) const {
 }
 
 int CodeGenerator::initialFrameSize(const semantic::ProgramNode& node) const {
+    // Menentukan ukuran frame awal program berdasarkan jumlah variabel yang dialokasikan oleh Scope Builder
     if (!symbolTable_) return FRAME_HEADER_SIZE;
 
     int blockIndex = 0;
@@ -300,6 +347,8 @@ int CodeGenerator::initialFrameSize(const semantic::ProgramNode& node) const {
 }
 
 OprCode CodeGenerator::mapBinaryOp(semantic::BinOpKind op) {
+    // Memetakan operator AST ke opcode OPR yang ekuivalen
+    // Mapping ini mengikuti tabel operasi pada spesifikasi Milestone 4.
     switch (op) {
     case semantic::BinOpKind::Add: return OprCode::ADD;
     case semantic::BinOpKind::Sub: return OprCode::SUB;
@@ -321,4 +370,4 @@ OprCode CodeGenerator::mapBinaryOp(semantic::BinOpKind op) {
     throw std::runtime_error("operator biner tidak dikenal");
 }
 
-}  // namespace backend
+}  

@@ -66,6 +66,6 @@ private:
     std::vector<Instruction> instructions_;
 };
 
-}  // namespace backend
+}  
 
 #endif

@@ -8,6 +8,16 @@
 
 namespace backend {
 
+// Layout memori runtime:
+//
+// 0 : Static Link
+// 1 : Dynamic Link
+// 2 : Return Address
+// 3+ : Variable Area
+//
+// Layout ini mengikuti model activation record
+// yang digunakan pada spesifikasi Milestone 4.
+
 class RuntimeValue {
 public:
     enum class Kind {
@@ -54,6 +64,6 @@ private:
     std::vector<RuntimeValue> stack_;
 };
 
-}  // namespace backend
+} 
 
 #endif

@@ -45,6 +45,6 @@ private:
     static OprCode mapBinaryOp(semantic::BinOpKind op);
 };
 
-}  // namespace backend
+}  
 
 #endif
