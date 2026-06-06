@@ -1,5 +1,6 @@
 #include "instruction.hpp"
 
+#include <iomanip>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
@@ -38,6 +39,7 @@ const char* toString(OpCode opcode) {
     case OpCode::RET:  return "RET";
     case OpCode::LITB: return "LITB";
     case OpCode::LITS: return "LITS";
+    case OpCode::LITR: return "LITR";
     case OpCode::ADDR: return "ADDR";
     case OpCode::LODI: return "LODI";
     case OpCode::STOI: return "STOI";
@@ -63,6 +65,8 @@ const char* toString(OprCode opcode) {
     case OprCode::WRT: return "WRT";
     case OprCode::WRTLN: return "WRTLN";
     case OprCode::POP: return "POP";
+    case OprCode::RDI: return "RDI";
+    case OprCode::RDLN: return "RDLN";
     }
     return "?";
 }
@@ -102,6 +106,18 @@ const std::string& InstructionProgram::getString(int index) const {
     return stringPool_[static_cast<std::size_t>(index)];
 }
 
+int InstructionProgram::addReal(double value) {
+    realPool_.push_back(value);
+    return static_cast<int>(realPool_.size()) - 1;
+}
+
+double InstructionProgram::getReal(int index) const {
+    if (index < 0 || static_cast<std::size_t>(index) >= realPool_.size()) {
+        throw std::out_of_range("real pool index out of range: " + std::to_string(index));
+    }
+    return realPool_[static_cast<std::size_t>(index)];
+}
+
 const std::vector<Instruction>& InstructionProgram::getInstructions() const {
     return instructions_;
 }
@@ -110,12 +126,23 @@ void InstructionProgram::prettyPrint(std::ostream& out) const {
     for (std::size_t i = 0; i < stringPool_.size(); ++i) {
         out << "#STRING " << i << " \"" << escapePoolString(stringPool_[i]) << "\"\n";
     }
+    for (std::size_t i = 0; i < realPool_.size(); ++i) {
+        out << "#REAL " << i << ' ' << std::setprecision(17) << realPool_[i] << "\n";
+    }
     for (std::size_t i = 0; i < instructions_.size(); ++i) {
         const auto& instruction = instructions_[i];
         out << i << ' '
             << toString(instruction.opcode) << ' '
             << instruction.level << ' '
-            << instruction.operand << '\n';
+            << instruction.operand;
+        if (instruction.opcode == OpCode::OPR) {
+            const OprCode opr = static_cast<OprCode>(instruction.operand);
+            const char* name = toString(opr);
+            if (std::string(name) != "?") {
+                out << " ; " << name;
+            }
+        }
+        out << '\n';
     }
 }
 

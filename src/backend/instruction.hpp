@@ -19,6 +19,7 @@ enum class OpCode {
     RET,
     LITB,  // push Boolean literal  (operand: 0=false, 1=true)
     LITS,  // push String from pool  (operand: string pool index)
+    LITR,  // push Real from pool    (operand: real pool index)
     ADDR,  // push absolute stack address of variable (like LOD but yields address, not value)
     LODI,  // indirect load:  pop address, push stack[address]
     STOI,  // indirect store: pop address, pop value, stack[address] = value
@@ -42,7 +43,9 @@ enum class OprCode {
     LEQ = 12,
     WRT = 13,
     WRTLN = 14,
-    POP = 15
+    POP = 15,
+    RDI = 16,   // read one value into address popped from stack; type code popped first
+    RDLN = 17   // same as RDI, line-based when possible
 };
 
 const char* toString(OprCode opcode);
@@ -67,6 +70,8 @@ public:
     // String pool: stores string literals; returns pool index for LITS operand
     int addString(const std::string& value);
     const std::string& getString(int index) const;
+    int addReal(double value);
+    double getReal(int index) const;
 
     const std::vector<Instruction>& getInstructions() const;
 
@@ -76,6 +81,7 @@ public:
 private:
     std::vector<Instruction> instructions_;
     std::vector<std::string> stringPool_;
+    std::vector<double> realPool_;
 };
 
 }  
