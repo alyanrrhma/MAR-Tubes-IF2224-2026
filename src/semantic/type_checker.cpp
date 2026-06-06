@@ -2,6 +2,7 @@
 #include "ast_nodes.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <ostream>
 #include <sstream>
 #include <iostream>
@@ -270,6 +271,28 @@ void TypeChecker::visitReturn(semantic::ReturnNode& n)
 
 void TypeChecker::visitProcCall(semantic::ProcCallNode& n)
 {
+    std::string loweredName = n.name;
+    std::transform(loweredName.begin(), loweredName.end(), loweredName.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+    if (loweredName == "read" || loweredName == "readln") {
+        for (auto& arg : n.args) {
+            ++assignmentTargetDepth_;
+            visit(arg.get());
+            --assignmentTargetDepth_;
+            if (!arg) continue;
+            const auto kind = arg->getKind();
+            if (kind != semantic::AstKind::Var &&
+                kind != semantic::AstKind::ArrayAccess &&
+                kind != semantic::AstKind::FieldAccess) {
+                report(*arg, "argumen read/readln harus berupa target assignment");
+                continue;
+            }
+            markInitialized(arg.get());
+        }
+        return;
+    }
+
     for (auto& arg : n.args) {
         visit(arg.get());
     }

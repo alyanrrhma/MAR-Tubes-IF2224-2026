@@ -179,7 +179,9 @@ void SymbolTable::initPredefined() {
     insert("false", ObjectKind::Constant, TypeKind::Boolean, NO_INDEX, 0);
     insert("true", ObjectKind::Constant, TypeKind::Boolean, NO_INDEX, 1);
 
+    insert("write", ObjectKind::Procedure, TypeKind::Void);
     insert("writeln", ObjectKind::Procedure, TypeKind::Void);
+    insert("read", ObjectKind::Procedure, TypeKind::Void);
     insert("readln", ObjectKind::Procedure, TypeKind::Void);
 
     firstUserIndex_ = static_cast<int>(tab_.size());
