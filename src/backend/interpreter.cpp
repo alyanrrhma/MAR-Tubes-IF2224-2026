@@ -69,11 +69,12 @@ void Interpreter::execute(const InstructionProgram& program) {
             // Temukan frame tempat variabel dideklarasikan lewat static-link chain,
             // lalu baca nilai dari slot variabel relative terhadap BP frame tersebut.
             const std::size_t frameBase = machine_.walkStaticChain(bp_, instruction.level);
-            if (instruction.operand < FRAME_HEADER_SIZE) {
+            // Tolak operand yang menunjuk ke slot header (0,1,2). Operand negatif
+            // diizinkan karena menunjuk ke parameter yang didorong caller sebelum header.
+            if (instruction.operand >= 0 && instruction.operand < FRAME_HEADER_SIZE) {
                 throw std::out_of_range("invalid address: LOD/STO operand points into frame header");
             }
-
-            // bp_ sebagai batas atas untuk menghindari pembacaan lintas frame
+            // bp_ sebagai batas atas untuk frame ancestor, mencegah akses lintas frame
             const std::size_t frameTop = (frameBase == bp_) ? machine_.stackTop() : bp_;
             const std::size_t addr = checkedAddress(
                 static_cast<int>(frameBase) + instruction.operand,
@@ -83,7 +84,7 @@ void Interpreter::execute(const InstructionProgram& program) {
         }
         case OpCode::STO: {
             const std::size_t frameBase = machine_.walkStaticChain(bp_, instruction.level);
-            if (instruction.operand < FRAME_HEADER_SIZE) {
+            if (instruction.operand >= 0 && instruction.operand < FRAME_HEADER_SIZE) {
                 throw std::out_of_range("invalid address: LOD/STO operand points into frame header");
             }
             const std::size_t frameTop = (frameBase == bp_) ? machine_.stackTop() : bp_;
@@ -117,19 +118,39 @@ void Interpreter::execute(const InstructionProgram& program) {
             break;
         }
         case OpCode::RET: {
-            // Baca header frame saat ini, lepas frame, pulihkan caller.
+            // instruction.level  = jumlah parameter yang didorong caller (dibersihkan di sini)
+            // instruction.operand = 1 jika fungsi mengembalikan nilai (di atas stack), 0 jika tidak
+            const bool hasReturn = (instruction.operand == 1);
+            const int psze = instruction.level;
+
+            if (psze < 0 || static_cast<std::size_t>(psze) > bp_) {
+                throw std::runtime_error("invalid frame: parameter count exceeds frame base");
+            }
+
+            // Simpan nilai kembalian sebelum frame dibongkar
+            RuntimeValue retVal = RuntimeValue::integer(0);
+            if (hasReturn) retVal = machine_.pop();
+
             const int returnAddr = machine_.stackAt(bp_ + 2).asInteger();
             const int callerBp   = machine_.stackAt(bp_ + 1).asInteger();
-            if (callerBp < 0 || static_cast<std::size_t>(callerBp) >= bp_) {
+
+            // cleanupBase: posisi stack setelah frame DAN parameter caller dibersihkan
+            const std::size_t cleanupBase = bp_ - static_cast<std::size_t>(psze);
+
+            // Validasi dynamic link hanya untuk frame non-utama
+            if (bp_ > 0 && (callerBp < 0 || static_cast<std::size_t>(callerBp) >= cleanupBase)) {
                 throw std::runtime_error("stack corruption: invalid dynamic link in frame header");
             }
-            machine_.popTo(bp_);
+
+            machine_.popTo(cleanupBase);
+
             if (bp_ == 0 && callerBp == 0) {
                 // Frame program utama — tidak ada caller, hentikan eksekusi
                 running = false;
             } else {
                 bp_ = static_cast<std::size_t>(callerBp);
                 ip_ = static_cast<std::size_t>(returnAddr);
+                if (hasReturn) machine_.push(retVal);
             }
             break;
         }
@@ -176,6 +197,9 @@ void Interpreter::executeOpr(int operand) { // Menjalankan seluruh operasi OPR s
         output_ += '\n';
         break;
     }
+    case OprCode::POP:
+        machine_.pop();
+        break;
     default:
         throw std::runtime_error("invalid opcode: OPR " + std::to_string(operand));
     }

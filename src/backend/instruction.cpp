@@ -39,6 +39,7 @@ const char* toString(OprCode opcode) {
     case OprCode::LEQ: return "LEQ";
     case OprCode::WRT: return "WRT";
     case OprCode::WRTLN: return "WRTLN";
+    case OprCode::POP: return "POP";
     }
     return "?";
 }

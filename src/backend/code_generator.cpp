@@ -36,6 +36,8 @@ InstructionProgram CodeGenerator::generate(const semantic::AstNode* root,
     symbolTable_ = &symbolTable;
     program_ = InstructionProgram{};
     currentLevel_ = 0;
+    procAddresses_.clear();
+    procPsizeByLevel_ = {0}; // level 0 = program utama, psze = 0
 
     generateNode(root);
     return program_;
@@ -70,8 +72,20 @@ void CodeGenerator::generateStatement(const semantic::AstNode* node) {
     case semantic::AstKind::Assign:
         generateAssign(static_cast<const semantic::AssignNode&>(*node));
         break;
-    case semantic::AstKind::ProcCall:
-        generateProcCall(static_cast<const semantic::ProcCallNode&>(*node));
+    case semantic::AstKind::ProcCall: {
+        const auto& callNode = static_cast<const semantic::ProcCallNode&>(*node);
+        generateProcCall(callNode);
+        // Jika ini pemanggilan fungsi (bukan prosedur), nilai kembalian ada di stack — buang
+        if (callNode.tabIdx != semantic::NO_INDEX && symbolTable_) {
+            const auto& entry = symbolTable_->tabAt(callNode.tabIdx);
+            if (entry.obj == semantic::ObjectKind::Function) {
+                program_.emit(OpCode::OPR, 0, static_cast<int>(OprCode::POP));
+            }
+        }
+        break;
+    }
+    case semantic::AstKind::Return:
+        generateReturn(static_cast<const semantic::ReturnNode&>(*node));
         break;
     case semantic::AstKind::If:
         generateIf(static_cast<const semantic::IfNode&>(*node));
@@ -104,6 +118,10 @@ void CodeGenerator::generateExpression(const semantic::AstNode* node) {
     if (!node) return;
 
     switch (node->getKind()) {
+    case semantic::AstKind::ProcCall:
+        // Pemanggilan fungsi sebagai ekspresi — nilai kembalian tetap di stack
+        generateProcCall(static_cast<const semantic::ProcCallNode&>(*node));
+        break;
     case semantic::AstKind::Var:
         generateVar(static_cast<const semantic::VarNode&>(*node));
         break;
@@ -137,23 +155,16 @@ void CodeGenerator::generateStore(const semantic::AstNode* target) {
 }
 
 void CodeGenerator::generateProgram(const semantic::ProgramNode& node) {
-    // Menghasilkan TAC untuk program utama
-    // Instruksi pertama selalu INT untuk mengalokasikan frame, sedangkan instruksi terakhir adalah RET
     currentLevel_ = node.level == semantic::NO_INDEX ? 0 : node.level;
+    while (static_cast<int>(procPsizeByLevel_.size()) <= currentLevel_)
+        procPsizeByLevel_.push_back(0);
+    procPsizeByLevel_[currentLevel_] = 0;
 
     program_.emit(OpCode::INT, 0, initialFrameSize(node));
 
-    if (node.declaration) {
-        for (const auto& declaration : node.declaration->declarations) {
-            if (declaration && isExecutableDeclaration(declaration->getKind())) {
-                throw std::runtime_error(unsupported(*declaration));
-            }
-        }
-    }
+    if (node.declaration) generateNestedDeclarations(*node.declaration);
 
-    if (node.statements) {
-        generateCompound(*node.statements);
-    }
+    if (node.statements) generateCompound(*node.statements);
     program_.emit(OpCode::RET, 0, 0);
 }
 
@@ -162,6 +173,91 @@ void CodeGenerator::generateBlock(const semantic::BlockNode& node) {
     currentLevel_ = node.level == semantic::NO_INDEX ? savedLevel : node.level;
     if (node.statements) generateCompound(*node.statements);
     currentLevel_ = savedLevel;
+}
+
+void CodeGenerator::generateNestedDeclarations(const semantic::DeclarationNode& decls) {
+    for (const auto& decl : decls.declarations) {
+        if (!decl) continue;
+        if (decl->getKind() == semantic::AstKind::ProcDecl)
+            generateProcDecl(static_cast<const semantic::ProcDeclNode&>(*decl));
+        else if (decl->getKind() == semantic::AstKind::FuncDecl)
+            generateFuncDecl(static_cast<const semantic::FuncDeclNode&>(*decl));
+        // VarDecl, ConstDecl, TypeDecl dll. sudah ditangani symbol table — lewati
+    }
+}
+
+void CodeGenerator::generateProcDecl(const semantic::ProcDeclNode& node) {
+    if (node.tabIdx == semantic::NO_INDEX || !symbolTable_) {
+        throw std::runtime_error(unsupported(node));
+    }
+    const int btabIdx = node.typeRef;
+    const int psze = symbolTable_->btabAt(btabIdx).psze;
+
+    // Lompati tubuh prosedur saat eksekusi linear program utama
+    const int skipJump = program_.emit(OpCode::JMP, 0, 0);
+    procAddresses_[node.tabIdx] = program_.currentAddress();
+
+    const int savedLevel = currentLevel_;
+    currentLevel_ = node.level;
+    while (static_cast<int>(procPsizeByLevel_.size()) <= currentLevel_)
+        procPsizeByLevel_.push_back(0);
+    procPsizeByLevel_[currentLevel_] = psze;
+
+    // Alokasikan slot variabel lokal (parameter sudah di stack dari caller)
+    program_.emit(OpCode::INT, 0, procFrameSize(btabIdx));
+
+    if (node.block) {
+        if (node.block->declaration) generateNestedDeclarations(*node.block->declaration);
+        if (node.block->statements) generateCompound(*node.block->statements);
+    }
+
+    // RET: bersihkan psze slot parameter dan kembalikan tanpa nilai
+    program_.emit(OpCode::RET, psze, 0);
+
+    currentLevel_ = savedLevel;
+    program_.patch(skipJump, program_.currentAddress());
+}
+
+void CodeGenerator::generateFuncDecl(const semantic::FuncDeclNode& node) {
+    if (node.tabIdx == semantic::NO_INDEX || !symbolTable_) {
+        throw std::runtime_error(unsupported(node));
+    }
+    const int btabIdx = node.typeRef;
+    const int psze = symbolTable_->btabAt(btabIdx).psze;
+
+    const int skipJump = program_.emit(OpCode::JMP, 0, 0);
+    procAddresses_[node.tabIdx] = program_.currentAddress();
+
+    const int savedLevel = currentLevel_;
+    currentLevel_ = node.level;
+    while (static_cast<int>(procPsizeByLevel_.size()) <= currentLevel_)
+        procPsizeByLevel_.push_back(0);
+    procPsizeByLevel_[currentLevel_] = psze;
+
+    program_.emit(OpCode::INT, 0, procFrameSize(btabIdx));
+
+    if (node.block) {
+        if (node.block->declaration) generateNestedDeclarations(*node.block->declaration);
+        if (node.block->statements) generateCompound(*node.block->statements);
+    }
+
+    // Fallback jika fungsi jatuh tanpa return eksplisit: kembalikan 0
+    program_.emit(OpCode::LIT, 0, 0);
+    program_.emit(OpCode::RET, psze, 1);
+
+    currentLevel_ = savedLevel;
+    program_.patch(skipJump, program_.currentAddress());
+}
+
+void CodeGenerator::generateReturn(const semantic::ReturnNode& node) {
+    const int psze = (currentLevel_ >= 0 && currentLevel_ < static_cast<int>(procPsizeByLevel_.size()))
+                     ? procPsizeByLevel_[currentLevel_] : 0;
+    if (node.value) {
+        generateExpression(node.value.get());
+        program_.emit(OpCode::RET, psze, 1);
+    } else {
+        program_.emit(OpCode::RET, psze, 0);
+    }
 }
 
 void CodeGenerator::generateCompound(const semantic::CompoundNode& node) {
@@ -180,25 +276,44 @@ void CodeGenerator::generateAssign(const semantic::AssignNode& node) {
 }
 
 void CodeGenerator::generateProcCall(const semantic::ProcCallNode& node) {
-    // Milestone 4 hanya mendukung prosedur output bawaan (write/writeln) yang diterjemahkan menjadi operasi OPR
     const std::string name = lowerName(node.name);
-    const bool isWrite = name == "write";
-    const bool isWriteln = name == "writeln";
 
-    if (!isWrite && !isWriteln) {
+    // Prosedur I/O bawaan
+    if (name == "write" || name == "writeln") {
+        if (node.args.empty()) {
+            throw std::runtime_error("CodeGenerator membutuhkan argumen untuk '" + node.name + "'");
+        }
+        for (std::size_t i = 0; i < node.args.size(); ++i) {
+            generateExpression(node.args[i].get());
+            const bool isLast = i + 1 == node.args.size();
+            const OprCode outputOp = (name == "writeln" && isLast) ? OprCode::WRTLN : OprCode::WRT;
+            program_.emit(OpCode::OPR, 0, static_cast<int>(outputOp));
+        }
+        return;
+    }
+
+    if (node.tabIdx == semantic::NO_INDEX || !symbolTable_) {
+        throw std::runtime_error("unresolved call: '" + node.name + "'");
+    }
+
+    const auto& entry = symbolTable_->tabAt(node.tabIdx);
+    if (entry.obj != semantic::ObjectKind::Procedure &&
+        entry.obj != semantic::ObjectKind::Function) {
         throw std::runtime_error(unsupported(node));
     }
 
-    if (node.args.empty()) {
-        throw std::runtime_error("CodeGenerator membutuhkan argumen untuk '" + node.name + "'");
+    const auto addrIt = procAddresses_.find(node.tabIdx);
+    if (addrIt == procAddresses_.end()) {
+        throw std::runtime_error("prosedur '" + node.name + "' belum dideklarasikan sebelum penggunaan");
     }
 
-    for (std::size_t i = 0; i < node.args.size(); ++i) {
-        generateExpression(node.args[i].get());
-        const bool isLast = i + 1 == node.args.size();
-        const OprCode outputOp = (isWriteln && isLast) ? OprCode::WRTLN : OprCode::WRT;
-        program_.emit(OpCode::OPR, 0, static_cast<int>(outputOp));
+    // Dorong semua argumen ke stack (by value)
+    for (const auto& arg : node.args) {
+        generateExpression(arg.get());
     }
+
+    program_.emit(OpCode::CAL, levelDifference(node), addrIt->second);
+    // Nilai kembalian (jika fungsi) kini ada di atas stack; caller menentukan nasibnya
 }
 
 void CodeGenerator::generateIf(const semantic::IfNode& node) {
@@ -309,16 +424,21 @@ void CodeGenerator::generateBinOp(const semantic::BinOpNode& node) {
 }
 
 int CodeGenerator::variableAddress(const semantic::AstNode& node) const {
-    // Mengubah alamat simbol menjadi alamat runtime
-    // FRAME_HEADER_SIZE ditambahkan untuk melewati:
-    //
-    // 0 = Static Link
-    // 1 = Dynamic Link
-    // 2 = Return Address
     if (!symbolTable_ || node.tabIdx == semantic::NO_INDEX) {
         throw std::runtime_error("node belum memiliki alamat symbol table");
     }
-    return symbolTable_->tabAt(node.tabIdx).adr + FRAME_HEADER_SIZE;
+    const auto& entry = symbolTable_->tabAt(node.tabIdx);
+    // Cari psze milik scope tempat variabel/parameter dideklarasikan
+    const int declLevel = entry.lev;
+    const int psze = (declLevel >= 0 && declLevel < static_cast<int>(procPsizeByLevel_.size()))
+                     ? procPsizeByLevel_[declLevel] : 0;
+    if (entry.obj == semantic::ObjectKind::Parameter) {
+        // Parameter didorong caller SEBELUM header; offsetnya negatif dari frameBase
+        // adr=0 → operand = -psze, adr=1 → operand = -psze+1, dst.
+        return entry.adr - psze;
+    }
+    // Variabel lokal: lewati header (3 slot) lalu offset dari awal area variabel
+    return entry.adr - psze + FRAME_HEADER_SIZE;
 }
 
 int CodeGenerator::levelDifference(const semantic::AstNode& node) const {
@@ -344,6 +464,13 @@ int CodeGenerator::initialFrameSize(const semantic::ProgramNode& node) const {
     }
 
     return FRAME_HEADER_SIZE + symbolTable_->btabAt(blockIndex).vsze;
+}
+
+int CodeGenerator::procFrameSize(int btabIdx) const {
+    if (!symbolTable_) return FRAME_HEADER_SIZE;
+    const auto& btab = symbolTable_->btabAt(btabIdx);
+    // Header + slot variabel lokal saja; slot parameter sudah didorong caller
+    return FRAME_HEADER_SIZE + (btab.vsze - btab.psze);
 }
 
 OprCode CodeGenerator::mapBinaryOp(semantic::BinOpKind op) {

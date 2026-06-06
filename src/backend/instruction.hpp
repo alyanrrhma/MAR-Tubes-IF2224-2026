@@ -35,7 +35,8 @@ enum class OprCode {
     GTR = 11,
     LEQ = 12,
     WRT = 13,
-    WRTLN = 14
+    WRTLN = 14,
+    POP = 15
 };
 
 const char* toString(OprCode opcode);
