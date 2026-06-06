@@ -20,8 +20,8 @@ assert_same_file() {
   diff -u <(tr -d "\r" < "$expected") <(tr -d "\r" < "$actual")
 }
 
-valid_cases=(31 37)
-invalid_cases=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 32 33 34 35 36 38 39)
+valid_cases=(19 25)
+invalid_cases=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 20 21 22 23 24 26 27)
 
 run_semantic_case() {
   local n="$1"
@@ -72,11 +72,11 @@ for n in "${invalid_cases[@]}"; do
 done
 
 # Explicit Milestone 3 input requirement: semantic analysis from Milestone 2 parse-tree output.
-parse_tree="$TMP_DIR/parse_tree37.txt"
-ast_from_tree="$TMP_DIR/output37_from_parse_tree.txt"
-"$BIN" "$INPUT_DIR/input37.txt" --parse-only --save-parse-tree "$parse_tree" > /dev/null
+parse_tree="$TMP_DIR/parse_tree25.txt"
+ast_from_tree="$TMP_DIR/output25_from_parse_tree.txt"
+"$BIN" "$INPUT_DIR/input25.txt" --parse-only --save-parse-tree "$parse_tree" > /dev/null
 "$BIN" --from-parse-tree "$parse_tree" --save-ast "$ast_from_tree" > /dev/null
-assert_same_file "$OUTPUT_DIR/output37.txt" "$ast_from_tree"
-echo "[OK] semantic input37 from parse tree"
+assert_same_file "$OUTPUT_DIR/output25.txt" "$ast_from_tree"
+echo "[OK] semantic input25 from parse tree"
 
 echo "Milestone 3 semantic regression tests passed (${#valid_cases[@]} valid + ${#invalid_cases[@]} invalid)."

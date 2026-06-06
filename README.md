@@ -155,10 +155,8 @@ Run Milestone 2 syntax analysis only and save the parse tree with:
 make all
 ./bin/arion test/milestone2/input/input21.txt \
   --parse-only \
-  --save-parse-tree test/milestone2/output/parse_tree21.txt
+  --save-parse-tree test/milestone2/output/output21.txt
 ```
-
-Milestone 2 keeps token output and parse-tree output as separate artifacts. Source-code based tests store `tokenN.txt` for lexical output and `parse_treeN.txt` for parser output. Invalid syntax tests store lexical output as `tokenN.txt` and parser error output as `errorN.txt`.
 
 The parser can also read the textual token output produced by Milestone 1.
 This is useful for grading the parser as a separate component:
@@ -166,7 +164,7 @@ This is useful for grading the parser as a separate component:
 ```bash
 ./bin/arion --from-tokens test/milestone2/input/input24.txt \
   --parse-only \
-  --save-parse-tree test/milestone2/output/parse_tree24.txt
+  --save-parse-tree test/milestone2/output/output24.txt
 ```
 
 Run the Milestone 2 regression suite with:
@@ -178,18 +176,18 @@ Run the Milestone 2 regression suite with:
 Run Milestone 3 semantic analysis and save the decorated AST plus symbol tables with:
 
 ```bash
-./bin/arion test/milestone3/input/input31.txt \
-  --save-ast test/milestone3/output/output31.txt
+./bin/arion test/milestone3/input/input19.txt \
+  --save-ast test/milestone3/output/output19.txt
 ```
 
 The semantic analyzer can also read Milestone 2 parse-tree output directly. This is useful for grading Milestone 3 as a separate phase whose input is a parse tree. Semantic/type errors now return a non-zero exit status, but `--save-ast` still writes the decorated AST, symbol tables, and diagnostics for inspection:
 
 ```bash
-./bin/arion test/milestone3/input/input37.txt \
+./bin/arion test/milestone3/input/input25.txt \
   --parse-only \
-  --save-parse-tree test/milestone3/tmp/parse_tree37.txt
-./bin/arion --from-parse-tree test/milestone3/tmp/parse_tree37.txt \
-  --save-ast test/milestone3/output/output37.txt
+  --save-parse-tree test/milestone3/tmp/parse_tree25.txt
+./bin/arion --from-parse-tree test/milestone3/tmp/parse_tree25.txt \
+  --save-ast test/milestone3/output/output25.txt
 ```
 
 Run the Milestone 3 regression suite with. The suite includes strict array/enumerated compatibility, semantic error exit-code checks, and parse-tree input mode:

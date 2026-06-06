@@ -87,7 +87,7 @@ To run semantic analysis from source code and save the decorated AST plus symbol
 ### Example
 
 ```bash
-./bin/arion test/milestone3/input/input31.txt --save-ast test/milestone3/output/output31.txt
+./bin/arion test/milestone3/input/input19.txt --save-ast test/milestone3/output/output19.txt
 ```
 
 To run semantic analysis from parse tree output of Milestone 2:
@@ -99,8 +99,8 @@ To run semantic analysis from parse tree output of Milestone 2:
 ### Example
 
 ```bash
-./bin/arion test/milestone3/input/input37.txt --parse-only --save-parse-tree test/milestone3/tmp/parse_tree37.txt
-./bin/arion --from-parse-tree test/milestone3/tmp/parse_tree37.txt --save-ast test/milestone3/output/output37.txt
+./bin/arion test/milestone3/input/input25.txt --parse-only --save-parse-tree test/milestone3/tmp/parse_tree25.txt
+./bin/arion --from-parse-tree test/milestone3/tmp/parse_tree25.txt --save-ast test/milestone3/output/output25.txt
 ```
 
 To run the Milestone 3 regression tests:
@@ -122,15 +122,15 @@ The sample inputs in `test/milestone3/input/` cover multiple semantic constructs
 | `input3.txt` | Array, record, field access, array access, `for` loop |
 | `input4.txt` | `if-else` and `case` statements |
 | `input5.txt` | `while`, `repeat`, and `for downto` loops |
-| `input31.txt` | Valid source-to-decorated-AST regression test |
-| `input32.txt` | Invalid formal parameter shadowing global identifier |
-| `input33.txt` | Invalid function with no return assignment/return statement |
-| `input34.txt` | Invalid assignment to function name outside its own body |
-| `input35.txt` | Invalid undeclared `for` control variable; verifies no crash |
-| `input36.txt` | Invalid array index out of declared bounds |
-| `input37.txt` | Semantic analysis from parse-tree input mode |
-| `input38.txt` | Invalid assignment between two separately declared array types with identical shape |
-| `input39.txt` | Invalid assignment between two separately declared enumerated types |
+| `input19.txt` | Valid source-to-decorated-AST regression test |
+| `input20.txt` | Invalid formal parameter shadowing global identifier |
+| `input21.txt` | Invalid function with no return assignment/return statement |
+| `input22.txt` | Invalid assignment to function name outside its own body |
+| `input23.txt` | Invalid undeclared `for` control variable; verifies no crash |
+| `input24.txt` | Invalid array index out of declared bounds |
+| `input25.txt` | Semantic analysis from parse-tree input mode |
+| `input26.txt` | Invalid assignment between two separately declared array types with identical shape |
+| `input27.txt` | Invalid assignment between two separately declared enumerated types |
 
 The semantic analyzer is expected to produce:
 - AST / decorated AST output
@@ -188,14 +188,16 @@ Clean and rebuild the main program.
 │       │   ├── input1.txt
 │       │   ├── ...
 │       │   ├── input18.txt
+│       │   ├── input19.txt
 │       │   ├── ...
-│       │   └── input37.txt
+│       │   └── input27.txt
 │       ├── output/
 │       │   ├── output1.txt
 │       │   ├── ...
 │       │   ├── output18.txt
+│       │   ├── output19.txt
 │       │   ├── ...
-│       │   └── output37.txt
+│       │   └── output27.txt
 │       ├── tmp/
 │       ├── run_milestone3_tests.sh
 │       └── README.md
