@@ -1,12 +1,7 @@
 #include "interpreter.hpp"
-
 #include <climits>
-#include <cctype>
-#include <cmath>
+
 #include <cstddef>
-#include <iostream>
-#include <limits>
-#include <sstream>
 #include <stdexcept>
 
 namespace backend {
@@ -31,12 +26,11 @@ const int FRAME_HEADER_SIZE = 3;
 
 }  
 
-void Interpreter::execute(const InstructionProgram& program, std::istream* input) {
+void Interpreter::execute(const InstructionProgram& program) {
     machine_ = StackMachine{};
     output_.clear();
     bp_ = 0;
     ip_ = 0;
-    input_ = input ? input : &std::cin;
 
     machine_.push(RuntimeValue::integer(0));
     machine_.push(RuntimeValue::integer(0));
@@ -48,7 +42,6 @@ void Interpreter::execute(const InstructionProgram& program, std::istream* input
 
     while (running && ip_ < instructions.size()) {
         const Instruction instruction = instructions[ip_++];
-        validateInstruction(instruction, instructions.size());
 
         switch (instruction.opcode) {
         case OpCode::INT: {
@@ -154,10 +147,6 @@ void Interpreter::execute(const InstructionProgram& program, std::istream* input
             machine_.push(RuntimeValue::string(program.getString(instruction.operand)));
             break;
         }
-        case OpCode::LITR: {
-            machine_.push(RuntimeValue::real(program.getReal(instruction.operand)));
-            break;
-        }
         case OpCode::ADDR: {
             // Dorong alamat absolut slot variabel ke stack sebagai Integer
             const std::size_t frameBase = machine_.walkStaticChain(bp_, instruction.level);
@@ -194,20 +183,6 @@ void Interpreter::execute(const InstructionProgram& program, std::istream* input
             machine_.setStackAt(addr, machine_.pop());
             break;
         }
-        case OpCode::CHK: {
-            const RuntimeValue indexValue = machine_.pop();
-            const int index = (indexValue.kind() == RuntimeValue::Kind::Boolean)
-                                  ? (indexValue.asBoolean() ? 1 : 0)
-                                  : indexValue.asInteger();
-            if (index < instruction.level || index > instruction.operand) {
-                throw std::out_of_range("array index out of bounds: " +
-                                        std::to_string(index) + " not in [" +
-                                        std::to_string(instruction.level) + ".." +
-                                        std::to_string(instruction.operand) + "]");
-            }
-            machine_.push(RuntimeValue::integer(index));
-            break;
-        }
         default:
             throw std::runtime_error("invalid opcode");
         }
@@ -216,64 +191,6 @@ void Interpreter::execute(const InstructionProgram& program, std::istream* input
 
 std::string Interpreter::getOutput() const {
     return output_;
-}
-
-void Interpreter::validateInstruction(const Instruction& instruction, std::size_t programSize) const {
-    auto requireLevelZero = [&](const char* name) {
-        if (instruction.level != 0) {
-            throw std::runtime_error(std::string("invalid instruction level for ") + name + ": " +
-                                     std::to_string(instruction.level));
-        }
-    };
-
-    switch (instruction.opcode) {
-    case OpCode::INT:
-        requireLevelZero("INT");
-        if (instruction.operand < 3) {
-            throw std::runtime_error("invalid INT operand: frame size must be at least 3");
-        }
-        break;
-    case OpCode::LIT:
-    case OpCode::LITB:
-    case OpCode::LITS:
-    case OpCode::LITR:
-    case OpCode::JMP:
-    case OpCode::JPC:
-    case OpCode::OPR:
-    case OpCode::LODI:
-    case OpCode::STOI:
-        requireLevelZero(toString(instruction.opcode));
-        break;
-    case OpCode::LOD:
-    case OpCode::STO:
-    case OpCode::CAL:
-    case OpCode::ADDR:
-        if (instruction.level < 0) {
-            throw std::runtime_error(std::string("invalid instruction level for ") +
-                                     toString(instruction.opcode) + ": " +
-                                     std::to_string(instruction.level));
-        }
-        break;
-    case OpCode::RET:
-        if (instruction.level < 0) {
-            throw std::runtime_error("invalid RET parameter count: " + std::to_string(instruction.level));
-        }
-        if (instruction.operand != 0 && instruction.operand != 1) {
-            throw std::runtime_error("invalid RET return flag: " + std::to_string(instruction.operand));
-        }
-        break;
-    case OpCode::CHK:
-        if (instruction.level > instruction.operand) {
-            throw std::runtime_error("invalid CHK bounds: lower bound exceeds upper bound");
-        }
-        break;
-    }
-
-    if ((instruction.opcode == OpCode::JMP || instruction.opcode == OpCode::JPC ||
-         instruction.opcode == OpCode::CAL) &&
-        (instruction.operand < 0 || static_cast<std::size_t>(instruction.operand) > programSize)) {
-        throw std::out_of_range("invalid address: jump target di luar program");
-    }
 }
 
 void Interpreter::executeOpr(int operand) { // Menjalankan seluruh operasi OPR sesuai tabel opcode pada spesifikasi Milestone 4
@@ -312,137 +229,54 @@ void Interpreter::executeOpr(int operand) { // Menjalankan seluruh operasi OPR s
     case OprCode::POP:
         machine_.pop();
         break;
-    case OprCode::RDI:
-        executeRead(false);
-        break;
-    case OprCode::RDLN:
-        executeRead(true);
-        break;
     default:
         throw std::runtime_error("invalid opcode: OPR " + std::to_string(operand));
     }
 }
 
-void Interpreter::executeRead(bool readLine) {
-    const int typeCode = popInteger();
-    const int rawAddr = popInteger();
-    if (rawAddr < 0 || static_cast<std::size_t>(rawAddr) >= machine_.stackTop()) {
-        throw std::out_of_range("invalid address: RDI/RDLN target address out of range");
-    }
-
-    std::string text;
-    if (readLine) {
-        (*input_) >> std::ws;
-        if (!std::getline(*input_, text)) {
-            throw std::runtime_error("input error: readln gagal membaca nilai");
-        }
-    } else if (!(*input_ >> text)) {
-        throw std::runtime_error("input error: read gagal membaca nilai");
-    }
-
-    RuntimeValue value = RuntimeValue::integer(0);
-    try {
-        switch (typeCode) {
-        case 1:
-            value = RuntimeValue::integer(std::stoi(text));
-            break;
-        case 2:
-            value = RuntimeValue::real(std::stod(text));
-            break;
-        case 3:
-            if (text.empty()) throw std::runtime_error("char kosong");
-            value = RuntimeValue::integer(static_cast<unsigned char>(text.front()));
-            break;
-        case 4: {
-            std::string lower = text;
-            for (char& c : lower) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-            if (lower != "true" && lower != "false") {
-                throw std::runtime_error("boolean harus true atau false");
-            }
-            value = RuntimeValue::boolean(lower == "true");
-            break;
-        }
-        case 5:
-            value = RuntimeValue::string(text);
-            break;
-        default:
-            throw std::runtime_error("type code read tidak dikenal: " + std::to_string(typeCode));
-        }
-    } catch (const std::exception& e) {
-        throw std::runtime_error("input error: nilai '" + text + "' tidak cocok dengan tipe target read/readln");
-    }
-
-    machine_.setStackAt(static_cast<std::size_t>(rawAddr), value);
-}
-
 void Interpreter::unaryNeg() {
-    bool isReal = false;
-    const double value = popNumber(isReal);
-    if (isReal) {
-        machine_.push(RuntimeValue::real(-value));
-        return;
-    }
-    const long long result = -static_cast<long long>(value);
-    if (result > INT_MAX || result < INT_MIN) {
-        throw std::runtime_error("integer overflow");
-    }
-    machine_.push(RuntimeValue::integer(static_cast<int>(result)));
+    const int value = popInteger(); // Boolean direpresentasikan sebagai 0/1 pada runtime, sehingga dapat diperlakukan sebagai integer ketika diperlukan
+    const RuntimeValue result = RuntimeValue::integer(-value);
+    machine_.push(result);
 }
 
 void Interpreter::binaryArithmetic(OprCode opcode) {
-    bool rhsReal = false;
-    const double rhs = popNumber(rhsReal);
-    bool lhsReal = false;
-    const double lhs = popNumber(lhsReal);
-    const bool useReal = lhsReal || rhsReal || opcode == OprCode::DIV;
-
-    if (opcode == OprCode::MOD && useReal) {
-        throw std::runtime_error("operator mod membutuhkan operand integer");
-    }
-
-    if (useReal) {
-        double result = 0.0;
-        switch (opcode) {
-        case OprCode::ADD: result = lhs + rhs; break;
-        case OprCode::SUB: result = lhs - rhs; break;
-        case OprCode::MUL: result = lhs * rhs; break;
-        case OprCode::DIV:
-            if (rhs == 0.0) throw std::runtime_error("division by zero");
-            result = lhs / rhs;
-            break;
-        default: throw std::runtime_error("invalid opcode");
-        }
-        if (!std::isfinite(result)) {
-            throw std::runtime_error("real overflow/underflow");
-        }
-        machine_.push(RuntimeValue::real(result));
-        return;
-    }
-
-    const int rhsInt = static_cast<int>(rhs);
-    const int lhsInt = static_cast<int>(lhs);
+    const int rhs = popInteger();
+    const int lhs = popInteger();
     long long result = 0;
 
     switch (opcode) {
-    case OprCode::ADD: result = static_cast<long long>(lhsInt) + rhsInt; break;
-    case OprCode::SUB: result = static_cast<long long>(lhsInt) - rhsInt; break;
-    case OprCode::MUL: result = static_cast<long long>(lhsInt) * rhsInt; break;
+    case OprCode::ADD:
+        result = static_cast<long long>(lhs) + rhs;
+        break;
+    case OprCode::SUB:
+        result = static_cast<long long>(lhs) - rhs;
+        break;
+    case OprCode::MUL:
+        result = static_cast<long long>(lhs) * rhs;
+        break;
     case OprCode::DIV:
-        if (rhsInt == 0) throw std::runtime_error("division by zero");
-        result = static_cast<long long>(lhsInt) / rhsInt;
+        if (rhs == 0) {
+            throw std::runtime_error("division by zero");
+        }
+        result = static_cast<long long>(lhs) / rhs;
         break;
     case OprCode::MOD:
-        if (rhsInt == 0) throw std::runtime_error("division by zero");
-        result = static_cast<long long>(lhsInt) % rhsInt;
+        if (rhs == 0) {
+            throw std::runtime_error("division by zero");
+        }
+        result = static_cast<long long>(lhs) % rhs;
         break;
-    default: throw std::runtime_error("invalid opcode");
+    default:
+        throw std::runtime_error("invalid opcode");
     }
 
     if (result > INT_MAX || result < INT_MIN) {
         throw std::runtime_error("integer overflow");
     }
 
-    machine_.push(RuntimeValue::integer(static_cast<int>(result)));
+    const auto value = RuntimeValue::integer(static_cast<int>(result));
+    machine_.push(value);
 }
 
 void Interpreter::binaryComparison(OprCode opcode) {
@@ -450,10 +284,11 @@ void Interpreter::binaryComparison(OprCode opcode) {
     const RuntimeValue lhsVal = machine_.pop();
     bool result = false;
 
+    // String equality/inequality
     if (lhsVal.kind() == RuntimeValue::Kind::String ||
         rhsVal.kind() == RuntimeValue::Kind::String) {
-        const std::string ls = lhsVal.toString();
-        const std::string rs = rhsVal.toString();
+        const std::string& ls = lhsVal.toString();
+        const std::string& rs = rhsVal.toString();
         switch (opcode) {
         case OprCode::EQL: result = ls == rs; break;
         case OprCode::NEQ: result = ls != rs; break;
@@ -467,8 +302,10 @@ void Interpreter::binaryComparison(OprCode opcode) {
         return;
     }
 
-    const double rhs = rhsVal.asReal();
-    const double lhs = lhsVal.asReal();
+    // Numeric comparison (integer or boolean-as-integer)
+    const int rhs = (rhsVal.kind() == RuntimeValue::Kind::Boolean) ? (rhsVal.asBoolean() ? 1 : 0) : rhsVal.asInteger();
+    const int lhs = (lhsVal.kind() == RuntimeValue::Kind::Boolean) ? (lhsVal.asBoolean() ? 1 : 0) : lhsVal.asInteger();
+
     switch (opcode) {
     case OprCode::EQL: result = lhs == rhs; break;
     case OprCode::NEQ: result = lhs != rhs; break;
@@ -487,25 +324,13 @@ int Interpreter::popInteger() {
     if (value.kind() == RuntimeValue::Kind::Boolean) {
         return value.asBoolean() ? 1 : 0;
     }
-    if (value.kind() == RuntimeValue::Kind::Real) {
-        return static_cast<int>(value.asReal());
-    }
     return value.asInteger();
-}
-
-double Interpreter::popNumber(bool& isReal) {
-    const RuntimeValue value = machine_.pop();
-    isReal = value.kind() == RuntimeValue::Kind::Real;
-    return value.asReal();
 }
 
 bool Interpreter::popCondition() {
     const RuntimeValue value = machine_.pop();
     if (value.kind() == RuntimeValue::Kind::Boolean) {
         return value.asBoolean();
-    }
-    if (value.kind() == RuntimeValue::Kind::Real) {
-        return value.asReal() != 0.0;
     }
     return value.asInteger() != 0;
 }

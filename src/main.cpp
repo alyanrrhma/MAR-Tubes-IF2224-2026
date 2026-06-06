@@ -37,11 +37,10 @@ struct Options {
     bool tokenInput = false;
     bool parseTreeInput = false;
     bool decoratedAstInput = false;
+    bool embedParseTree = false;
     bool verbose = false;
     bool printTac = false;
     bool run = false;
-    bool runIr = false;
-    bool embedParseTreeInAst = false;
 };
 
 void printUsage(const char* programName) {
@@ -51,24 +50,21 @@ void printUsage(const char* programName) {
         << "  " << programName << " <program.txt> --parse-only --save-parse-tree <parse-tree.txt>\n"
         << "  " << programName << " --from-tokens <tokens.txt> --parse-only --save-parse-tree <parse-tree.txt>\n"
         << "  " << programName << " --from-parse-tree <parse-tree.txt> --save-ast <ast-output.txt>\n"
-        << "  " << programName << " <program.txt> --save-ast <decorated-ast.txt> --embed-parse-tree\n"
-        << "  " << programName << " --from-decorated-ast <decorated-ast.txt> --print-tac|--run\n"
+        << "  " << programName << " --from-decorated-ast <ast-bundle.txt> [--print-tac|--run]\n"
         << "  " << programName << " <program.txt> [--verbose]\n"
         << "  " << programName << " <program.txt> --print-tac\n"
         << "  " << programName << " <program.txt> --run\n"
-        << "  " << programName << " --run-ir <intermediate-code.txt>\n"
         << "  " << programName << " <program.txt> --save-tokens <file> [--save-parse-tree <file>] [--save-ast <file>] [--verbose]\n\n"
         << "Options:\n"
         << "  --lex-only              Run lexical analysis only, print tokens, then stop\n"
         << "  --parse-only            Stop after syntax analysis and print/save parse tree\n"
         << "  --from-tokens <file>    Read Milestone 1 token output instead of source code\n"
         << "  --from-parse-tree <file> Read Milestone 2 parse tree output for semantic analysis\n"
-        << "  --from-decorated-ast <file> Read a decorated AST bundle produced by --embed-parse-tree\n"
-        << "  --embed-parse-tree       Embed parse tree in --save-ast output so M4 can reload it\n"
+        << "  --from-decorated-ast <file> Read Arion decorated AST bundle generated with --embed-parse-tree\n"
+        << "  --embed-parse-tree      Embed parse tree into --save-ast output so it can be used by --from-decorated-ast\n"
         << "  --verbose               Print tokens, parse tree, and decorated AST to stdout\n"
         << "  --print-tac             Generate TAC, print it, then stop\n"
         << "  --run                   Generate TAC and run it with the interpreter\n"
-        << "  --run-ir <file>         Run saved stack-machine intermediate code directly\n"
         << "  --save-tokens <file>    Save tokens to <file>\n"
         << "  --save-dfa-trace <file> Save DFA transition trace during lexical analysis\n"
         << "  --save-parse-tree <file> Save parse tree to <file>\n"
@@ -131,17 +127,6 @@ Options parseOptions(int argc, char* argv[]) {
             continue;
         }
 
-        if (arg == "--run-ir") {
-            if (i + 1 >= argc) {
-                throw std::runtime_error("--run-ir membutuhkan nama file intermediate code");
-            }
-            options.inputFile = argv[++i];
-            options.runIr = true;
-            inputSet = true;
-            ++i;
-            continue;
-        }
-
         if (arg == "--lex-only") {
             options.lexOnly = true;
             ++i;
@@ -178,7 +163,7 @@ Options parseOptions(int argc, char* argv[]) {
 
         if (arg == "--from-decorated-ast") {
             if (i + 1 >= argc) {
-                throw std::runtime_error("--from-decorated-ast membutuhkan nama file decorated AST");
+                throw std::runtime_error("--from-decorated-ast membutuhkan nama file decorated AST bundle");
             }
             options.inputFile = argv[++i];
             options.decoratedAstInput = true;
@@ -188,7 +173,7 @@ Options parseOptions(int argc, char* argv[]) {
         }
 
         if (arg == "--embed-parse-tree") {
-            options.embedParseTreeInAst = true;
+            options.embedParseTree = true;
             ++i;
             continue;
         }
@@ -252,26 +237,23 @@ Options parseOptions(int argc, char* argv[]) {
         throw std::runtime_error("Argumen input tidak diberikan");
     }
 
-    if (options.runIr && (options.lexOnly || options.parseOnly || options.tokenInput || options.parseTreeInput ||
-                          options.decoratedAstInput || options.printTac || options.run || !options.saveTokens.empty() ||
-                          !options.saveParseTree.empty() || !options.saveAst.empty())) {
-        throw std::runtime_error("--run-ir tidak dapat digabungkan dengan mode frontend/backend lain");
-    }
-
     if (options.lexOnly && (options.tokenInput || options.parseTreeInput || options.decoratedAstInput)) {
         throw std::runtime_error("--lex-only hanya dapat digunakan dengan input source code");
     }
 
     if (options.parseOnly && (options.parseTreeInput || options.decoratedAstInput)) {
-        throw std::runtime_error("--parse-only tidak dapat digabungkan dengan input tree/decorated AST");
+        throw std::runtime_error("--parse-only tidak dapat digabungkan dengan --from-parse-tree atau --from-decorated-ast");
     }
 
-    if ((options.tokenInput ? 1 : 0) + (options.parseTreeInput ? 1 : 0) + (options.decoratedAstInput ? 1 : 0) > 1) {
+    const int inputModeCount = (options.tokenInput ? 1 : 0) +
+                               (options.parseTreeInput ? 1 : 0) +
+                               (options.decoratedAstInput ? 1 : 0);
+    if (inputModeCount > 1) {
         throw std::runtime_error("--from-tokens, --from-parse-tree, dan --from-decorated-ast tidak dapat digunakan bersamaan");
     }
 
-    if (options.embedParseTreeInAst && options.saveAst.empty()) {
-        throw std::runtime_error("--embed-parse-tree membutuhkan --save-ast <file>");
+    if (options.embedParseTree && options.saveAst.empty() && options.outputFile.empty()) {
+        throw std::runtime_error("--embed-parse-tree membutuhkan --save-ast atau -o");
     }
 
     if (!options.outputFile.empty()) {
@@ -476,143 +458,64 @@ parse_tree::NodePtr readParseTreeFromMilestone2Output(std::istream& in) {
 }
 
 
-std::string unescapeStringLiteral(const std::string& value) {
-    std::string out;
-    bool escaping = false;
-    for (char c : value) {
-        if (!escaping) {
-            if (c == '\\') escaping = true;
-            else out += c;
-            continue;
-        }
-        switch (c) {
-        case 'n': out += '\n'; break;
-        case 't': out += '\t'; break;
-        case 'r': out += '\r'; break;
-        case '\\': out += '\\'; break;
-        default: out += c; break;
-        }
-        escaping = false;
+std::string extractDecoratedAstBundleSection(const std::string& text,
+                                             const std::string& beginMarker,
+                                             const std::string& endMarker) {
+    const std::size_t begin = text.find(beginMarker);
+    if (begin == std::string::npos) {
+        return "";
     }
-    if (escaping) out += '\\';
-    return out;
+
+    const std::size_t contentBegin = begin + beginMarker.size();
+    const std::size_t end = text.find(endMarker, contentBegin);
+    if (end == std::string::npos) {
+        throw std::runtime_error("Format decorated AST bundle tidak valid: marker akhir tidak ditemukan");
+    }
+
+    std::string section = text.substr(contentBegin, end - contentBegin);
+    if (!section.empty() && section.front() == '\n') section.erase(section.begin());
+    if (!section.empty() && section.front() == '\r') section.erase(section.begin());
+    while (!section.empty() && (section.back() == '\n' || section.back() == '\r')) {
+        section.pop_back();
+    }
+    return section;
 }
 
 parse_tree::NodePtr readParseTreeFromDecoratedAstBundle(std::istream& in) {
-    static const std::string beginMarker = "=== M4_REPLAY_PARSE_TREE_BEGIN ===";
-    static const std::string endMarker = "=== M4_REPLAY_PARSE_TREE_END ===";
+    std::ostringstream buffer;
+    buffer << in.rdbuf();
+    const std::string bundle = buffer.str();
 
-    std::ostringstream parseTree;
-    std::string line;
-    bool inside = false;
+    const std::string parseTreeText = extractDecoratedAstBundleSection(
+        bundle,
+        "=== BEGIN EMBEDDED PARSE TREE ===",
+        "=== END EMBEDDED PARSE TREE ===");
 
-    while (std::getline(in, line)) {
-        if (!line.empty() && line.back() == '\r') line.pop_back();
-        if (line == beginMarker) {
-            inside = true;
-            continue;
-        }
-        if (line == endMarker) {
-            inside = false;
-            break;
-        }
-        if (inside) {
-            parseTree << line << '\n';
-        }
-    }
-
-    if (parseTree.str().empty()) {
+    if (parseTreeText.empty()) {
         throw std::runtime_error(
-            "Decorated AST tidak memuat replay parse tree. "
-            "Buat ulang file dengan: --save-ast <file> --embed-parse-tree");
+            "Decorated AST input tidak memiliki embedded parse tree. "
+            "Buat file dengan --save-ast <file> --embed-parse-tree agar dapat dipakai oleh --from-decorated-ast.");
     }
 
-    std::istringstream replay(parseTree.str());
-    return readParseTreeFromMilestone2Output(replay);
+    std::istringstream parseTreeStream(parseTreeText);
+    return readParseTreeFromMilestone2Output(parseTreeStream);
 }
 
-backend::OpCode parseOpcode(const std::string& name) {
-    if (name == "INT") return backend::OpCode::INT;
-    if (name == "LIT") return backend::OpCode::LIT;
-    if (name == "LOD") return backend::OpCode::LOD;
-    if (name == "STO") return backend::OpCode::STO;
-    if (name == "CAL") return backend::OpCode::CAL;
-    if (name == "JMP") return backend::OpCode::JMP;
-    if (name == "JPC") return backend::OpCode::JPC;
-    if (name == "OPR") return backend::OpCode::OPR;
-    if (name == "RET") return backend::OpCode::RET;
-    if (name == "LITB") return backend::OpCode::LITB;
-    if (name == "LITS") return backend::OpCode::LITS;
-    if (name == "LITR") return backend::OpCode::LITR;
-    if (name == "ADDR") return backend::OpCode::ADDR;
-    if (name == "LODI") return backend::OpCode::LODI;
-    if (name == "STOI") return backend::OpCode::STOI;
-    if (name == "CHK") return backend::OpCode::CHK;
-    throw std::runtime_error("opcode intermediate code tidak dikenal: " + name);
-}
-
-backend::InstructionProgram readInstructionProgram(std::istream& in) {
-    backend::InstructionProgram program;
-    std::string line;
-    int expectedAddress = 0;
-
-    while (std::getline(in, line)) {
-        line = trim(line);
-        if (line.empty()) continue;
-
-        if (line.rfind("#STRING", 0) == 0) {
-            std::istringstream stringLine(line);
-            std::string marker;
-            int index = 0;
-            stringLine >> marker >> index;
-            std::string value;
-            std::getline(stringLine, value);
-            value = trim(value);
-            if (value.size() >= 2 && value.front() == '"' && value.back() == '"') {
-                value = value.substr(1, value.size() - 2);
-            }
-            const int actual = program.addString(unescapeStringLiteral(value));
-            if (actual != index) {
-                throw std::runtime_error("string pool intermediate code tidak berurutan pada baris: " + line);
-            }
-            continue;
-        }
-
-        if (line.rfind("#REAL", 0) == 0) {
-            std::istringstream realLine(line);
-            std::string marker;
-            int index = 0;
-            double value = 0.0;
-            if (!(realLine >> marker >> index >> value)) {
-                throw std::runtime_error("format real pool intermediate code tidak valid: " + line);
-            }
-            const int actual = program.addReal(value);
-            if (actual != index) {
-                throw std::runtime_error("real pool intermediate code tidak berurutan pada baris: " + line);
-            }
-            continue;
-        }
-
-        if (line[0] == '#') continue;
-
-        std::istringstream iss(line);
-        int address = 0;
-        std::string opcode;
-        int level = 0;
-        int operand = 0;
-
-        if (!(iss >> address >> opcode >> level >> operand)) {
-            throw std::runtime_error("format intermediate code tidak valid: " + line);
-        }
-        if (address != expectedAddress) {
-            throw std::runtime_error("alamat intermediate code tidak berurutan pada baris: " + line);
-        }
-
-        program.emit(parseOpcode(opcode), level, operand);
-        ++expectedAddress;
-    }
-
-    return program;
+std::string makeDecoratedAstBundle(const std::string& decoratedAst,
+                                   const std::string& parseTree) {
+    std::ostringstream out;
+    out << "# ARION DECORATED AST BUNDLE\n";
+    out << "# Assumption: this decorated AST was produced by Arion Milestone 3 and is semantically valid.\n";
+    out << "# The embedded parse tree allows Milestone 4 to reconstruct the decorated AST and symbol table deterministically.\n";
+    out << "=== BEGIN DECORATED AST ===\n";
+    out << decoratedAst;
+    if (!decoratedAst.empty() && decoratedAst.back() != '\n') out << '\n';
+    out << "=== END DECORATED AST ===\n";
+    out << "=== BEGIN EMBEDDED PARSE TREE ===\n";
+    out << parseTree;
+    if (!parseTree.empty() && parseTree.back() != '\n') out << '\n';
+    out << "=== END EMBEDDED PARSE TREE ===\n";
+    return out.str();
 }
 
 void printSemanticResult(std::ostream& out,
@@ -648,14 +551,6 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        if (options.runIr) {
-            backend::InstructionProgram ir = readInstructionProgram(inputFile);
-            backend::Interpreter interpreter;
-            interpreter.execute(ir);
-            std::cout << interpreter.getOutput();
-            return 0;
-        }
-
         std::ostringstream tokenBuffer;
         std::ostringstream dfaTraceBuffer;
         std::ostringstream parseTreeBuffer;
@@ -667,7 +562,7 @@ int main(int argc, char* argv[]) {
         if (options.decoratedAstInput) {
             parseRoot = readParseTreeFromDecoratedAstBundle(inputFile);
             if (!parseRoot) {
-                throw std::runtime_error("Gagal membaca replay parse tree dari decorated AST " + options.inputFile);
+                throw std::runtime_error("Gagal membaca decorated AST bundle dari " + options.inputFile);
             }
             parse_tree::printTree(parseRoot.get(), parseTreeBuffer);
         } else if (options.parseTreeInput) {
@@ -777,13 +672,11 @@ int main(int argc, char* argv[]) {
         }
 
         if (!options.saveAst.empty()) {
-            std::string astOutput = decoratedAstBuffer.str();
-            if (options.embedParseTreeInAst) {
-                astOutput += "\n=== M4_REPLAY_PARSE_TREE_BEGIN ===\n";
-                astOutput += parseTreeBuffer.str();
-                astOutput += "=== M4_REPLAY_PARSE_TREE_END ===\n";
+            if (options.embedParseTree) {
+                writeOutputFile(options.saveAst, makeDecoratedAstBundle(decoratedAstBuffer.str(), parseTreeBuffer.str()));
+            } else {
+                writeOutputFile(options.saveAst, decoratedAstBuffer.str());
             }
-            writeOutputFile(options.saveAst, astOutput);
         }
 
         const bool semanticFailed = scopeBuilder.hasErrors() || typeChecker.hasErrors();
