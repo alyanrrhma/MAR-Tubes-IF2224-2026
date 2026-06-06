@@ -104,7 +104,11 @@ std::size_t StackMachine::walkStaticChain(std::size_t bp, int levels) const {
     std::size_t current = bp;
     for (int i = 0; i < levels; ++i) {
         // Static link tersimpan di current+0
-        current = static_cast<std::size_t>(stackAt(current).asInteger());
+        const int link = stackAt(current).asInteger();
+        if (link < 0 || static_cast<std::size_t>(link) >= current) {
+            throw std::runtime_error("stack corruption: invalid static link during chain walk");
+        }
+        current = static_cast<std::size_t>(link);
     }
     return current;
 }
