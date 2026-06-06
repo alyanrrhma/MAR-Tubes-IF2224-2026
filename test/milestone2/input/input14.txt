@@ -1,0 +1,4 @@
+program ExtraToken;
+begin
+end.
+junk

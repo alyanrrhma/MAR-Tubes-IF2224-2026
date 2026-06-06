@@ -1,4 +1,6 @@
 program ProcedureAndFunction;
+var
+  x, y: integer;
 procedure Greet(name: string);
 begin
   writeln('Hello, ', name)
@@ -25,8 +27,6 @@ begin
   else
     Factorial := n * Factorial(n - 1)
 end;
-var
-  x, y: integer;
 begin
   x := 5;
   y := 3;

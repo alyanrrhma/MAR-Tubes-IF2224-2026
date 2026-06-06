@@ -1,0 +1,101 @@
+<program>
+  <program-header>
+    programsy (program)
+    ident (ComponentChain)
+    semicolon (;)
+  <declaration-part>
+    <type-declaration>
+      typesy (type)
+      <type-definition>
+        ident (Inner)
+        eql (==)
+        <type>
+          <record-type>
+            recordsy (record)
+            <field-list>
+              <field-part>
+                <identifier-list>
+                  ident (value)
+                colon (:)
+                <type>
+                  ident (integer)
+              semicolon (;)
+            endsy (end)
+      semicolon (;)
+      <type-definition>
+        ident (Item)
+        eql (==)
+        <type>
+          <record-type>
+            recordsy (record)
+            <field-list>
+              <field-part>
+                <identifier-list>
+                  ident (inner)
+                colon (:)
+                <type>
+                  ident (Inner)
+              semicolon (;)
+            endsy (end)
+      semicolon (;)
+    <var-declaration>
+      varsy (var)
+      <identifier-list>
+        ident (items)
+      colon (:)
+      <type>
+        <array-type>
+          arraysy (array)
+          lbrack ([)
+          <range>
+            <constant>
+              intcon (1)
+            period (.)
+            period (.)
+            <constant>
+              intcon (10)
+          rbrack (])
+          ofsy (of)
+          <type>
+            ident (Item)
+      semicolon (;)
+      <identifier-list>
+        ident (x)
+      colon (:)
+      <type>
+        ident (integer)
+      semicolon (;)
+  <compound-statement>
+    beginsy (begin)
+    <statement-list>
+      <statement>
+        <assignment-statement>
+          <variable>
+            ident (x)
+          becomes (:=)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  <variable>
+                    ident (items)
+                    <component-variable>
+                      lbrack ([)
+                      <index-list>
+                        <expression>
+                          <simple-expression>
+                            <term>
+                              <factor>
+                                intcon (1)
+                      rbrack (])
+                    <component-variable>
+                      period (.)
+                      ident (inner)
+                    <component-variable>
+                      period (.)
+                      ident (value)
+      semicolon (;)
+      <statement>
+        <empty>
+    endsy (end)
+  period (.)

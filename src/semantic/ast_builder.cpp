@@ -556,7 +556,7 @@ semantic::AstPtr AstBuilder::visit_Variable(const parse_tree::NodePtr& node) { /
     semantic::AstPtr current = makeVar(children(node).at(0)->getValue(), children(node).at(0));
     for (std::size_t i = 1; i < children(node).size(); ++i) {
         const auto& selector = children(node).at(i);
-        if (!isLabel(selector, "selector")) continue;
+        if (!isLabel(selector, "component-variable") && !isLabel(selector, "selector")) continue;
         if (isLabel(children(selector).at(0), "lbrack")) {
             auto access = std::make_unique<semantic::ArrayAccessNode>();
             annotate(access.get(), selector);
@@ -575,7 +575,7 @@ semantic::AstPtr AstBuilder::visit_Variable(const parse_tree::NodePtr& node) { /
 }
 
 semantic::AstPtr AstBuilder::visit_ComponentVariable(const parse_tree::NodePtr& node) { // EDIT MARK
-    return visit_Variable(node);
+    return visit_Selector(node);
 }
 
 semantic::AstPtr AstBuilder::visit_Selector(const parse_tree::NodePtr& node) { // EDIT MARK

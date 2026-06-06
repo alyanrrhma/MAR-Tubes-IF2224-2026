@@ -1,0 +1,16 @@
+programsy
+ident (ArrayIdentIndex)
+semicolon
+varsy
+ident (a)
+colon
+arraysy
+lbrack
+ident (char)
+rbrack
+ofsy
+ident (integer)
+semicolon
+beginsy
+endsy
+period

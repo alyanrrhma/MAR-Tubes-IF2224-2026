@@ -1,0 +1,5 @@
+program ArrayIdentIndex;
+var
+  a: array[char] of integer;
+begin
+end.

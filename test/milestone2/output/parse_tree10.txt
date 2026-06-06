@@ -195,7 +195,7 @@
                                   <factor>
                                     <variable>
                                       ident (nums)
-                                      <selector>
+                                      <component-variable>
                                         lbrack ([)
                                         <index-list>
                                           <expression>
@@ -212,7 +212,7 @@
                                   <factor>
                                     <variable>
                                       ident (nums)
-                                      <selector>
+                                      <component-variable>
                                         lbrack ([)
                                         <index-list>
                                           <expression>
@@ -243,7 +243,7 @@
                                             <factor>
                                               <variable>
                                                 ident (nums)
-                                                <selector>
+                                                <component-variable>
                                                   lbrack ([)
                                                   <index-list>
                                                     <expression>
@@ -258,7 +258,7 @@
                                     <assignment-statement>
                                       <variable>
                                         ident (nums)
-                                        <selector>
+                                        <component-variable>
                                           lbrack ([)
                                           <index-list>
                                             <expression>
@@ -275,7 +275,7 @@
                                             <factor>
                                               <variable>
                                                 ident (nums)
-                                                <selector>
+                                                <component-variable>
                                                   lbrack ([)
                                                   <index-list>
                                                     <expression>
@@ -295,7 +295,7 @@
                                     <assignment-statement>
                                       <variable>
                                         ident (nums)
-                                        <selector>
+                                        <component-variable>
                                           lbrack ([)
                                           <index-list>
                                             <expression>
@@ -397,7 +397,7 @@
                               <factor>
                                 <variable>
                                   ident (nums)
-                                  <selector>
+                                  <component-variable>
                                     lbrack ([)
                                     <index-list>
                                       <expression>
@@ -428,7 +428,7 @@
         <assignment-statement>
           <variable>
             ident (nums)
-            <selector>
+            <component-variable>
               lbrack ([)
               <index-list>
                 <expression>
@@ -448,7 +448,7 @@
         <assignment-statement>
           <variable>
             ident (nums)
-            <selector>
+            <component-variable>
               lbrack ([)
               <index-list>
                 <expression>
@@ -468,7 +468,7 @@
         <assignment-statement>
           <variable>
             ident (nums)
-            <selector>
+            <component-variable>
               lbrack ([)
               <index-list>
                 <expression>
@@ -488,7 +488,7 @@
         <assignment-statement>
           <variable>
             ident (nums)
-            <selector>
+            <component-variable>
               lbrack ([)
               <index-list>
                 <expression>
@@ -508,7 +508,7 @@
         <assignment-statement>
           <variable>
             ident (nums)
-            <selector>
+            <component-variable>
               lbrack ([)
               <index-list>
                 <expression>
@@ -587,7 +587,7 @@
                       <factor>
                         <variable>
                           ident (nums)
-                          <selector>
+                          <component-variable>
                             lbrack ([)
                             <index-list>
                               <expression>
@@ -616,7 +616,7 @@
         <assignment-statement>
           <variable>
             ident (pos)
-            <selector>
+            <component-variable>
               period (.)
               ident (x)
           becomes (:=)
@@ -630,7 +630,7 @@
         <assignment-statement>
           <variable>
             ident (pos)
-            <selector>
+            <component-variable>
               period (.)
               ident (y)
           becomes (:=)
@@ -679,7 +679,7 @@
                   <assignment-statement>
                     <variable>
                       ident (pos)
-                      <selector>
+                      <component-variable>
                         period (.)
                         ident (x)
                     becomes (:=)
@@ -689,7 +689,7 @@
                           <factor>
                             <variable>
                               ident (pos)
-                              <selector>
+                              <component-variable>
                                 period (.)
                                 ident (x)
                         <additive-operator>
@@ -702,7 +702,7 @@
                   <assignment-statement>
                     <variable>
                       ident (pos)
-                      <selector>
+                      <component-variable>
                         period (.)
                         ident (y)
                     becomes (:=)
@@ -712,7 +712,7 @@
                           <factor>
                             <variable>
                               ident (pos)
-                              <selector>
+                              <component-variable>
                                 period (.)
                                 ident (y)
                         <additive-operator>
@@ -762,7 +762,7 @@
                   <factor>
                     <variable>
                       ident (pos)
-                      <selector>
+                      <component-variable>
                         period (.)
                         ident (x)
           rparent ())
@@ -778,7 +778,7 @@
                   <factor>
                     <variable>
                       ident (pos)
-                      <selector>
+                      <component-variable>
                         period (.)
                         ident (y)
           rparent ())

@@ -1,0 +1,19 @@
+{ this is a comment }
+(* this is a comment *)
+{ this is
+   a multiline
+   comment }
+(* 
+   this is
+   another multiline
+   comment 
+*)
+{ comment containing 'string text' and := + - * / ; , . }
+(* comment containing 'hello'
+   and Arion-like code: x := 'abc'; *)
+{abc*)}
+(*abc}
+(* Atau gini (**)
+{Atau gini *)}
+'not { a comment }'
+'not (* a comment *)'

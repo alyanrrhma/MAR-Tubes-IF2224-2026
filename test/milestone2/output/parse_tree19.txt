@@ -1,0 +1,80 @@
+<program>
+  <program-header>
+    programsy (program)
+    ident (IndexExpressionExtension)
+    semicolon (;)
+  <declaration-part>
+    <var-declaration>
+      varsy (var)
+      <identifier-list>
+        ident (a)
+      colon (:)
+      <type>
+        <array-type>
+          arraysy (array)
+          lbrack ([)
+          <range>
+            <constant>
+              intcon (1)
+            period (.)
+            period (.)
+            <constant>
+              intcon (10)
+          rbrack (])
+          ofsy (of)
+          <type>
+            ident (integer)
+      semicolon (;)
+      <identifier-list>
+        ident (i)
+        comma (,)
+        ident (x)
+      colon (:)
+      <type>
+        ident (integer)
+      semicolon (;)
+  <compound-statement>
+    beginsy (begin)
+    <statement-list>
+      <statement>
+        <assignment-statement>
+          <variable>
+            ident (i)
+          becomes (:=)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  intcon (1)
+      semicolon (;)
+      <statement>
+        <assignment-statement>
+          <variable>
+            ident (x)
+          becomes (:=)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  <variable>
+                    ident (a)
+                    <component-variable>
+                      lbrack ([)
+                      <index-list>
+                        <expression>
+                          <simple-expression>
+                            <term>
+                              <factor>
+                                <variable>
+                                  ident (i)
+                            <additive-operator>
+                              plus (+)
+                            <term>
+                              <factor>
+                                intcon (1)
+                      rbrack (])
+      semicolon (;)
+      <statement>
+        <empty>
+    endsy (end)
+  period (.)

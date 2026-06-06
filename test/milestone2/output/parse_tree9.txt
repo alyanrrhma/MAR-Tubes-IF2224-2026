@@ -130,7 +130,7 @@
                                 <factor>
                                   <variable>
                                     ident (matrix)
-                                    <selector>
+                                    <component-variable>
                                       lbrack ([)
                                       <index-list>
                                         <expression>
@@ -258,7 +258,7 @@
                   <assignment-statement>
                     <variable>
                       ident (matrix)
-                      <selector>
+                      <component-variable>
                         lbrack ([)
                         <index-list>
                           <expression>

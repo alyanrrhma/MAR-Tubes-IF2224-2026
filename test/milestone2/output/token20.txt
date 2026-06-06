@@ -1,0 +1,25 @@
+programsy
+ident (ValidDeclarationOrder)
+semicolon
+constsy
+ident (A)
+eql
+intcon (1)
+semicolon
+typesy
+ident (T)
+eql
+ident (integer)
+semicolon
+varsy
+ident (x)
+colon
+ident (T)
+semicolon
+beginsy
+ident (x)
+becomes
+ident (A)
+semicolon
+endsy
+period

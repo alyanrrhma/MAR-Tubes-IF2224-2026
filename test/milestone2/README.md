@@ -1,4 +1,4 @@
-# Milestone 2 Tugas Besar IF2240 - Teori Bahasa Formal dan Automata : Syntax Analysis
+# Milestone 2 Tugas Besar IF2224 - Teori Bahasa Formal dan Automata : Syntax Analysis
 
 ## Description
 This project is an implementation of a **Syntax Analyzer (Parser)** for the **Arion programming language** as part of **Milestone 2 - IF2240 Formal Language and Automata Theory**. The parser is the second phase of compilation, responsible for validating the syntactic structure of source code based on the grammar rules of the language.
@@ -41,13 +41,21 @@ The parser supports:
 - Recursive Descent Parsing
 - Parse tree generation
 - Syntax validation
-- Error handling with line and column information
+- Error handling with informative messages
 - Compound statements (`begin-end`)
 - Expressions and operators
 - Conditional statements (`if`, `case`)
 - Looping statements (`while`, `repeat`, `for`)
 - Procedures and functions
 - Arrays and records
+
+### Index-list extension
+
+The Milestone 2 grammar defines index-list using intcon, charcon, or ident.
+This implementation intentionally extends index-list to accept full expressions,
+such as `a[i + 1]`, to support more practical array indexing in later
+milestones. This is an implementation extension and does not change the
+required basic behavior.
 
 ---
 
@@ -71,7 +79,7 @@ cd MAR-Tubes-IF2224-2026
 ### 2. Compile the Program
 
 ```bash
-make
+make all
 ```
 
 ---
@@ -81,22 +89,51 @@ make
 To run the parser execute:
 
 ```bash
-./bin/arion <program.txt> [-o <token_output.txt>] [-p <parse_tree_output.txt>] [--lex-only]
+./bin/arion <program.txt> --save-tokens <tokens.txt> [--save-parse-tree <parse-tree.txt>] [--save-ast <ast.txt>] [--verbose]
 ```
 
 ### Example
 
 ```bash
-./bin/arion test/milestone2/input/input1.txt -o test/milestone1/output/output1.txt -p test/milestone2/output/output1.txt
+make all
+./bin/arion test/milestone2/input/input1.txt \
+  --save-tokens test/milestone2/output/token1.txt \
+  --save-parse-tree test/milestone2/output/parse_tree1.txt
+```
+
+To run lexical analysis only:
+
+```bash
+./bin/arion test/milestone2/input/input1.txt --lex-only -o test/milestone2/output/token1.txt
 ```
 
 ### Additional Options
 
 | Option | Description |
 |---|---|
-| `-o <file>` | Save lexer/token output |
-| `-p <file>` | Save parse tree output |
+| `--save-tokens <file>` | Save token output |
+| `--save-parse-tree <file>` | Save parse tree output |
+| `--save-ast <file>` | Save decorated AST output |
+| `--verbose` | Print tokens, parse tree, and decorated AST to stdout |
 | `--lex-only` | Run lexer only without parser |
+| `-o <file>` | Output file; with `--lex-only` saves tokens, otherwise saves AST |
+
+---
+
+## Parser Correction Tests
+
+The following Milestone 2 inputs cover the parser correction cases:
+
+| Input | Expected Result | Purpose |
+|---|---|---|
+| `input1.txt` | Success | Valid basic program |
+| `input14.txt` | Parse error | Extra token after final period |
+| `input15.txt` | Parse error | Invalid declaration order |
+| `input16.txt` | Success | `array[char] of integer` |
+| `input17.txt` | Success | `array[1..10] of integer` |
+| `input18.txt` | Success | Component variable chain; parse tree uses `<component-variable>` |
+| `input19.txt` | Success | Index-list expression extension, such as `a[i + 1]` |
+| `input20.txt` | Success | Valid declaration order: const, type, var |
 
 ---
 
