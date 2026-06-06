@@ -1,5 +1,6 @@
 #include "interpreter.hpp"
 
+#include <climits>
 #include <cstddef>
 #include <stdexcept>
 
@@ -180,6 +181,20 @@ void Interpreter::execute(const InstructionProgram& program) {
                 throw std::out_of_range("invalid address: STOI address out of range");
             }
             machine_.setStackAt(addr, machine_.pop());
+            break;
+        }
+        case OpCode::CHK: {
+            const RuntimeValue indexValue = machine_.pop();
+            const int index = (indexValue.kind() == RuntimeValue::Kind::Boolean)
+                                  ? (indexValue.asBoolean() ? 1 : 0)
+                                  : indexValue.asInteger();
+            if (index < instruction.level || index > instruction.operand) {
+                throw std::out_of_range("array index out of bounds: " +
+                                        std::to_string(index) + " not in [" +
+                                        std::to_string(instruction.level) + ".." +
+                                        std::to_string(instruction.operand) + "]");
+            }
+            machine_.push(RuntimeValue::integer(index));
             break;
         }
         default:

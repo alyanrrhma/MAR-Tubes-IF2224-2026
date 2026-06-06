@@ -432,7 +432,7 @@ std::unique_ptr<semantic::WhileNode> AstBuilder::visit_WhileStatement(const pars
     auto stmt = std::make_unique<semantic::WhileNode>();
     annotate(stmt.get(), node);
     stmt->condition = visit_Expression(children(node).at(1));
-    stmt->body = visit_Statement(children(node).at(3));
+    stmt->body = visit_CompoundStatement(children(node).at(3));
     return stmt;
 }
 
@@ -443,7 +443,7 @@ std::unique_ptr<semantic::ForNode> AstBuilder::visit_ForStatement(const parse_tr
     stmt->startExpr = visit_Expression(children(node).at(3));
     stmt->downto = isLabel(children(node).at(4), "downtosy");
     stmt->endExpr = visit_Expression(children(node).at(5));
-    stmt->body = visit_Statement(children(node).at(7));
+    stmt->body = visit_CompoundStatement(children(node).at(7));
     return stmt;
 }
 
