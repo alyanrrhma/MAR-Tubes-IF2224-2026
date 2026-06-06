@@ -1,0 +1,54 @@
+@startuml
+skinparam shadowing false
+skinparam monochrome false
+skinparam defaultFontName Arial
+skinparam activity {
+  BackgroundColor #F8FBFF
+  BorderColor #1F4E79
+  FontColor #111111
+}
+
+title Arion Compiler Milestone 4 - Pipeline Eksekusi
+
+start
+:Source code Arion (.txt);
+:Lexical Analysis
+(DFA Lexer);
+:Token stream;
+:Syntax Analysis
+(Recursive Descent Parser);
+:Parse Tree;
+:AST Builder;
+:Abstract Syntax Tree;
+:Semantic Analysis
+(ScopeBuilder + TypeChecker);
+:Decorated AST + Symbol Table;
+
+if (Mode eksekusi?) then (--print-tac)
+  :CodeGenerator;
+  :Stack-Machine Intermediate Code;
+  :Cetak IR ke terminal/file;
+  stop
+elseif (--run) then
+  :CodeGenerator;
+  :Stack-Machine Intermediate Code;
+  :Interpreter / Virtual Machine;
+  :Output runtime program;
+  stop
+elseif (--save-ast --embed-parse-tree) then
+  :Simpan Decorated AST Bundle;
+  note right
+    Bundle berisi Decorated AST
+    dan embedded parse tree agar
+    dapat dipakai ulang oleh M4.
+  end note
+  stop
+else (--from-decorated-ast)
+  :Baca Decorated AST Bundle;
+  :Rekonstruksi AST + Symbol Table;
+  :CodeGenerator;
+  :Stack-Machine Intermediate Code;
+  :Interpreter / Print IR;
+  stop
+endif
+@enduml

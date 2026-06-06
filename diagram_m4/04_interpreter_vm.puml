@@ -1,0 +1,55 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName Arial
+
+title Interpreter / Stack Machine Runtime
+
+start
+:Load InstructionProgram;
+:IP = 0;
+:Inisialisasi StackMachine dan output buffer;
+
+while (IP masih dalam program?) is (ya)
+  :Fetch instruction pada IP;
+  :IP++;
+  :Decode opcode;
+
+  switch (opcode)
+    case (INT)
+      :Alokasi runtime frame;
+    case (LIT/LITB/LITR/LITS)
+      :Push literal ke evaluation stack;
+    case (LOD/STO)
+      :Akses runtime memory;
+    case (ADDR/LODI/STOI)
+      :Akses alamat tidak langsung;
+    case (CHK)
+      :Validasi bounds array;
+    case (JMP/JPC)
+      :Validasi target jump;
+      :Ubah IP jika perlu;
+    case (CAL/RET)
+      :Kelola procedure/function frame;
+    case (OPR)
+      :Jalankan operasi arithmetic,
+      relational, I/O, atau POP;
+    case (unknown)
+      :Runtime error;
+      stop
+  endswitch
+
+endwhile (tidak)
+:Kembalikan output runtime;
+stop
+
+note right
+  Runtime safety:
+  - stack underflow/overflow
+  - invalid jump target
+  - invalid opcode/OPR
+  - invalid address
+  - division by zero
+  - integer overflow
+  - array out-of-bounds
+end note
+@enduml

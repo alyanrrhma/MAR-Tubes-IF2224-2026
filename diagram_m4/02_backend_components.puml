@@ -1,0 +1,58 @@
+@startuml
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam defaultFontName Arial
+
+title Arsitektur Backend Milestone 4
+
+package "Frontend Milestone 1-3" {
+  [Lexer DFA] as Lexer
+  [Recursive Descent Parser] as Parser
+  [AST Builder] as ASTBuilder
+  [ScopeBuilder] as ScopeBuilder
+  [TypeChecker] as TypeChecker
+}
+
+package "Backend Milestone 4" {
+  [CodeGenerator] as CodeGen
+  [InstructionProgram] as IR
+  [Interpreter] as Interpreter
+  [StackMachine] as Stack
+  [RuntimeValue] as RuntimeValue
+}
+
+package "Input/Output Mode" {
+  [--print-tac] as PrintTac
+  [--run] as Run
+  [--run-ir] as RunIR
+  [--from-decorated-ast] as FromAST
+  [--save-ast --embed-parse-tree] as SaveAST
+}
+
+Lexer --> Parser : tokens
+Parser --> ASTBuilder : parse tree
+ASTBuilder --> ScopeBuilder : AST
+ScopeBuilder --> TypeChecker : AST + symbol table
+TypeChecker --> CodeGen : valid Decorated AST
+
+SaveAST ..> ScopeBuilder : simpan bundle
+FromAST ..> CodeGen : muat bundle
+CodeGen --> IR : generate instruksi stack machine
+IR --> PrintTac : prettyPrint()
+IR --> Interpreter : execute()
+RunIR ..> Interpreter : IR manual / file .ir
+Interpreter --> Stack : load/store/push/pop
+Stack --> RuntimeValue : nilai runtime
+Interpreter --> Run : output program
+
+note bottom of CodeGen
+  Backend mengasumsikan Decorated AST
+  dan Symbol Table valid dari Milestone 3.
+  Validasi semantic tidak diulang penuh.
+end note
+
+note bottom of RunIR
+  Sesuai QnA: testcase bonus vulnerability
+  boleh memakai intermediate code manual.
+end note
+@enduml

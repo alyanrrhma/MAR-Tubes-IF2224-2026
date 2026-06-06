@@ -1,0 +1,44 @@
+@startuml
+skinparam shadowing false
+skinparam defaultFontName Arial
+
+title Alur Code Generation dari Decorated AST ke Stack-Machine IR
+
+start
+:Terima Decorated AST + Symbol Table;
+:Inisialisasi InstructionProgram;
+:Emit INT untuk frame awal;
+
+repeat
+  :Kunjungi node AST secara DFS;
+  if (Node statement?) then (ya)
+    if (Assignment) then (ya)
+      :Generate ekspresi kanan;
+      :Generate alamat target;
+      :Emit STO / STOI;
+    elseif (If / While / For / Repeat / Case) then (ya)
+      :Generate kondisi;
+      :Emit JMP/JPC;
+      :Backpatch target jump;
+    elseif (Procedure / Function call) then (ya)
+      :Generate argumen;
+      :Emit CAL atau OPR built-in;
+    elseif (Write/Read) then (ya)
+      :Emit OPR WRT/WRTLN/RDI/RDLN;
+    endif
+  else (Node expression)
+    if (Literal) then (ya)
+      :Emit LIT / LITB / LITR / LITS;
+    elseif (Variable / Array / Record) then (ya)
+      :Emit LOD / ADDR / LODI / CHK;
+    elseif (Unary/Binary op) then (ya)
+      :Generate operand;
+      :Emit OPR;
+    endif
+  endif
+repeat while (Masih ada node?) is (ya)
+
+:Emit RET;
+:Intermediate Code siap dicetak atau dijalankan;
+stop
+@enduml
