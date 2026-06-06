@@ -8,6 +8,7 @@ Lexer::Lexer(std::istream& source, std::shared_ptr<DFA> automaton, std::ostream*
     : src(source),
       dfa(automaton),
       out(output),
+      traceOut(nullptr),
       line_counter(1),
       col_counter(0),
       reached_eof(false)
@@ -86,9 +87,62 @@ void Lexer::write_range_tokens(const std::string& lexeme) {
 
 void Lexer::write_token(const Token& t) {
     result.push_back(t);
+    if (t.get_type_name() == "UNKNOWN") {
+        add_error("token tidak valid", line_counter, col_counter, t.get_value());
+    }
     if (out != nullptr) {
         *out << t.to_string() << "\n";
     }
+}
+
+bool Lexer::hasErrors() const {
+    return !errors.empty();
+}
+
+const std::vector<std::string>& Lexer::getErrors() const {
+    return errors;
+}
+
+void Lexer::enableTrace(std::ostream* traceOutput) {
+    traceOut = traceOutput;
+}
+
+static std::string printableChar(char c) {
+    switch (c) {
+        case '\n': return "\\n";
+        case '\t': return "\\t";
+        case '\r': return "\\r";
+        default: return std::string(1, c);
+    }
+}
+
+void Lexer::add_error(const std::string& message, int line, int col, const std::string& lexeme) {
+    std::string full = "[" + std::to_string(line) + ":" + std::to_string(col) + "] lexical error: " + message;
+    if (!lexeme.empty()) {
+        full += " (near '" + lexeme + "')";
+    }
+    errors.push_back(full);
+}
+
+void Lexer::trace_transition(char c, const State& from, const State& to, const std::string& currentLexeme) const {
+    if (traceOut == nullptr) {
+        return;
+    }
+
+    *traceOut << "[" << line_counter << ":" << col_counter << "] "
+              << "read='" << printableChar(c) << "' "
+              << from.getStateCharID() << " -> " << to.getStateCharID()
+              << " lexeme=\"" << currentLexeme << printableChar(c) << "\"";
+
+    if (to.isFinalState()) {
+        *traceOut << " ACCEPT(" << dfa->getTokenForState(to.getStateIdx()).get_name() << ")";
+    }
+
+    if (to.isNullState()) {
+        *traceOut << " REJECT";
+    }
+
+    *traceOut << "\n";
 }
 
 void Lexer::process_next_token() {
@@ -118,12 +172,7 @@ void Lexer::process_next_token() {
                                     int line,
                                     int col,
                                     const std::string& lex) {
-        std::cerr << "[" << line << ":" << col << "] lexical error: "
-                  << message;
-        if (!lex.empty()) {
-            std::cerr << " (near '" << lex << "')";
-        }
-        std::cerr << "\n";
+        add_error(message, line, col, lex);
     };
 
     auto report_unclosed_quote = [&](int line, int col, const std::string& lex) {
@@ -228,6 +277,7 @@ void Lexer::process_next_token() {
             const State prev_state = dfa->getState();
             dfa->next(static_cast<unsigned char>(c));
             const State next_state = dfa->getState();
+            trace_transition(c, prev_state, next_state, lexeme);
 
             if (!next_state.isNullState()) {
                 TokenType next_token = dfa->getTokenForState(next_state.getStateIdx());

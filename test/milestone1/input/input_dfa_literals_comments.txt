@@ -1,0 +1,13 @@
+program LiteralComment;
+const
+  A == 'x';
+  S == 'it''s ok';
+  R == 3.14;
+  N == 1..10;
+var c: char;
+begin
+  { komentar boleh berisi simbol := <> 123 dan ditutup dengan *)
+  (* komentar kedua boleh ditutup dengan } 
+  c := A;
+  writeln(S, R, N);
+end.

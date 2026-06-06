@@ -1,24 +1,27 @@
-# Milestone 1 Tugas Besar IF2240 - Teori Bahasa Formal dan Automata : Lexical Analysis
+# Milestone 1 Tugas Besar IF2224 - Lexical Analysis
 
 ## Description
-This project is an implementation of a **Lexical Analyzer (Lexer)** for the **Arion programming language** as part of **Milestone 1 - IF2224 Formal Language and Automata Theory**. The lexer is the first phase of compilation, responsible for transforming raw source code into a sequence of meaningful tokens.
+This project implements a **Lexical Analyzer (Lexer)** for the **Arion programming language**. The lexer is the first phase of the compiler pipeline and transforms raw source code into a sequence of meaningful tokens.
 
-The program is implemented in **C/C++ GNU** and uses a **Deterministic Finite Automaton (DFA)** to recognize token patterns from the input source code. The lexer reads the input **one character at a time**, processes it according to DFA transitions, and outputs a list of recognized tokens. The program accepts source code from a `.txt` file and produces token output in `.txt` format. :contentReference[oaicite:3]{index=3}
+The lexer is implemented in **C++ GNU** using a **Deterministic Finite Automaton (DFA)**. The DFA is defined in `config/config_lexer.txt` using three kinds of entries:
 
-The lexer is designed to recognize:
-- constants
-- identifiers
-- keywords
-- arithmetic, logical, and relational operators
-- delimiters
-- comments
+- `START <state>` for the initial state,
+- `FINAL <TOKEN_TYPE> <state>` for accepting states,
+- `<ascii-code> <from-state> <to-state>` for transitions.
 
-This implementation is also developed in a **modular structure** to support future milestones in the compiler pipeline.
+During lexical analysis, the scanner reads source code **one character at a time**, feeds each character into the DFA, and emits a token only when an accepting state has been reached. Whitespace is treated only as a separator. Comments are recognized as DFA token paths and are emitted as `comment` tokens in lexer-only output, then ignored by the parser in later milestones.
+
+The implementation also provides a DFA trace mode so that the transition sequence can be inspected during testing:
+
+```bash
+./bin/arion <program.txt> --lex-only -o <tokens.txt> --save-dfa-trace <trace.txt>
+```
+
+Each trace line records the source position, the character read, the previous state, the next state, the current lexeme, and whether the state is an accepting state. This file can be used as evidence that the lexer follows DFA transitions instead of classifying tokens by ad-hoc string matching.
 
 ---
 
 ## Token List
-Below is the list of token types recognized by the Arion lexer according to the milestone specification.
 
 | No | Token | Description | Example |
 |----|-------|-------------|---------|
@@ -36,7 +39,7 @@ Below is the list of token types recognized by the Arion lexer according to the 
 | 12 | **andsy** | Logical AND operator | `AND` |
 | 13 | **orsy** | Logical OR operator | `OR` |
 | 14 | **eql** | Equal operator | `==` |
-| 15 | **neq** | Not equal operator | `<>` |
+| 15 | **neq** | Not equal | `<>` |
 | 16 | **gtr** | Greater than | `>` |
 | 17 | **geq** | Greater than or equal | `>=` |
 | 18 | **lss** | Less than | `<` |
@@ -58,7 +61,7 @@ Below is the list of token types recognized by the Arion lexer according to the 
 | 34 | **arraysy** | Array declaration keyword | `array` |
 | 35 | **recordsy** | Record declaration keyword | `record` |
 | 36 | **programsy** | Program declaration keyword | `program` |
-| 37 | **ident** | Identifier | `x`, `PI`, `MyInt` |
+| 37 | **ident** | Identifier | `x`, `PI`, `MyInt`, `arrayzz` |
 | 38 | **beginsy** | Begin block keyword | `begin` |
 | 39 | **ifsy** | If keyword | `if` |
 | 40 | **casesy** | Case keyword | `case` |
@@ -73,52 +76,82 @@ Below is the list of token types recognized by the Arion lexer according to the 
 | 49 | **tosy** | To keyword | `to` |
 | 50 | **downtosy** | Downto keyword | `downto` |
 | 51 | **thensy** | Then keyword | `then` |
-| 52 | **comment** | Comment token | `{ ... }`, `(* ... *)` |
+| 52 | **comment** | Comment token | `{ ... }`, `(* ... *)`, including allowed mixed endings handled by the DFA configuration |
+| 53 | **unknown** | Invalid lexical sequence | `12abc`, unterminated string/comment |
 
 ---
 
 ## Requirements
-To build and run this program, you need:
-- **GNU C++ Compiler** with C++ standard support
-- **GNU Make**
-- A Unix/Linux environment or any environment capable of running `make` and `g++`
+
+- GNU C++ compiler with C++17 support
+- GNU Make
+- Unix/Linux shell for the provided test script
+
 ---
 
-## Installation Guide
-To compile the program, follow these steps:
-
-**1. Clone the Repository**
-```bash
-git clone https://github.com/alyanrrhma/MAR-Tubes-IF2224-2026.git
-cd MAR-Tubes-IF2224-2026
-```
-
-**3. Compile the program**:
-```bash
-make
-```
-
-## How To Run
-To run only the lexer for Milestone 1, compile the project and use `--lex-only`. The `-o` option saves the token list to a file.
+## Build
 
 ```bash
 make all
+```
+
+---
+
+## How To Run Milestone 1
+
+Run lexical analysis only and save tokens:
+
+```bash
 ./bin/arion <program.txt> --lex-only -o <output_file.txt>
 ```
 
-For example:
+Run lexical analysis and save both tokens and DFA transition trace:
 
 ```bash
-./bin/arion test/milestone1/input/input1.txt --lex-only -o test/milestone1/output/output1.txt
+./bin/arion <program.txt> --lex-only \
+  -o <output_file.txt> \
+  --save-dfa-trace <trace_file.txt>
 ```
 
-This mode stops after lexical analysis, so standalone lexer test cases do not need to be syntactically valid programs.
+Example:
+
+```bash
+./bin/arion test/milestone1/input/input_dfa_keywords_boundaries.txt \
+  --lex-only \
+  -o test/milestone1/output/output_dfa_keywords_boundaries.txt \
+  --save-dfa-trace test/milestone1/trace/trace_dfa_keywords_boundaries.txt
+```
+
+When the lexer detects an invalid token, it emits an `unknown` token, prints a lexical error with source position, and exits with a non-zero status code. This makes lexical error tests checkable by automated scripts.
+
+---
+
+## Milestone 1 Regression Tests
+
+Additional test cases are provided to strengthen DFA conformance, error handling, and edge-case coverage:
+
+| Test input | Purpose |
+|---|---|
+| `input_dfa_keywords_boundaries.txt` | Verifies keyword/identifier boundaries, case-insensitive keywords, logical operators, relational operators, and separators. |
+| `input_dfa_literals_comments.txt` | Verifies char, string with escaped single quote, real number, range `1..10`, and both comment delimiters. |
+| `input_dfa_errors.txt` | Verifies invalid lexical sequence and unterminated string handling. |
+
+Run all Milestone 1 regression tests:
+
+```bash
+make all
+./test/milestone1/run_milestone1_tests.sh
+```
+
+The script validates expected token files and checks that invalid lexical input fails with a lexical error.
+
+---
 
 ## Contributors
 
 | **NIM** | **Name** | **Contribution** |
 |--------|----------|------------------|
-| 13524017 | Aziza Dharma Putri | Implemented `token.cpp`, `token.hpp`, and `Makefile`; contributed to report writing; conducted testing |
-| 13524053 | Ahmad Zaky Robbani | Implemented `config-lexer.txt` and `main.cpp`; contributed to report writing; contributed to design DFA after revision |
-| 13524063 | Marcel Luther Sitorus | Implemented `dfa.cpp` and `dfa.hpp`; contributed to report writing |
-| 13524081 | Alya Nur Rahmah | Implemented `lexer.cpp` and `lexer.hpp`; contributed to report writing; conducted testing |
+| 13524017 | Aziza Dharma Putri | Implemented token module, Makefile, report writing, testing |
+| 13524053 | Ahmad Zaky Robbani | Implemented DFA configuration and main program, report writing, DFA revision |
+| 13524063 | Marcel Luther Sitorus | Implemented DFA module and report writing |
+| 13524081 | Alya Nur Rahmah | Implemented lexer module and testing |

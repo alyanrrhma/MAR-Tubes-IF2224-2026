@@ -1,0 +1,44 @@
+programsy
+ident (KeywordBoundary)
+semicolon
+varsy
+ident (arrayzz)
+comma
+ident (x2)
+comma
+ident (x)
+colon
+ident (INTEGER)
+semicolon
+beginsy
+ident (x)
+becomes
+intcon (5)
+semicolon
+ident (arrayzz)
+becomes
+ident (x)
+idiv
+intcon (2)
+imod
+intcon (1)
+semicolon
+ifsy
+notsy
+lparent
+ident (x)
+geq
+intcon (3)
+rparent
+orsy
+ident (x)
+neq
+intcon (4)
+thensy
+ident (writeln)
+lparent
+string ('keyword boundary ok')
+rparent
+semicolon
+endsy
+period

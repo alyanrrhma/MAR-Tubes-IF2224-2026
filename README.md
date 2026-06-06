@@ -132,6 +132,18 @@ Run Milestone 1 lexical analysis only and save the token output with:
 ./bin/arion <program.txt> --lex-only -o <tokens.txt>
 ```
 
+Save a DFA transition trace for Milestone 1 evidence/debugging with:
+
+```bash
+./bin/arion <program.txt> --lex-only -o <tokens.txt> --save-dfa-trace <trace.txt>
+```
+
+Run the Milestone 1 regression suite with:
+
+```bash
+./test/milestone1/run_milestone1_tests.sh
+```
+
 Run the full compiler pipeline with:
 
 ```bash

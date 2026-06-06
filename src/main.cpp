@@ -27,6 +27,7 @@ struct Options {
     std::string saveTokens;
     std::string saveParseTree;
     std::string saveAst;
+    std::string saveDfaTrace;
     std::string outputFile;
     bool lexOnly = false;
     bool verbose = false;
@@ -37,7 +38,7 @@ struct Options {
 void printUsage(const char* programName) {
     std::cout
         << "Usage:\n"
-        << "  " << programName << " <program.txt> --lex-only -o <tokens.txt>\n"
+        << "  " << programName << " <program.txt> --lex-only -o <tokens.txt> [--save-dfa-trace <trace.txt>]\n"
         << "  " << programName << " <program.txt> [--verbose]\n"
         << "  " << programName << " <program.txt> --print-tac\n"
         << "  " << programName << " <program.txt> --run\n"
@@ -48,6 +49,7 @@ void printUsage(const char* programName) {
         << "  --print-tac             Generate TAC, print it, then stop\n"
         << "  --run                   Generate TAC and run it with the interpreter\n"
         << "  --save-tokens <file>    Save tokens to <file>\n"
+        << "  --save-dfa-trace <file> Save DFA transition trace during lexical analysis\n"
         << "  --save-parse-tree <file> Save parse tree to <file>\n"
         << "  --save-ast <file>       Save decorated AST, tab, btab, and atab to <file>\n"
         << "  -o <file>               Output file. With --lex-only this saves tokens; otherwise it saves AST\n";
@@ -119,6 +121,15 @@ Options parseOptions(int argc, char* argv[]) {
                 throw std::runtime_error("--save-tokens membutuhkan nama file");
             }
             options.saveTokens = argv[++i];
+            ++i;
+            continue;
+        }
+
+        if (arg == "--save-dfa-trace") {
+            if (i + 1 >= argc) {
+                throw std::runtime_error("--save-dfa-trace membutuhkan nama file");
+            }
+            options.saveDfaTrace = argv[++i];
             ++i;
             continue;
         }
@@ -209,6 +220,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::ostringstream tokenBuffer;
+        std::ostringstream dfaTraceBuffer;
         std::ostringstream parseTreeBuffer;
         std::ostringstream decoratedAstBuffer;
 
@@ -216,12 +228,30 @@ int main(int argc, char* argv[]) {
         dfa->loadConfig("config/config_lexer.txt");
 
         Lexer lexer(inputFile, dfa, &tokenBuffer);
+        if (!options.saveDfaTrace.empty()) {
+            lexer.enableTrace(&dfaTraceBuffer);
+        }
+
         while (!lexer.eof()) {
             lexer.process_next_token();
         }
 
         if (!options.saveTokens.empty()) {
             writeOutputFile(options.saveTokens, tokenBuffer.str());
+        }
+
+        if (!options.saveDfaTrace.empty()) {
+            writeOutputFile(options.saveDfaTrace, dfaTraceBuffer.str());
+        }
+
+        if (lexer.hasErrors()) {
+            for (const std::string& error : lexer.getErrors()) {
+                std::cout << error << "\n";
+            }
+            if (options.lexOnly) {
+                std::cout << tokenBuffer.str();
+            }
+            return 1;
         }
 
         if (options.lexOnly) {

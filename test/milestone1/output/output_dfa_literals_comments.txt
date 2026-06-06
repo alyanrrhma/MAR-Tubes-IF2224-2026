@@ -1,0 +1,46 @@
+programsy
+ident (LiteralComment)
+semicolon
+constsy
+ident (A)
+eql
+charcon ('x')
+semicolon
+ident (S)
+eql
+string ('it's ok')
+semicolon
+ident (R)
+eql
+realcon (3.14)
+semicolon
+ident (N)
+eql
+intcon (1)
+period
+period
+intcon (10)
+semicolon
+varsy
+ident (c)
+colon
+ident (char)
+semicolon
+beginsy
+comment ({ komentar boleh berisi simbol := <> 123 dan ditutup dengan *))
+comment ((* komentar kedua boleh ditutup dengan })
+ident (c)
+becomes
+ident (A)
+semicolon
+ident (writeln)
+lparent
+ident (S)
+comma
+ident (R)
+comma
+ident (N)
+rparent
+semicolon
+endsy
+period

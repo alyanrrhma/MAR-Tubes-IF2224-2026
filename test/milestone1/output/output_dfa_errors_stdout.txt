@@ -1,0 +1,21 @@
+[4:13] lexical error: token tidak valid (near '12abc')
+[6:4] lexical error: token tidak valid (near ''unterminated
+end')
+programsy
+ident (Bad)
+semicolon
+varsy
+ident (x)
+colon
+ident (integer)
+semicolon
+beginsy
+ident (x)
+becomes
+unknown (12abc)
+semicolon
+ident (y)
+becomes
+unknown ('unterminated
+end)
+period

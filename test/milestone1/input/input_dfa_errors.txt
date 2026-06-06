@@ -1,0 +1,6 @@
+program Bad;
+var x: integer;
+begin
+  x := 12abc;
+  y := 'unterminated
+end.

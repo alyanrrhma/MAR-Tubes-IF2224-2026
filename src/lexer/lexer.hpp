@@ -19,10 +19,15 @@ public:
     void process_next_token();
     const std::vector<Token>& getResult() const;
 
+    bool hasErrors() const;
+    const std::vector<std::string>& getErrors() const;
+    void enableTrace(std::ostream* traceOutput);
+
 private:
     std::istream& src;
     std::shared_ptr<DFA> dfa;
     std::ostream* out;
+    std::ostream* traceOut;
 
     int line_counter;
     int col_counter;
@@ -32,8 +37,11 @@ private:
     void update_position(char c);
     void write_token(const Token& t);
     void write_range_tokens(const std::string& lexeme);
+    void add_error(const std::string& message, int line, int col, const std::string& lexeme);
+    void trace_transition(char c, const State& from, const State& to, const std::string& currentLexeme) const;
 
     std::vector<Token> result;
+    std::vector<std::string> errors;
 };
 
 #endif

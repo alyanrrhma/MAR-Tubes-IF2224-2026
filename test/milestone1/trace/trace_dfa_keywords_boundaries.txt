@@ -1,0 +1,176 @@
+[1:1] read='P' q0 -> q37_40 lexeme="P" ACCEPT(IDENT)
+[1:2] read='R' q37_40 -> q37_41 lexeme="PR" ACCEPT(IDENT)
+[1:3] read='O' q37_41 -> q37_42 lexeme="PRO" ACCEPT(IDENT)
+[1:4] read='G' q37_42 -> q37_48 lexeme="PROG" ACCEPT(IDENT)
+[1:5] read='R' q37_48 -> q37_49 lexeme="PROGR" ACCEPT(IDENT)
+[1:6] read='A' q37_49 -> q37_50 lexeme="PROGRA" ACCEPT(IDENT)
+[1:7] read='M' q37_50 -> q36_1 lexeme="PROGRAM" ACCEPT(PROGRAMSY)
+[1:8] read=' ' q36_1 -> q_stale lexeme="PROGRAM " REJECT
+[1:9] read='K' q0 -> q37_1 lexeme="K" ACCEPT(IDENT)
+[1:10] read='e' q37_1 -> q37_1 lexeme="Ke" ACCEPT(IDENT)
+[1:11] read='y' q37_1 -> q37_1 lexeme="Key" ACCEPT(IDENT)
+[1:12] read='w' q37_1 -> q37_1 lexeme="Keyw" ACCEPT(IDENT)
+[1:13] read='o' q37_1 -> q37_1 lexeme="Keywo" ACCEPT(IDENT)
+[1:14] read='r' q37_1 -> q37_1 lexeme="Keywor" ACCEPT(IDENT)
+[1:15] read='d' q37_1 -> q37_1 lexeme="Keyword" ACCEPT(IDENT)
+[1:16] read='B' q37_1 -> q37_1 lexeme="KeywordB" ACCEPT(IDENT)
+[1:17] read='o' q37_1 -> q37_1 lexeme="KeywordBo" ACCEPT(IDENT)
+[1:18] read='u' q37_1 -> q37_1 lexeme="KeywordBou" ACCEPT(IDENT)
+[1:19] read='n' q37_1 -> q37_1 lexeme="KeywordBoun" ACCEPT(IDENT)
+[1:20] read='d' q37_1 -> q37_1 lexeme="KeywordBound" ACCEPT(IDENT)
+[1:21] read='a' q37_1 -> q37_1 lexeme="KeywordBounda" ACCEPT(IDENT)
+[1:22] read='r' q37_1 -> q37_1 lexeme="KeywordBoundar" ACCEPT(IDENT)
+[1:23] read='y' q37_1 -> q37_1 lexeme="KeywordBoundary" ACCEPT(IDENT)
+[1:24] read=';' q37_1 -> q_stale lexeme="KeywordBoundary;" REJECT
+[1:24] read=';' q0 -> q25_1 lexeme=";" ACCEPT(SEMICOLON)
+[2:0] read='\n' q25_1 -> q_stale lexeme=";\n" REJECT
+[2:1] read='V' q0 -> q37_68 lexeme="V" ACCEPT(IDENT)
+[2:2] read='A' q37_68 -> q37_69 lexeme="VA" ACCEPT(IDENT)
+[2:3] read='R' q37_69 -> q31_1 lexeme="VAR" ACCEPT(VARSY)
+[2:4] read=' ' q31_1 -> q_stale lexeme="VAR " REJECT
+[2:5] read='a' q0 -> q37_2 lexeme="a" ACCEPT(IDENT)
+[2:6] read='r' q37_2 -> q37_4 lexeme="ar" ACCEPT(IDENT)
+[2:7] read='r' q37_4 -> q37_5 lexeme="arr" ACCEPT(IDENT)
+[2:8] read='a' q37_5 -> q37_6 lexeme="arra" ACCEPT(IDENT)
+[2:9] read='y' q37_6 -> q34_1 lexeme="array" ACCEPT(ARRAYSY)
+[2:10] read='z' q34_1 -> q37_1 lexeme="arrayz" ACCEPT(IDENT)
+[2:11] read='z' q37_1 -> q37_1 lexeme="arrayzz" ACCEPT(IDENT)
+[2:12] read=',' q37_1 -> q_stale lexeme="arrayzz," REJECT
+[2:12] read=',' q0 -> q24_1 lexeme="," ACCEPT(COMMA)
+[2:13] read=' ' q24_1 -> q_stale lexeme=", " REJECT
+[2:14] read='x' q0 -> q37_1 lexeme="x" ACCEPT(IDENT)
+[2:15] read='2' q37_1 -> q37_1 lexeme="x2" ACCEPT(IDENT)
+[2:16] read=',' q37_1 -> q_stale lexeme="x2," REJECT
+[2:16] read=',' q0 -> q24_1 lexeme="," ACCEPT(COMMA)
+[2:17] read=' ' q24_1 -> q_stale lexeme=", " REJECT
+[2:18] read='x' q0 -> q37_1 lexeme="x" ACCEPT(IDENT)
+[2:19] read=':' q37_1 -> q_stale lexeme="x:" REJECT
+[2:19] read=':' q0 -> q27_1 lexeme=":" ACCEPT(COLON)
+[2:20] read=' ' q27_1 -> q_stale lexeme=": " REJECT
+[2:21] read='I' q0 -> q37_34 lexeme="I" ACCEPT(IDENT)
+[2:22] read='N' q37_34 -> q37_1 lexeme="IN" ACCEPT(IDENT)
+[2:23] read='T' q37_1 -> q37_1 lexeme="INT" ACCEPT(IDENT)
+[2:24] read='E' q37_1 -> q37_1 lexeme="INTE" ACCEPT(IDENT)
+[2:25] read='G' q37_1 -> q37_1 lexeme="INTEG" ACCEPT(IDENT)
+[2:26] read='E' q37_1 -> q37_1 lexeme="INTEGE" ACCEPT(IDENT)
+[2:27] read='R' q37_1 -> q37_1 lexeme="INTEGER" ACCEPT(IDENT)
+[2:28] read=';' q37_1 -> q_stale lexeme="INTEGER;" REJECT
+[2:28] read=';' q0 -> q25_1 lexeme=";" ACCEPT(SEMICOLON)
+[3:0] read='\n' q25_1 -> q_stale lexeme=";\n" REJECT
+[3:1] read='B' q0 -> q37_7 lexeme="B" ACCEPT(IDENT)
+[3:2] read='E' q37_7 -> q37_8 lexeme="BE" ACCEPT(IDENT)
+[3:3] read='G' q37_8 -> q37_9 lexeme="BEG" ACCEPT(IDENT)
+[3:4] read='I' q37_9 -> q37_10 lexeme="BEGI" ACCEPT(IDENT)
+[3:5] read='N' q37_10 -> q38_1 lexeme="BEGIN" ACCEPT(BEGINSY)
+[4:0] read='\n' q38_1 -> q_stale lexeme="BEGIN\n" REJECT
+[4:3] read='x' q0 -> q37_1 lexeme="x" ACCEPT(IDENT)
+[4:4] read=' ' q37_1 -> q_stale lexeme="x " REJECT
+[4:5] read=':' q0 -> q27_1 lexeme=":" ACCEPT(COLON)
+[4:6] read='=' q27_1 -> q28_1 lexeme=":=" ACCEPT(BECOMES)
+[4:7] read=' ' q28_1 -> q_stale lexeme=":= " REJECT
+[4:8] read='5' q0 -> q1_1 lexeme="5" ACCEPT(INTCON)
+[4:9] read=';' q1_1 -> q_stale lexeme="5;" REJECT
+[4:9] read=';' q0 -> q25_1 lexeme=";" ACCEPT(SEMICOLON)
+[5:0] read='\n' q25_1 -> q_stale lexeme=";\n" REJECT
+[5:3] read='a' q0 -> q37_2 lexeme="a" ACCEPT(IDENT)
+[5:4] read='r' q37_2 -> q37_4 lexeme="ar" ACCEPT(IDENT)
+[5:5] read='r' q37_4 -> q37_5 lexeme="arr" ACCEPT(IDENT)
+[5:6] read='a' q37_5 -> q37_6 lexeme="arra" ACCEPT(IDENT)
+[5:7] read='y' q37_6 -> q34_1 lexeme="array" ACCEPT(ARRAYSY)
+[5:8] read='z' q34_1 -> q37_1 lexeme="arrayz" ACCEPT(IDENT)
+[5:9] read='z' q37_1 -> q37_1 lexeme="arrayzz" ACCEPT(IDENT)
+[5:10] read=' ' q37_1 -> q_stale lexeme="arrayzz " REJECT
+[5:11] read=':' q0 -> q27_1 lexeme=":" ACCEPT(COLON)
+[5:12] read='=' q27_1 -> q28_1 lexeme=":=" ACCEPT(BECOMES)
+[5:13] read=' ' q28_1 -> q_stale lexeme=":= " REJECT
+[5:14] read='x' q0 -> q37_1 lexeme="x" ACCEPT(IDENT)
+[5:15] read=' ' q37_1 -> q_stale lexeme="x " REJECT
+[5:16] read='D' q0 -> q37_17 lexeme="D" ACCEPT(IDENT)
+[5:17] read='I' q37_17 -> q37_18 lexeme="DI" ACCEPT(IDENT)
+[5:18] read='V' q37_18 -> q9_1 lexeme="DIV" ACCEPT(IDIV)
+[5:19] read=' ' q9_1 -> q_stale lexeme="DIV " REJECT
+[5:20] read='2' q0 -> q1_1 lexeme="2" ACCEPT(INTCON)
+[5:21] read=' ' q1_1 -> q_stale lexeme="2 " REJECT
+[5:22] read='M' q0 -> q37_35 lexeme="M" ACCEPT(IDENT)
+[5:23] read='O' q37_35 -> q37_36 lexeme="MO" ACCEPT(IDENT)
+[5:24] read='D' q37_36 -> q11_1 lexeme="MOD" ACCEPT(IMOD)
+[5:25] read=' ' q11_1 -> q_stale lexeme="MOD " REJECT
+[5:26] read='1' q0 -> q1_1 lexeme="1" ACCEPT(INTCON)
+[5:27] read=';' q1_1 -> q_stale lexeme="1;" REJECT
+[5:27] read=';' q0 -> q25_1 lexeme=";" ACCEPT(SEMICOLON)
+[6:0] read='\n' q25_1 -> q_stale lexeme=";\n" REJECT
+[6:3] read='I' q0 -> q37_34 lexeme="I" ACCEPT(IDENT)
+[6:4] read='F' q37_34 -> q39_1 lexeme="IF" ACCEPT(IFSY)
+[6:5] read=' ' q39_1 -> q_stale lexeme="IF " REJECT
+[6:6] read='N' q0 -> q37_37 lexeme="N" ACCEPT(IDENT)
+[6:7] read='O' q37_37 -> q37_38 lexeme="NO" ACCEPT(IDENT)
+[6:8] read='T' q37_38 -> q5_1 lexeme="NOT" ACCEPT(NOTSY)
+[6:9] read=' ' q5_1 -> q_stale lexeme="NOT " REJECT
+[6:10] read='(' q0 -> q20_1 lexeme="(" ACCEPT(LPARENT)
+[6:11] read='x' q20_1 -> q_stale lexeme="(x" REJECT
+[6:11] read='x' q0 -> q37_1 lexeme="x" ACCEPT(IDENT)
+[6:12] read=' ' q37_1 -> q_stale lexeme="x " REJECT
+[6:13] read='>' q0 -> q16_1 lexeme=">" ACCEPT(GTR)
+[6:14] read='=' q16_1 -> q17_1 lexeme=">=" ACCEPT(GEQ)
+[6:15] read=' ' q17_1 -> q_stale lexeme=">= " REJECT
+[6:16] read='3' q0 -> q1_1 lexeme="3" ACCEPT(INTCON)
+[6:17] read=')' q1_1 -> q_stale lexeme="3)" REJECT
+[6:17] read=')' q0 -> q21_1 lexeme=")" ACCEPT(RPARENT)
+[6:18] read=' ' q21_1 -> q_stale lexeme=") " REJECT
+[6:19] read='O' q0 -> q37_39 lexeme="O" ACCEPT(IDENT)
+[6:20] read='R' q37_39 -> q13_1 lexeme="OR" ACCEPT(ORSY)
+[6:21] read=' ' q13_1 -> q_stale lexeme="OR " REJECT
+[6:22] read='x' q0 -> q37_1 lexeme="x" ACCEPT(IDENT)
+[6:23] read=' ' q37_1 -> q_stale lexeme="x " REJECT
+[6:24] read='<' q0 -> q18_1 lexeme="<" ACCEPT(LSS)
+[6:25] read='>' q18_1 -> q15_1 lexeme="<>" ACCEPT(NEQ)
+[6:26] read=' ' q15_1 -> q_stale lexeme="<> " REJECT
+[6:27] read='4' q0 -> q1_1 lexeme="4" ACCEPT(INTCON)
+[6:28] read=' ' q1_1 -> q_stale lexeme="4 " REJECT
+[6:29] read='T' q0 -> q37_59 lexeme="T" ACCEPT(IDENT)
+[6:30] read='H' q37_59 -> q37_60 lexeme="TH" ACCEPT(IDENT)
+[6:31] read='E' q37_60 -> q37_61 lexeme="THE" ACCEPT(IDENT)
+[6:32] read='N' q37_61 -> q51_1 lexeme="THEN" ACCEPT(THENSY)
+[7:0] read='\n' q51_1 -> q_stale lexeme="THEN\n" REJECT
+[7:5] read='w' q0 -> q37_70 lexeme="w" ACCEPT(IDENT)
+[7:6] read='r' q37_70 -> q37_1 lexeme="wr" ACCEPT(IDENT)
+[7:7] read='i' q37_1 -> q37_1 lexeme="wri" ACCEPT(IDENT)
+[7:8] read='t' q37_1 -> q37_1 lexeme="writ" ACCEPT(IDENT)
+[7:9] read='e' q37_1 -> q37_1 lexeme="write" ACCEPT(IDENT)
+[7:10] read='l' q37_1 -> q37_1 lexeme="writel" ACCEPT(IDENT)
+[7:11] read='n' q37_1 -> q37_1 lexeme="writeln" ACCEPT(IDENT)
+[7:12] read='(' q37_1 -> q_stale lexeme="writeln(" REJECT
+[7:12] read='(' q0 -> q20_1 lexeme="(" ACCEPT(LPARENT)
+[7:13] read=''' q20_1 -> q_stale lexeme="('" REJECT
+[7:13] read=''' q0 -> q0_2 lexeme="'"
+[7:14] read='k' q0_2 -> q0_3 lexeme="'k"
+[7:15] read='e' q0_3 -> q0_4 lexeme="'ke"
+[7:16] read='y' q0_4 -> q0_4 lexeme="'key"
+[7:17] read='w' q0_4 -> q0_4 lexeme="'keyw"
+[7:18] read='o' q0_4 -> q0_4 lexeme="'keywo"
+[7:19] read='r' q0_4 -> q0_4 lexeme="'keywor"
+[7:20] read='d' q0_4 -> q0_4 lexeme="'keyword"
+[7:21] read=' ' q0_4 -> q0_4 lexeme="'keyword "
+[7:22] read='b' q0_4 -> q0_4 lexeme="'keyword b"
+[7:23] read='o' q0_4 -> q0_4 lexeme="'keyword bo"
+[7:24] read='u' q0_4 -> q0_4 lexeme="'keyword bou"
+[7:25] read='n' q0_4 -> q0_4 lexeme="'keyword boun"
+[7:26] read='d' q0_4 -> q0_4 lexeme="'keyword bound"
+[7:27] read='a' q0_4 -> q0_4 lexeme="'keyword bounda"
+[7:28] read='r' q0_4 -> q0_4 lexeme="'keyword boundar"
+[7:29] read='y' q0_4 -> q0_4 lexeme="'keyword boundary"
+[7:30] read=' ' q0_4 -> q0_4 lexeme="'keyword boundary "
+[7:31] read='o' q0_4 -> q0_4 lexeme="'keyword boundary o"
+[7:32] read='k' q0_4 -> q0_4 lexeme="'keyword boundary ok"
+[7:33] read=''' q0_4 -> q4_2 lexeme="'keyword boundary ok'" ACCEPT(STRING)
+[7:34] read=')' q4_2 -> q_stale lexeme="'keyword boundary ok')" REJECT
+[7:34] read=')' q0 -> q21_1 lexeme=")" ACCEPT(RPARENT)
+[7:35] read=';' q21_1 -> q_stale lexeme=");" REJECT
+[7:35] read=';' q0 -> q25_1 lexeme=";" ACCEPT(SEMICOLON)
+[8:0] read='\n' q25_1 -> q_stale lexeme=";\n" REJECT
+[8:1] read='E' q0 -> q37_22 lexeme="E" ACCEPT(IDENT)
+[8:2] read='N' q37_22 -> q37_25 lexeme="EN" ACCEPT(IDENT)
+[8:3] read='D' q37_25 -> q44_1 lexeme="END" ACCEPT(ENDSY)
+[8:4] read='.' q44_1 -> q_stale lexeme="END." REJECT
+[8:4] read='.' q0 -> q26_1 lexeme="." ACCEPT(PERIOD)
+[9:0] read='\n' q26_1 -> q_stale lexeme=".\n" REJECT

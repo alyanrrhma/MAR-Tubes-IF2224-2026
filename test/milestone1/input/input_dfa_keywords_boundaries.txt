@@ -1,0 +1,8 @@
+PROGRAM KeywordBoundary;
+VAR arrayzz, x2, x: INTEGER;
+BEGIN
+  x := 5;
+  arrayzz := x DIV 2 MOD 1;
+  IF NOT (x >= 3) OR x <> 4 THEN
+    writeln('keyword boundary ok');
+END.
