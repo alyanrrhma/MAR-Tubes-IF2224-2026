@@ -116,6 +116,9 @@ void Interpreter::execute(const InstructionProgram& program) {
             // Baca header frame saat ini, lepas frame, pulihkan caller.
             const int returnAddr = machine_.stackAt(bp_ + 2).asInteger();
             const int callerBp   = machine_.stackAt(bp_ + 1).asInteger();
+            if (callerBp < 0 || static_cast<std::size_t>(callerBp) >= bp_) {
+                throw std::runtime_error("stack corruption: invalid dynamic link in frame header");
+            }
             machine_.popTo(bp_);
             if (bp_ == 0 && callerBp == 0) {
                 // Frame program utama — tidak ada caller, hentikan eksekusi
