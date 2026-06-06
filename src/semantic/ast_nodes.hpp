@@ -109,7 +109,7 @@ void printAst(std::ostream& out, const AstNode* root);
 class DeclarationNode : public AstNode {
 public:
     DeclarationNode();
-    std::vector<AstPtr> declarations; // EDIT MARK
+    std::vector<AstPtr> declarations; 
 
 protected:
     void printChildren(std::ostream& out, int depth) const override;

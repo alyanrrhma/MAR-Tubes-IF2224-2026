@@ -5,39 +5,39 @@
 
 namespace {
 
-const auto& children(const parse_tree::NodePtr& node) { // EDIT MARK
+const auto& children(const parse_tree::NodePtr& node) { 
     return node->getChildren();
 }
 
-bool isLabel(const parse_tree::NodePtr& node, const std::string& label) { // EDIT MARK
+bool isLabel(const parse_tree::NodePtr& node, const std::string& label) { 
     return node && node->getLabel() == label;
 }
 
-bool isIdent(const parse_tree::NodePtr& node) { // EDIT MARK
+bool isIdent(const parse_tree::NodePtr& node) { 
     return isLabel(node, "ident");
 }
 
-void annotate(semantic::AstNode* ast, const parse_tree::NodePtr& node) { // EDIT MARK
+void annotate(semantic::AstNode* ast, const parse_tree::NodePtr& node) { 
     if (!ast || !node) return;
     ast->line = node->getLine();
     ast->column = node->getColumn();
 }
 
-std::string lower(std::string value) { // EDIT MARK
+std::string lower(std::string value) { 
     for (char& ch : value) {
         ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
     }
     return value;
 }
 
-semantic::AstPtr makeSimpleType(const std::string& name, const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::AstPtr makeSimpleType(const std::string& name, const parse_tree::NodePtr& node) { 
     auto type = std::make_unique<semantic::SimpleTypeNode>();
     type->name = name;
     annotate(type.get(), node);
     return type;
 }
 
-semantic::AstPtr makeVar(const std::string& name, const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::AstPtr makeVar(const std::string& name, const parse_tree::NodePtr& node) { 
     auto var = std::make_unique<semantic::VarNode>();
     var->name = name;
     annotate(var.get(), node);
@@ -46,7 +46,7 @@ semantic::AstPtr makeVar(const std::string& name, const parse_tree::NodePtr& nod
 
 }
 
-semantic::AstPtr AstBuilder::build(const parse_tree::NodePtr& root) { // EDIT MARK
+semantic::AstPtr AstBuilder::build(const parse_tree::NodePtr& root) { 
     if (!root) return nullptr;
     if (root->getLabel() != "program") {
         throw std::runtime_error("AST builder expects a <program> parse-tree root");
@@ -54,7 +54,7 @@ semantic::AstPtr AstBuilder::build(const parse_tree::NodePtr& root) { // EDIT MA
     return visit_Program(root);
 }
 
-std::unique_ptr<semantic::ProgramNode> AstBuilder::visit_Program(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::ProgramNode> AstBuilder::visit_Program(const parse_tree::NodePtr& node) { 
     auto result = std::make_unique<semantic::ProgramNode>();
     annotate(result.get(), node);
     result->name = visit_ProgramHeader(children(node).at(0));
@@ -63,15 +63,15 @@ std::unique_ptr<semantic::ProgramNode> AstBuilder::visit_Program(const parse_tre
     return result;
 }
 
-std::string AstBuilder::visit_ProgramHeader(const parse_tree::NodePtr& node) { // EDIT MARK
+std::string AstBuilder::visit_ProgramHeader(const parse_tree::NodePtr& node) { 
     return children(node).at(1)->getValue();
 }
 
-std::string AstBuilder::visit_ProgramHeading(const parse_tree::NodePtr& node) { // EDIT MARK
+std::string AstBuilder::visit_ProgramHeading(const parse_tree::NodePtr& node) { 
     return visit_ProgramHeader(node);
 }
 
-std::vector<std::string> AstBuilder::visit_IdentifierList(const parse_tree::NodePtr& node) { // EDIT MARK
+std::vector<std::string> AstBuilder::visit_IdentifierList(const parse_tree::NodePtr& node) { 
     std::vector<std::string> idents;
     for (const auto& child : children(node)) {
         if (isIdent(child)) idents.push_back(child->getValue());
@@ -79,7 +79,7 @@ std::vector<std::string> AstBuilder::visit_IdentifierList(const parse_tree::Node
     return idents;
 }
 
-std::unique_ptr<semantic::BlockNode> AstBuilder::visit_Block(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::BlockNode> AstBuilder::visit_Block(const parse_tree::NodePtr& node) { 
     auto result = std::make_unique<semantic::BlockNode>();
     annotate(result.get(), node);
     result->declaration = visit_DeclarationPart(children(node).at(0));
@@ -87,7 +87,7 @@ std::unique_ptr<semantic::BlockNode> AstBuilder::visit_Block(const parse_tree::N
     return result;
 }
 
-std::unique_ptr<semantic::DeclarationNode> AstBuilder::visit_DeclarationPart(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::DeclarationNode> AstBuilder::visit_DeclarationPart(const parse_tree::NodePtr& node) { 
     auto result = std::make_unique<semantic::DeclarationNode>();
     annotate(result.get(), node);
     for (const auto& child : children(node)) {
@@ -116,7 +116,7 @@ std::unique_ptr<semantic::DeclarationNode> AstBuilder::visit_DeclarationPart(con
     return result;
 }
 
-std::vector<semantic::AstPtr> AstBuilder::visit_ConstDeclaration(const parse_tree::NodePtr& node) { // EDIT MARK
+std::vector<semantic::AstPtr> AstBuilder::visit_ConstDeclaration(const parse_tree::NodePtr& node) { 
     std::vector<semantic::AstPtr> decls;
     for (const auto& child : children(node)) {
         if (isLabel(child, "const-definition")) decls.push_back(visit_ConstDefinition(child));
@@ -124,11 +124,11 @@ std::vector<semantic::AstPtr> AstBuilder::visit_ConstDeclaration(const parse_tre
     return decls;
 }
 
-std::vector<semantic::AstPtr> AstBuilder::visit_ConstantDeclaration(const parse_tree::NodePtr& node) { // EDIT MARK
+std::vector<semantic::AstPtr> AstBuilder::visit_ConstantDeclaration(const parse_tree::NodePtr& node) { 
     return visit_ConstDeclaration(node);
 }
 
-std::unique_ptr<semantic::ConstDeclNode> AstBuilder::visit_ConstDefinition(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::ConstDeclNode> AstBuilder::visit_ConstDefinition(const parse_tree::NodePtr& node) { 
     auto constant = std::make_unique<semantic::ConstDeclNode>();
     annotate(constant.get(), node);
     constant->name = children(node).at(0)->getValue();
@@ -136,11 +136,11 @@ std::unique_ptr<semantic::ConstDeclNode> AstBuilder::visit_ConstDefinition(const
     return constant;
 }
 
-std::unique_ptr<semantic::ConstDeclNode> AstBuilder::visit_ConstantDefinition(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::ConstDeclNode> AstBuilder::visit_ConstantDefinition(const parse_tree::NodePtr& node) { 
     return visit_ConstDefinition(node);
 }
 
-std::vector<semantic::AstPtr> AstBuilder::visit_TypeDeclaration(const parse_tree::NodePtr& node) { // EDIT MARK
+std::vector<semantic::AstPtr> AstBuilder::visit_TypeDeclaration(const parse_tree::NodePtr& node) { 
     std::vector<semantic::AstPtr> decls;
     for (const auto& child : children(node)) {
         if (isLabel(child, "type-definition")) decls.push_back(visit_TypeDefinition(child));
@@ -148,7 +148,7 @@ std::vector<semantic::AstPtr> AstBuilder::visit_TypeDeclaration(const parse_tree
     return decls;
 }
 
-std::unique_ptr<semantic::TypeDeclNode> AstBuilder::visit_TypeDefinition(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::TypeDeclNode> AstBuilder::visit_TypeDefinition(const parse_tree::NodePtr& node) { 
     auto decl = std::make_unique<semantic::TypeDeclNode>();
     annotate(decl.get(), node);
     decl->name = children(node).at(0)->getValue();
@@ -156,7 +156,7 @@ std::unique_ptr<semantic::TypeDeclNode> AstBuilder::visit_TypeDefinition(const p
     return decl;
 }
 
-std::vector<semantic::AstPtr> AstBuilder::visit_VarDeclaration(const parse_tree::NodePtr& node) { // EDIT MARK
+std::vector<semantic::AstPtr> AstBuilder::visit_VarDeclaration(const parse_tree::NodePtr& node) { 
     std::vector<semantic::AstPtr> decls;
     for (std::size_t i = 1; i + 2 < children(node).size(); i += 4) {
         if (!isLabel(children(node).at(i), "identifier-list")) continue;
@@ -171,11 +171,11 @@ std::vector<semantic::AstPtr> AstBuilder::visit_VarDeclaration(const parse_tree:
     return decls;
 }
 
-std::vector<semantic::AstPtr> AstBuilder::visit_VariableDeclaration(const parse_tree::NodePtr& node) { // EDIT MARK
+std::vector<semantic::AstPtr> AstBuilder::visit_VariableDeclaration(const parse_tree::NodePtr& node) { 
     return visit_VarDeclaration(node);
 }
 
-semantic::AstPtr AstBuilder::visit_Type(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::AstPtr AstBuilder::visit_Type(const parse_tree::NodePtr& node) { 
     const auto& first = children(node).at(0);
     if (isLabel(first, "array-type")) return visit_ArrayType(first);
     if (isLabel(first, "record-type")) return visit_RecordType(first);
@@ -189,11 +189,11 @@ semantic::AstPtr AstBuilder::visit_Type(const parse_tree::NodePtr& node) { // ED
     return makeSimpleType(first->getValue(), first);
 }
 
-semantic::AstPtr AstBuilder::visit_TypeDenoter(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::AstPtr AstBuilder::visit_TypeDenoter(const parse_tree::NodePtr& node) { 
     return visit_Type(node);
 }
 
-std::unique_ptr<semantic::ArrayTypeNode> AstBuilder::visit_ArrayType(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::ArrayTypeNode> AstBuilder::visit_ArrayType(const parse_tree::NodePtr& node) { 
     auto arrayType = std::make_unique<semantic::ArrayTypeNode>();
     annotate(arrayType.get(), node);
     for (const auto& child : children(node)) {
@@ -203,7 +203,7 @@ std::unique_ptr<semantic::ArrayTypeNode> AstBuilder::visit_ArrayType(const parse
     return arrayType;
 }
 
-std::unique_ptr<semantic::RangeNode> AstBuilder::visit_Range(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::RangeNode> AstBuilder::visit_Range(const parse_tree::NodePtr& node) { 
     auto rangeNode = std::make_unique<semantic::RangeNode>();
     annotate(rangeNode.get(), node);
     rangeNode->low = visit_Constant(children(node).at(0));
@@ -211,15 +211,15 @@ std::unique_ptr<semantic::RangeNode> AstBuilder::visit_Range(const parse_tree::N
     return rangeNode;
 }
 
-std::vector<std::string> AstBuilder::visit_Enumerated(const parse_tree::NodePtr& node) { // EDIT MARK
+std::vector<std::string> AstBuilder::visit_Enumerated(const parse_tree::NodePtr& node) { 
     return visit_IdentifierList(children(node).at(1));
 }
 
-std::unique_ptr<semantic::RecordTypeNode> AstBuilder::visit_RecordType(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::RecordTypeNode> AstBuilder::visit_RecordType(const parse_tree::NodePtr& node) { 
     return visit_FieldList(children(node).at(1));
 }
 
-std::unique_ptr<semantic::RecordTypeNode> AstBuilder::visit_FieldList(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::RecordTypeNode> AstBuilder::visit_FieldList(const parse_tree::NodePtr& node) { 
     auto record = std::make_unique<semantic::RecordTypeNode>();
     annotate(record.get(), node);
     for (const auto& child : children(node)) {
@@ -228,14 +228,14 @@ std::unique_ptr<semantic::RecordTypeNode> AstBuilder::visit_FieldList(const pars
     return record;
 }
 
-semantic::RecordTypeNode::FieldSection AstBuilder::visit_FieldPart(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::RecordTypeNode::FieldSection AstBuilder::visit_FieldPart(const parse_tree::NodePtr& node) { 
     semantic::RecordTypeNode::FieldSection field;
     field.names = visit_IdentifierList(children(node).at(0));
     field.typeExpr = visit_Type(children(node).at(2));
     return field;
 }
 
-std::vector<semantic::AstPtr> AstBuilder::visit_SubprogramDeclarationPart(const parse_tree::NodePtr& node) { // EDIT MARK
+std::vector<semantic::AstPtr> AstBuilder::visit_SubprogramDeclarationPart(const parse_tree::NodePtr& node) { 
     std::vector<semantic::AstPtr> subs;
     for (const auto& child : children(node)) {
         if (isLabel(child, "subprogram-declaration")) subs.push_back(visit_SubprogramDeclaration(child));
@@ -243,14 +243,14 @@ std::vector<semantic::AstPtr> AstBuilder::visit_SubprogramDeclarationPart(const 
     return subs;
 }
 
-semantic::AstPtr AstBuilder::visit_SubprogramDeclaration(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::AstPtr AstBuilder::visit_SubprogramDeclaration(const parse_tree::NodePtr& node) { 
     if (isLabel(children(node).at(0), "procedure-declaration")) {
         return visit_ProcedureDeclaration(children(node).at(0));
     }
     return visit_FunctionDeclaration(children(node).at(0));
 }
 
-std::unique_ptr<semantic::ProcDeclNode> AstBuilder::visit_ProcedureDeclaration(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::ProcDeclNode> AstBuilder::visit_ProcedureDeclaration(const parse_tree::NodePtr& node) { 
     auto decl = std::make_unique<semantic::ProcDeclNode>();
     annotate(decl.get(), node);
     auto heading = visit_ProcedureHeading(children(node).at(0));
@@ -260,7 +260,7 @@ std::unique_ptr<semantic::ProcDeclNode> AstBuilder::visit_ProcedureDeclaration(c
     return decl;
 }
 
-std::unique_ptr<semantic::FuncDeclNode> AstBuilder::visit_FunctionDeclaration(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::FuncDeclNode> AstBuilder::visit_FunctionDeclaration(const parse_tree::NodePtr& node) { 
     auto decl = std::make_unique<semantic::FuncDeclNode>();
     annotate(decl.get(), node);
     auto heading = visit_FunctionHeading(children(node).at(0));
@@ -275,13 +275,13 @@ std::unique_ptr<semantic::FuncDeclNode> AstBuilder::visit_FunctionDeclaration(co
     return decl;
 }
 
-std::pair<std::string, std::vector<semantic::FormalParam>> AstBuilder::visit_ProcedureHeading(const parse_tree::NodePtr& node) { // EDIT MARK
+std::pair<std::string, std::vector<semantic::FormalParam>> AstBuilder::visit_ProcedureHeading(const parse_tree::NodePtr& node) { 
     std::string name = children(node).at(1)->getValue();
     if (children(node).size() == 2) return std::make_pair(std::move(name), std::vector<semantic::FormalParam>{});
     return std::make_pair(std::move(name), visit_FormalParameterList(children(node).at(2)));
 }
 
-std::tuple<std::string, std::vector<semantic::FormalParam>, std::string> AstBuilder::visit_FunctionHeading(const parse_tree::NodePtr& node) { // EDIT MARK
+std::tuple<std::string, std::vector<semantic::FormalParam>, std::string> AstBuilder::visit_FunctionHeading(const parse_tree::NodePtr& node) { 
     std::string name = children(node).at(1)->getValue();
     std::string returnType = children(node).back()->getValue();
     if (children(node).size() == 4) {
@@ -290,7 +290,7 @@ std::tuple<std::string, std::vector<semantic::FormalParam>, std::string> AstBuil
     return std::make_tuple(std::move(name), visit_FormalParameterList(children(node).at(2)), std::move(returnType));
 }
 
-std::vector<semantic::FormalParam> AstBuilder::visit_FormalParameterList(const parse_tree::NodePtr& node) { // EDIT MARK
+std::vector<semantic::FormalParam> AstBuilder::visit_FormalParameterList(const parse_tree::NodePtr& node) { 
     std::vector<semantic::FormalParam> params;
     for (const auto& child : children(node)) {
         if (!isLabel(child, "parameter-group")) continue;
@@ -304,7 +304,7 @@ std::vector<semantic::FormalParam> AstBuilder::visit_FormalParameterList(const p
     return params;
 }
 
-semantic::FormalParam AstBuilder::visit_ParameterGroup(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::FormalParam AstBuilder::visit_ParameterGroup(const parse_tree::NodePtr& node) { 
     semantic::FormalParam param;
     auto names = visit_IdentifierList(children(node).at(0));
     if (!names.empty()) param.name = names.front();
@@ -316,15 +316,15 @@ semantic::FormalParam AstBuilder::visit_ParameterGroup(const parse_tree::NodePtr
     return param;
 }
 
-semantic::FormalParam AstBuilder::visit_FormalParameterSection(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::FormalParam AstBuilder::visit_FormalParameterSection(const parse_tree::NodePtr& node) { 
     return visit_ParameterGroup(node);
 }
 
-std::unique_ptr<semantic::CompoundNode> AstBuilder::visit_CompoundStatement(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::CompoundNode> AstBuilder::visit_CompoundStatement(const parse_tree::NodePtr& node) { 
     return visit_StatementList(children(node).at(1));
 }
 
-std::unique_ptr<semantic::CompoundNode> AstBuilder::visit_StatementList(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::CompoundNode> AstBuilder::visit_StatementList(const parse_tree::NodePtr& node) { 
     auto compound = std::make_unique<semantic::CompoundNode>();
     annotate(compound.get(), node);
     for (const auto& child : children(node)) {
@@ -335,7 +335,7 @@ std::unique_ptr<semantic::CompoundNode> AstBuilder::visit_StatementList(const pa
     return compound;
 }
 
-semantic::AstPtr AstBuilder::visit_Statement(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::AstPtr AstBuilder::visit_Statement(const parse_tree::NodePtr& node) { 
     if (children(node).empty()) return nullptr;
     const auto& child = children(node).at(0);
     if (isLabel(child, "assignment-statement")) return visit_AssignmentStatement(child);
@@ -349,7 +349,7 @@ semantic::AstPtr AstBuilder::visit_Statement(const parse_tree::NodePtr& node) { 
     return visit_Empty(child);
 }
 
-semantic::AstPtr AstBuilder::visit_AssignmentStatement(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::AstPtr AstBuilder::visit_AssignmentStatement(const parse_tree::NodePtr& node) { 
     auto target = visit_Variable(children(node).at(0));
     auto value = visit_Expression(children(node).at(2));
 
@@ -371,7 +371,7 @@ semantic::AstPtr AstBuilder::visit_AssignmentStatement(const parse_tree::NodePtr
     return assign;
 }
 
-std::unique_ptr<semantic::ProcCallNode> AstBuilder::visit_ProcedureFunctionCall(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::ProcCallNode> AstBuilder::visit_ProcedureFunctionCall(const parse_tree::NodePtr& node) { 
     auto call = std::make_unique<semantic::ProcCallNode>();
     annotate(call.get(), node);
     if (isLabel(children(node).at(0), "variable")) {
@@ -387,11 +387,11 @@ std::unique_ptr<semantic::ProcCallNode> AstBuilder::visit_ProcedureFunctionCall(
     return call;
 }
 
-std::unique_ptr<semantic::ProcCallNode> AstBuilder::visit_ProcedureCallStatement(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::ProcCallNode> AstBuilder::visit_ProcedureCallStatement(const parse_tree::NodePtr& node) { 
     return visit_ProcedureFunctionCall(node);
 }
 
-std::unique_ptr<semantic::IfNode> AstBuilder::visit_IfStatement(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::IfNode> AstBuilder::visit_IfStatement(const parse_tree::NodePtr& node) { 
     auto stmt = std::make_unique<semantic::IfNode>();
     annotate(stmt.get(), node);
     stmt->condition = visit_Expression(children(node).at(1));
@@ -400,7 +400,7 @@ std::unique_ptr<semantic::IfNode> AstBuilder::visit_IfStatement(const parse_tree
     return stmt;
 }
 
-std::unique_ptr<semantic::CaseNode> AstBuilder::visit_CaseStatement(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::CaseNode> AstBuilder::visit_CaseStatement(const parse_tree::NodePtr& node) { 
     auto stmt = std::make_unique<semantic::CaseNode>();
     annotate(stmt.get(), node);
     stmt->selector = visit_Expression(children(node).at(1));
@@ -410,7 +410,7 @@ std::unique_ptr<semantic::CaseNode> AstBuilder::visit_CaseStatement(const parse_
     return stmt;
 }
 
-std::unique_ptr<semantic::CaseBranchNode> AstBuilder::visit_CaseBlock(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::CaseBranchNode> AstBuilder::visit_CaseBlock(const parse_tree::NodePtr& node) { 
     auto branch = std::make_unique<semantic::CaseBranchNode>();
     annotate(branch.get(), node);
     for (const auto& child : children(node)) {
@@ -420,7 +420,7 @@ std::unique_ptr<semantic::CaseBranchNode> AstBuilder::visit_CaseBlock(const pars
     return branch;
 }
 
-std::unique_ptr<semantic::RepeatNode> AstBuilder::visit_RepeatStatement(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::RepeatNode> AstBuilder::visit_RepeatStatement(const parse_tree::NodePtr& node) { 
     auto stmt = std::make_unique<semantic::RepeatNode>();
     annotate(stmt.get(), node);
     stmt->body = visit_StatementList(children(node).at(1));
@@ -428,7 +428,7 @@ std::unique_ptr<semantic::RepeatNode> AstBuilder::visit_RepeatStatement(const pa
     return stmt;
 }
 
-std::unique_ptr<semantic::WhileNode> AstBuilder::visit_WhileStatement(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::WhileNode> AstBuilder::visit_WhileStatement(const parse_tree::NodePtr& node) { 
     auto stmt = std::make_unique<semantic::WhileNode>();
     annotate(stmt.get(), node);
     stmt->condition = visit_Expression(children(node).at(1));
@@ -436,7 +436,7 @@ std::unique_ptr<semantic::WhileNode> AstBuilder::visit_WhileStatement(const pars
     return stmt;
 }
 
-std::unique_ptr<semantic::ForNode> AstBuilder::visit_ForStatement(const parse_tree::NodePtr& node) { // EDIT MARK
+std::unique_ptr<semantic::ForNode> AstBuilder::visit_ForStatement(const parse_tree::NodePtr& node) { 
     auto stmt = std::make_unique<semantic::ForNode>();
     annotate(stmt.get(), node);
     stmt->controlVar = children(node).at(1)->getValue();
@@ -447,7 +447,7 @@ std::unique_ptr<semantic::ForNode> AstBuilder::visit_ForStatement(const parse_tr
     return stmt;
 }
 
-std::vector<semantic::AstPtr> AstBuilder::visit_ParameterList(const parse_tree::NodePtr& node) { // EDIT MARK
+std::vector<semantic::AstPtr> AstBuilder::visit_ParameterList(const parse_tree::NodePtr& node) { 
     std::vector<semantic::AstPtr> args;
     for (const auto& child : children(node)) {
         if (isLabel(child, "expression")) args.push_back(visit_Expression(child));
@@ -455,7 +455,7 @@ std::vector<semantic::AstPtr> AstBuilder::visit_ParameterList(const parse_tree::
     return args;
 }
 
-semantic::AstPtr AstBuilder::visit_Expression(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::AstPtr AstBuilder::visit_Expression(const parse_tree::NodePtr& node) { 
     if (children(node).size() == 1) return visit_SimpleExpression(children(node).at(0));
     auto binop = std::make_unique<semantic::BinOpNode>();
     annotate(binop.get(), node);
@@ -465,7 +465,7 @@ semantic::AstPtr AstBuilder::visit_Expression(const parse_tree::NodePtr& node) {
     return binop;
 }
 
-semantic::BinOpKind AstBuilder::visit_RelationalOperator(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::BinOpKind AstBuilder::visit_RelationalOperator(const parse_tree::NodePtr& node) { 
     auto term = children(node).at(0)->getLabel();
     if (term == "neq") return semantic::BinOpKind::Ne;
     if (term == "gtr") return semantic::BinOpKind::Gt;
@@ -475,7 +475,7 @@ semantic::BinOpKind AstBuilder::visit_RelationalOperator(const parse_tree::NodeP
     return semantic::BinOpKind::Eq;
 }
 
-semantic::AstPtr AstBuilder::visit_SimpleExpression(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::AstPtr AstBuilder::visit_SimpleExpression(const parse_tree::NodePtr& node) { 
     std::size_t index = 0;
     semantic::UnaryOpKind unary = semantic::UnaryOpKind::Plus;
     bool hasUnary = false;
@@ -505,14 +505,14 @@ semantic::AstPtr AstBuilder::visit_SimpleExpression(const parse_tree::NodePtr& n
     return expr;
 }
 
-semantic::BinOpKind AstBuilder::visit_AdditiveOperator(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::BinOpKind AstBuilder::visit_AdditiveOperator(const parse_tree::NodePtr& node) { 
     auto label = children(node).at(0)->getLabel();
     if (label == "plus") return semantic::BinOpKind::Add;
     if (label == "minus") return semantic::BinOpKind::Sub;
     return semantic::BinOpKind::Or;
 }
 
-semantic::AstPtr AstBuilder::visit_Term(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::AstPtr AstBuilder::visit_Term(const parse_tree::NodePtr& node) { 
     auto expr = visit_Factor(children(node).at(0));
     for (std::size_t i = 1; i + 1 < children(node).size(); i += 2) {
         auto binop = std::make_unique<semantic::BinOpNode>();
@@ -525,7 +525,7 @@ semantic::AstPtr AstBuilder::visit_Term(const parse_tree::NodePtr& node) { // ED
     return expr;
 }
 
-semantic::BinOpKind AstBuilder::visit_MultiplicativeOperator(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::BinOpKind AstBuilder::visit_MultiplicativeOperator(const parse_tree::NodePtr& node) { 
     auto label = children(node).at(0)->getLabel();
     if (label == "times") return semantic::BinOpKind::Mul;
     if (label == "idiv") return semantic::BinOpKind::IntDiv;
@@ -534,7 +534,7 @@ semantic::BinOpKind AstBuilder::visit_MultiplicativeOperator(const parse_tree::N
     return semantic::BinOpKind::And;
 }
 
-semantic::AstPtr AstBuilder::visit_Factor(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::AstPtr AstBuilder::visit_Factor(const parse_tree::NodePtr& node) { 
     const auto& first = children(node).at(0);
     if (isLabel(first, "lparent")) return visit_Expression(children(node).at(1));
     if (isLabel(first, "notsy")) {
@@ -552,7 +552,7 @@ semantic::AstPtr AstBuilder::visit_Factor(const parse_tree::NodePtr& node) { // 
     return nullptr;
 }
 
-semantic::AstPtr AstBuilder::visit_Variable(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::AstPtr AstBuilder::visit_Variable(const parse_tree::NodePtr& node) { 
     semantic::AstPtr current = makeVar(children(node).at(0)->getValue(), children(node).at(0));
     for (std::size_t i = 1; i < children(node).size(); ++i) {
         const auto& selector = children(node).at(i);
@@ -574,11 +574,11 @@ semantic::AstPtr AstBuilder::visit_Variable(const parse_tree::NodePtr& node) { /
     return current;
 }
 
-semantic::AstPtr AstBuilder::visit_ComponentVariable(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::AstPtr AstBuilder::visit_ComponentVariable(const parse_tree::NodePtr& node) { 
     return visit_Selector(node);
 }
 
-semantic::AstPtr AstBuilder::visit_Selector(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::AstPtr AstBuilder::visit_Selector(const parse_tree::NodePtr& node) { 
     if (isLabel(children(node).at(0), "lbrack")) {
         auto access = std::make_unique<semantic::ArrayAccessNode>();
         annotate(access.get(), node);
@@ -591,7 +591,7 @@ semantic::AstPtr AstBuilder::visit_Selector(const parse_tree::NodePtr& node) { /
     return access;
 }
 
-std::vector<semantic::AstPtr> AstBuilder::visit_IndexList(const parse_tree::NodePtr& node) { // EDIT MARK
+std::vector<semantic::AstPtr> AstBuilder::visit_IndexList(const parse_tree::NodePtr& node) { 
     std::vector<semantic::AstPtr> indices;
     for (const auto& child : children(node)) {
         if (isLabel(child, "expression")) indices.push_back(visit_Expression(child));
@@ -599,7 +599,7 @@ std::vector<semantic::AstPtr> AstBuilder::visit_IndexList(const parse_tree::Node
     return indices;
 }
 
-semantic::AstPtr AstBuilder::visit_Constant(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::AstPtr AstBuilder::visit_Constant(const parse_tree::NodePtr& node) { 
     if (isLabel(node, "constant")) {
         bool negate = false;
         std::size_t valueIndex = 0;
@@ -666,7 +666,7 @@ semantic::AstPtr AstBuilder::visit_Constant(const parse_tree::NodePtr& node) { /
     return makeVar(node->getValue(), node);
 }
 
-semantic::AstPtr AstBuilder::visit_Empty(const parse_tree::NodePtr& node) { // EDIT MARK
+semantic::AstPtr AstBuilder::visit_Empty(const parse_tree::NodePtr& node) { 
     (void)node;
     return nullptr;
 }

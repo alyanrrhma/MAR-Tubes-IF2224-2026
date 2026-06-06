@@ -112,13 +112,13 @@ void AstNode::print(std::ostream& out, int depth) const {
 
 namespace {
 
-std::string quote(const std::string& value) { // EDIT MARK
+std::string quote(const std::string& value) { 
     return "'" + value + "'";
 }
 
-std::string exprToString(const AstNode* node); // EDIT MARK
+std::string exprToString(const AstNode* node); 
 
-std::string typeToString(const AstNode* node) { // EDIT MARK
+std::string typeToString(const AstNode* node) { 
     if (!node) return "?";
 
     if (const auto* simple = dynamic_cast<const SimpleTypeNode*>(node)) {
@@ -158,7 +158,7 @@ std::string typeToString(const AstNode* node) { // EDIT MARK
     return node->kindName();
 }
 
-std::string paramsToString(const std::vector<FormalParam>& params) { // EDIT MARK
+std::string paramsToString(const std::vector<FormalParam>& params) { 
     std::ostringstream out;
     out << '[';
     for (std::size_t i = 0; i < params.size(); ++i) {
@@ -170,7 +170,7 @@ std::string paramsToString(const std::vector<FormalParam>& params) { // EDIT MAR
     return out.str();
 }
 
-std::string labelsToString(const std::vector<AstPtr>& labels) { // EDIT MARK
+std::string labelsToString(const std::vector<AstPtr>& labels) { 
     std::ostringstream out;
     out << '[';
     for (std::size_t i = 0; i < labels.size(); ++i) {
@@ -181,7 +181,7 @@ std::string labelsToString(const std::vector<AstPtr>& labels) { // EDIT MARK
     return out.str();
 }
 
-std::string exprToString(const AstNode* node) { // EDIT MARK
+std::string exprToString(const AstNode* node) { 
     if (!node) return "Empty";
 
     if (const auto* var = dynamic_cast<const VarNode*>(node)) {
@@ -251,17 +251,17 @@ std::string exprToString(const AstNode* node) { // EDIT MARK
     return node->kindName();
 }
 
-void printNodePretty(std::ostream& out, const AstNode* node, const std::string& prefix, bool last); // EDIT MARK
+void printNodePretty(std::ostream& out, const AstNode* node, const std::string& prefix, bool last); 
 
 void printChildrenPretty(std::ostream& out,
                          const std::vector<const AstNode*>& nodes,
-                         const std::string& prefix) { // EDIT MARK
+                         const std::string& prefix) { 
     for (std::size_t i = 0; i < nodes.size(); ++i) {
         printNodePretty(out, nodes[i], prefix, i + 1 == nodes.size());
     }
 }
 
-void printDeclSection(std::ostream& out, const DeclarationNode* decl, const std::string& prefix, bool last) { // EDIT MARK
+void printDeclSection(std::ostream& out, const DeclarationNode* decl, const std::string& prefix, bool last) { 
     out << prefix << (last ? "\\-- " : "+-- ") << "Declarations\n";
     const std::string childPrefix = prefix + (last ? "    " : "|   ");
 
@@ -272,7 +272,7 @@ void printDeclSection(std::ostream& out, const DeclarationNode* decl, const std:
     printChildrenPretty(out, decls, childPrefix);
 }
 
-void printBlockSection(std::ostream& out, const CompoundNode* block, const std::string& prefix, bool last) { // EDIT MARK
+void printBlockSection(std::ostream& out, const CompoundNode* block, const std::string& prefix, bool last) { 
     out << prefix << (last ? "\\-- " : "+-- ") << "Block\n";
     const std::string childPrefix = prefix + (last ? "    " : "|   ");
 
@@ -287,7 +287,7 @@ void printExprPretty(std::ostream& out,
                      const char* label,
                      const AstNode* node,
                      const std::string& prefix,
-                     bool last) { // EDIT MARK
+                     bool last) { 
     if (!node) return;
 
     out << prefix << (last ? "\\-- " : "+-- ") << label << ": ";
@@ -336,7 +336,7 @@ void printStatementBranch(std::ostream& out,
                           const char* label,
                           const AstNode* node,
                           const std::string& prefix,
-                          bool last) { // EDIT MARK
+                          bool last) { 
     if (!node) return;
 
     out << prefix << (last ? "\\-- " : "+-- ") << label << '\n';
@@ -347,7 +347,7 @@ void printStatementBranch(std::ostream& out,
 void printCaseBranchPretty(std::ostream& out,
                            const CaseBranchNode* branch,
                            const std::string& prefix,
-                           bool last) { // EDIT MARK
+                           bool last) { 
     if (!branch) return;
 
     out << prefix << (last ? "\\-- " : "+-- ")
@@ -356,7 +356,7 @@ void printCaseBranchPretty(std::ostream& out,
     printStatementBranch(out, "statement", branch->statement.get(), childPrefix, true);
 }
 
-void printNodePretty(std::ostream& out, const AstNode* node, const std::string& prefix, bool last) { // EDIT MARK
+void printNodePretty(std::ostream& out, const AstNode* node, const std::string& prefix, bool last) { 
     if (!node) return;
 
     out << prefix << (last ? "\\-- " : "+-- ");
@@ -499,7 +499,7 @@ void printNodePretty(std::ostream& out, const AstNode* node, const std::string& 
 
 }
 
-void printAst(std::ostream& out, const AstNode* root) { // EDIT MARK
+void printAst(std::ostream& out, const AstNode* root) { 
     if (!root) return;
 
     if (const auto* program = dynamic_cast<const ProgramNode*>(root)) {
@@ -528,9 +528,9 @@ static void printList(std::ostream& out, int depth, const char* label, const std
     }
 }
 
-DeclarationNode::DeclarationNode() : AstNode(AstKind::DeclPart) {} // EDIT MARK
+DeclarationNode::DeclarationNode() : AstNode(AstKind::DeclPart) {} 
 
-void DeclarationNode::printChildren(std::ostream& out, int depth) const { // EDIT MARK
+void DeclarationNode::printChildren(std::ostream& out, int depth) const { 
     printList(out, depth, "declarations", declarations);
 }
 

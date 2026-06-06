@@ -22,7 +22,7 @@ namespace fs = std::filesystem;
 
 namespace {
 
-void printUsage(const char* programName) { // EDIT MARK
+void printUsage(const char* programName) { 
     std::cerr
         << "Usage:\n"
         << "  " << programName << " <source.txt> [-o <ast_output.txt>]\n"
@@ -32,18 +32,18 @@ void printUsage(const char* programName) { // EDIT MARK
         << "  -o <file>             Simpan output AST ke file (default: stdout)\n";
 }
 
-void ensureParentDirectoryExists(const std::string& filename) { // EDIT MARK
+void ensureParentDirectoryExists(const std::string& filename) { 
     fs::path path(filename);
     if (path.has_parent_path()) {
         fs::create_directories(path.parent_path());
     }
 }
 
-bool isIgnoredByParser(const Token& token) { // EDIT MARK
+bool isIgnoredByParser(const Token& token) { 
     return token.get_type_name() == "COMMENT";
 }
 
-bool isLexicalErrorToken(const Token& token) { // EDIT MARK
+bool isLexicalErrorToken(const Token& token) { 
     return token.get_type_name() == "UNKNOWN";
 }
 
@@ -186,7 +186,7 @@ parse_tree::NodePtr readParseTree(std::istream& in) {
 
 }
 
-int main(int argc, char* argv[]) { // EDIT MARK
+int main(int argc, char* argv[]) { 
     if (argc < 2) {
         printUsage(argv[0]);
         return 1;
