@@ -12,10 +12,10 @@ fi
 run_valid() {
   local name="$1"
   local input="$ROOT_DIR/test/milestone1/input/${name}.txt"
-  local expected="$ROOT_DIR/test/milestone1/output/output_${name#input_}.txt"
+  local expected="$ROOT_DIR/test/milestone1/output/output${name#input}.txt"
   local actual
   actual="$(mktemp)"
-  "$BIN" "$input" --lex-only -o "$actual" --save-dfa-trace /tmp/arion_${name}_trace.txt >/tmp/arion_${name}_stdout.txt
+  "$BIN" "$input" --lex-only -o "$actual" --save-dfa-trace /tmp/arion_trace_${name}.txt >/tmp/arion_${name}_stdout.txt
   diff -u "$expected" "$actual"
   rm -f "$actual"
   echo "[OK] $name"
@@ -37,6 +37,6 @@ run_error() {
   echo "[OK] $name lexical error terdeteksi"
 }
 
-run_valid input_dfa_keywords_boundaries
-run_valid input_dfa_literals_comments
-run_error input_dfa_errors
+run_valid input13
+run_valid input14
+run_error input15

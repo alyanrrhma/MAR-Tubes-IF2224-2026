@@ -116,10 +116,10 @@ Run lexical analysis and save both tokens and DFA transition trace:
 Example:
 
 ```bash
-./bin/arion test/milestone1/input/input_dfa_keywords_boundaries.txt \
+./bin/arion test/milestone1/input/input13.txt \
   --lex-only \
-  -o test/milestone1/output/output_dfa_keywords_boundaries.txt \
-  --save-dfa-trace test/milestone1/trace/trace_dfa_keywords_boundaries.txt
+  -o test/milestone1/output/output13.txt \
+  --save-dfa-trace test/milestone1/trace/trace13.txt
 ```
 
 When the lexer detects an invalid token, it emits an `unknown` token, prints a lexical error with source position, and exits with a non-zero status code. This makes lexical error tests checkable by automated scripts.
@@ -130,11 +130,13 @@ When the lexer detects an invalid token, it emits an `unknown` token, prints a l
 
 Additional test cases are provided to strengthen DFA conformance, error handling, and edge-case coverage:
 
+The additional regression files continue the existing numbered naming pattern: `input13.txt` through `input15.txt`, with matching `output13.txt` through `output15.txt` and DFA traces `trace13.txt` through `trace15.txt`.
+
 | Test input | Purpose |
 |---|---|
-| `input_dfa_keywords_boundaries.txt` | Verifies keyword/identifier boundaries, case-insensitive keywords, logical operators, relational operators, and separators. |
-| `input_dfa_literals_comments.txt` | Verifies char, string with escaped single quote, real number, range `1..10`, and both comment delimiters. |
-| `input_dfa_errors.txt` | Verifies invalid lexical sequence and unterminated string handling. |
+| `input13.txt` / `output13.txt` | Verifies keyword/identifier boundaries, case-insensitive keywords, logical operators, relational operators, and separators. |
+| `input14.txt` / `output14.txt` | Verifies char, string with escaped single quote, real number, range `1..10`, and both comment delimiters. |
+| `input15.txt` / `output15.txt` | Verifies invalid lexical sequence and unterminated string handling. |
 
 Run all Milestone 1 regression tests:
 
