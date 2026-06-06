@@ -57,6 +57,10 @@ such as `a[i + 1]`, to support more practical array indexing in later
 milestones. This is an implementation extension and does not change the
 required basic behavior.
 
+### Revision compliance for `while` and `for`
+
+The parser now follows the later revision used for Milestone 2/3 continuity: `while` and `for` bodies must be `compound-statement` blocks. Therefore `while x < 10 do x := x + 1;` is rejected, while `while x < 10 do begin x := x + 1; end;` is accepted. This makes the implementation consistent with the revised grammar and prevents ambiguous loop-body parsing.
+
 ---
 
 ## Requirements
@@ -86,19 +90,25 @@ make all
 
 ## How To Run
 
-To run the parser execute:
+To run only the parser milestone from Arion source code, execute:
 
 ```bash
-./bin/arion <program.txt> --save-tokens <tokens.txt> [--save-parse-tree <parse-tree.txt>] [--save-ast <ast.txt>] [--verbose]
+./bin/arion <program.txt> --parse-only --save-parse-tree <parse-tree.txt>
+```
+
+To run the parser from Milestone 1 token output instead of source code, execute:
+
+```bash
+./bin/arion --from-tokens <tokens.txt> --parse-only --save-parse-tree <parse-tree.txt>
 ```
 
 ### Example
 
 ```bash
 make all
-./bin/arion test/milestone2/input/input1.txt \
-  --save-tokens test/milestone2/output/token1.txt \
-  --save-parse-tree test/milestone2/output/parse_tree1.txt
+./bin/arion test/milestone2/input/input21.txt \
+  --parse-only \
+  --save-parse-tree test/milestone2/output/output21.txt
 ```
 
 To run lexical analysis only:
@@ -111,29 +121,36 @@ To run lexical analysis only:
 
 | Option | Description |
 |---|---|
+| `--parse-only` | Stop after syntax analysis; this avoids semantic/backend stages during Milestone 2 grading |
+| `--from-tokens <file>` | Read Milestone 1 token output and parse it directly |
 | `--save-tokens <file>` | Save token output |
 | `--save-parse-tree <file>` | Save parse tree output |
 | `--save-ast <file>` | Save decorated AST output |
 | `--verbose` | Print tokens, parse tree, and decorated AST to stdout |
 | `--lex-only` | Run lexer only without parser |
-| `-o <file>` | Output file; with `--lex-only` saves tokens, otherwise saves AST |
+| `-o <file>` | Output file; with `--lex-only` saves tokens, with `--parse-only` saves parse tree, otherwise saves AST |
 
 ---
 
 ## Parser Correction Tests
 
-The following Milestone 2 inputs cover the parser correction cases:
+Run all Milestone 2 regression tests with:
+
+```bash
+./test/milestone2/run_milestone2_tests.sh
+```
+
+The suite covers these grading-oriented cases:
 
 | Input | Expected Result | Purpose |
 |---|---|---|
-| `input1.txt` | Success | Valid basic program |
-| `input14.txt` | Parse error | Extra token after final period |
-| `input15.txt` | Parse error | Invalid declaration order |
-| `input16.txt` | Success | `array[char] of integer` |
-| `input17.txt` | Success | `array[1..10] of integer` |
-| `input18.txt` | Success | Component variable chain; parse tree uses `<component-variable>` |
-| `input19.txt` | Success | Index-list expression extension, such as `a[i + 1]` |
-| `input20.txt` | Success | Valid declaration order: const, type, var |
+| `input21.txt` | Success | Valid basic program from the specification pattern |
+| `input22.txt` | Success | `while` and `for` using required `begin ... end` compound bodies |
+| `input23.txt` | Success | Array type, record type, array selector, and field selector parse tree |
+| `input24.txt` | Success | Parser can read Milestone 1 token output directly |
+| `input25.txt` | Parse error | Rejects `while ... do` with single statement body, as required by the revision |
+| `input26.txt` | Parse error | Rejects `for ... do` with single statement body, as required by the revision |
+| `input27.txt` | Parse error | Rejects extra token after final period |
 
 ---
 

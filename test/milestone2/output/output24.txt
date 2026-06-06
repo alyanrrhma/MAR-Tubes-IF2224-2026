@@ -1,0 +1,45 @@
+<program>
+  <program-header>
+    programsy
+    ident (FromTokens)
+    semicolon
+  <declaration-part>
+    <var-declaration>
+      varsy
+      <identifier-list>
+        ident (a)
+      colon
+      <type>
+        ident (integer)
+      semicolon
+  <compound-statement>
+    beginsy
+    <statement-list>
+      <statement>
+        <assignment-statement>
+          <variable>
+            ident (a)
+          becomes
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  intcon (1)
+      semicolon
+      <statement>
+        <procedure/function-call>
+          ident (writeln)
+          lparent
+          <parameter-list>
+            <expression>
+              <simple-expression>
+                <term>
+                  <factor>
+                    <variable>
+                      ident (a)
+          rparent
+      semicolon
+      <statement>
+        <empty>
+    endsy
+  period

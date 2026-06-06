@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <cctype>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -30,6 +32,8 @@ struct Options {
     std::string saveDfaTrace;
     std::string outputFile;
     bool lexOnly = false;
+    bool parseOnly = false;
+    bool tokenInput = false;
     bool verbose = false;
     bool printTac = false;
     bool run = false;
@@ -39,12 +43,16 @@ void printUsage(const char* programName) {
     std::cout
         << "Usage:\n"
         << "  " << programName << " <program.txt> --lex-only -o <tokens.txt> [--save-dfa-trace <trace.txt>]\n"
+        << "  " << programName << " <program.txt> --parse-only --save-parse-tree <parse-tree.txt>\n"
+        << "  " << programName << " --from-tokens <tokens.txt> --parse-only --save-parse-tree <parse-tree.txt>\n"
         << "  " << programName << " <program.txt> [--verbose]\n"
         << "  " << programName << " <program.txt> --print-tac\n"
         << "  " << programName << " <program.txt> --run\n"
         << "  " << programName << " <program.txt> --save-tokens <file> [--save-parse-tree <file>] [--save-ast <file>] [--verbose]\n\n"
         << "Options:\n"
         << "  --lex-only              Run lexical analysis only, print tokens, then stop\n"
+        << "  --parse-only            Stop after syntax analysis and print/save parse tree\n"
+        << "  --from-tokens <file>    Read Milestone 1 token output instead of source code\n"
         << "  --verbose               Print tokens, parse tree, and decorated AST to stdout\n"
         << "  --print-tac             Generate TAC, print it, then stop\n"
         << "  --run                   Generate TAC and run it with the interpreter\n"
@@ -116,6 +124,23 @@ Options parseOptions(int argc, char* argv[]) {
             continue;
         }
 
+        if (arg == "--parse-only") {
+            options.parseOnly = true;
+            ++i;
+            continue;
+        }
+
+        if (arg == "--from-tokens") {
+            if (i + 1 >= argc) {
+                throw std::runtime_error("--from-tokens membutuhkan nama file token");
+            }
+            options.inputFile = argv[++i];
+            options.tokenInput = true;
+            inputSet = true;
+            ++i;
+            continue;
+        }
+
         if (arg == "--save-tokens") {
             if (i + 1 >= argc) {
                 throw std::runtime_error("--save-tokens membutuhkan nama file");
@@ -175,15 +200,81 @@ Options parseOptions(int argc, char* argv[]) {
         throw std::runtime_error("Argumen input tidak diberikan");
     }
 
+    if (options.lexOnly && options.tokenInput) {
+        throw std::runtime_error("--lex-only tidak dapat digabungkan dengan --from-tokens");
+    }
+
     if (!options.outputFile.empty()) {
         if (options.lexOnly) {
             options.saveTokens = options.outputFile;
+        } else if (options.parseOnly) {
+            options.saveParseTree = options.outputFile;
         } else {
             options.saveAst = options.outputFile;
         }
     }
 
     return options;
+}
+
+std::string trim(const std::string& text) {
+    const auto first = std::find_if_not(text.begin(), text.end(), [](unsigned char c) {
+        return std::isspace(c);
+    });
+    if (first == text.end()) {
+        return "";
+    }
+    const auto last = std::find_if_not(text.rbegin(), text.rend(), [](unsigned char c) {
+        return std::isspace(c);
+    }).base();
+    return std::string(first, last);
+}
+
+std::string toUpperTokenName(std::string text) {
+    std::transform(text.begin(), text.end(), text.begin(), [](unsigned char c) {
+        return static_cast<char>(std::toupper(c));
+    });
+    return text;
+}
+
+std::vector<Token> readTokensFromMilestone1Output(std::istream& in, std::ostream& normalizedOut) {
+    std::vector<Token> tokens;
+    std::string line;
+    int lineNo = 0;
+
+    while (std::getline(in, line)) {
+        ++lineNo;
+        line = trim(line);
+        if (line.empty()) {
+            continue;
+        }
+
+        std::string tokenName;
+        std::string value;
+        const std::size_t open = line.find('(');
+        const std::size_t close = line.rfind(')');
+
+        if (open != std::string::npos) {
+            if (close == std::string::npos || close < open) {
+                throw std::runtime_error("Format token tidak valid pada baris " + std::to_string(lineNo) + ": " + line);
+            }
+            tokenName = trim(line.substr(0, open));
+            value = line.substr(open + 1, close - open - 1);
+        } else {
+            tokenName = line;
+        }
+
+        if (tokenName.empty()) {
+            throw std::runtime_error("Nama token kosong pada baris " + std::to_string(lineNo));
+        }
+
+        std::string normalizedName = toUpperTokenName(tokenName);
+        Token token(TokenType(normalizedName), value);
+        normalizedOut << token.to_string() << "\n";
+        tokens.push_back(token);
+    }
+
+    return tokens;
 }
 
 void printSemanticResult(std::ostream& out,
@@ -224,34 +315,48 @@ int main(int argc, char* argv[]) {
         std::ostringstream parseTreeBuffer;
         std::ostringstream decoratedAstBuffer;
 
-        auto dfa = std::make_shared<DFA>();
-        dfa->loadConfig("config/config_lexer.txt");
+        std::vector<Token> rawTokens;
 
-        Lexer lexer(inputFile, dfa, &tokenBuffer);
-        if (!options.saveDfaTrace.empty()) {
-            lexer.enableTrace(&dfaTraceBuffer);
-        }
+        if (options.tokenInput) {
+            if (!options.saveDfaTrace.empty()) {
+                throw std::runtime_error("--save-dfa-trace hanya berlaku untuk input source code, bukan --from-tokens");
+            }
+            rawTokens = readTokensFromMilestone1Output(inputFile, tokenBuffer);
+        } else {
+            auto dfa = std::make_shared<DFA>();
+            dfa->loadConfig("config/config_lexer.txt");
 
-        while (!lexer.eof()) {
-            lexer.process_next_token();
+            Lexer lexer(inputFile, dfa, &tokenBuffer);
+            if (!options.saveDfaTrace.empty()) {
+                lexer.enableTrace(&dfaTraceBuffer);
+            }
+
+            while (!lexer.eof()) {
+                lexer.process_next_token();
+            }
+
+            if (!options.saveDfaTrace.empty()) {
+                writeOutputFile(options.saveDfaTrace, dfaTraceBuffer.str());
+            }
+
+            if (lexer.hasErrors()) {
+                for (const std::string& error : lexer.getErrors()) {
+                    std::cout << error << "\n";
+                }
+                if (options.lexOnly) {
+                    std::cout << tokenBuffer.str();
+                }
+                if (!options.saveTokens.empty()) {
+                    writeOutputFile(options.saveTokens, tokenBuffer.str());
+                }
+                return 1;
+            }
+
+            rawTokens = lexer.getResult();
         }
 
         if (!options.saveTokens.empty()) {
             writeOutputFile(options.saveTokens, tokenBuffer.str());
-        }
-
-        if (!options.saveDfaTrace.empty()) {
-            writeOutputFile(options.saveDfaTrace, dfaTraceBuffer.str());
-        }
-
-        if (lexer.hasErrors()) {
-            for (const std::string& error : lexer.getErrors()) {
-                std::cout << error << "\n";
-            }
-            if (options.lexOnly) {
-                std::cout << tokenBuffer.str();
-            }
-            return 1;
         }
 
         if (options.lexOnly) {
@@ -260,8 +365,8 @@ int main(int argc, char* argv[]) {
         }
 
         std::vector<Token> parserTokens;
-        parserTokens.reserve(lexer.getResult().size());
-        for (const Token& token : lexer.getResult()) {
+        parserTokens.reserve(rawTokens.size());
+        for (const Token& token : rawTokens) {
             if (isIgnoredByParser(token)) {
                 continue;
             }
@@ -278,6 +383,17 @@ int main(int argc, char* argv[]) {
         Parser parser(parserTokens);
         parse_tree::NodePtr parseRoot = parser.parse();
         parse_tree::printTree(parseRoot.get(), parseTreeBuffer);
+
+        if (!options.saveParseTree.empty()) {
+            writeOutputFile(options.saveParseTree, parseTreeBuffer.str());
+        }
+
+        if (options.parseOnly) {
+            if (options.saveParseTree.empty()) {
+                std::cout << parseTreeBuffer.str();
+            }
+            return 0;
+        }
 
         AstBuilder builder;
         semantic::AstPtr astRoot = builder.build(parseRoot);
@@ -297,10 +413,6 @@ int main(int argc, char* argv[]) {
             std::cout << parseTreeBuffer.str();
             std::cout << "\n=== Semantic analysis ===\n\n";
             std::cout << decoratedAstBuffer.str();
-        }
-
-        if (!options.saveParseTree.empty()) {
-            writeOutputFile(options.saveParseTree, parseTreeBuffer.str());
         }
 
         if (!options.saveAst.empty()) {

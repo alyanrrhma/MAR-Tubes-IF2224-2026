@@ -1,0 +1,14 @@
+program ArrayRecord;
+type
+  Person == record
+    name: string;
+    age: integer
+  end;
+var
+  arr: array[1..5] of integer;
+  p: Person;
+begin
+  arr[1] := 10;
+  arr[2] := arr[1] + 5;
+  p.age := arr[2];
+end.

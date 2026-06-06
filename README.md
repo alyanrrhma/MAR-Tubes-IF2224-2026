@@ -150,16 +150,31 @@ Run the full compiler pipeline with:
 ./bin/arion <program.txt> --save-tokens <tokens.txt> --save-parse-tree <parse-tree.txt> --save-ast <ast.txt>
 ```
 
-Run Milestone 2 syntax analysis and save tokens plus parse tree with:
+Run Milestone 2 syntax analysis only and save the parse tree with:
 
 ```bash
 make all
-./bin/arion test/milestone2/input/input1.txt \
-  --save-tokens test/milestone2/output/token1.txt \
-  --save-parse-tree test/milestone2/output/parse_tree1.txt
+./bin/arion test/milestone2/input/input21.txt \
+  --parse-only \
+  --save-parse-tree test/milestone2/output/output21.txt
 ```
 
-`-o <file>` saves token output when used together with `--lex-only`; otherwise it saves the decorated AST output.
+The parser can also read the textual token output produced by Milestone 1.
+This is useful for grading the parser as a separate component:
+
+```bash
+./bin/arion --from-tokens test/milestone2/input/input24.txt \
+  --parse-only \
+  --save-parse-tree test/milestone2/output/output24.txt
+```
+
+Run the Milestone 2 regression suite with:
+
+```bash
+./test/milestone2/run_milestone2_tests.sh
+```
+
+`-o <file>` saves token output when used together with `--lex-only`, saves parse tree output with `--parse-only`, and otherwise saves the decorated AST output.
 
 Generate TAC for Milestone 4 with:
 

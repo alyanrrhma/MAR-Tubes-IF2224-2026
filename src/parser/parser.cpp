@@ -552,7 +552,17 @@ NodePtr Parser::parseWhileStatement() {
     node->addChild(expectNode("WHILESY"));
     node->addChild(parseExpression());
     node->addChild(expectNode("DOSY"));
-    node->addChild(parseStatement());
+
+    // Revisi Milestone 3 untuk grammar Milestone 2/3:
+    // <while-statement> ::= whilesy expression dosy compound-statement
+    // Walaupun body hanya satu statement, spesifikasi meminta body ditulis
+    // sebagai begin ... end agar struktur parser tidak ambigu.
+    if (!check("BEGINSY")) {
+        throw ParseException(
+            "Body while harus berupa compound-statement: gunakan 'begin ... end' setelah 'do'. "
+            "Mendapat '" + current().get_type_name() + "'");
+    }
+    node->addChild(parseCompoundStatement());
     return node;
 }
 
@@ -573,7 +583,16 @@ NodePtr Parser::parseForStatement() {
     }
     node->addChild(parseExpression());
     node->addChild(expectNode("DOSY"));
-    node->addChild(parseStatement());
+
+    // Revisi Milestone 3 untuk grammar Milestone 2/3:
+    // <for-statement> ::= forsy ident becomes expression (tosy|downtosy)
+    //                     expression dosy compound-statement
+    if (!check("BEGINSY")) {
+        throw ParseException(
+            "Body for harus berupa compound-statement: gunakan 'begin ... end' setelah 'do'. "
+            "Mendapat '" + current().get_type_name() + "'");
+    }
+    node->addChild(parseCompoundStatement());
     return node;
 }
 
