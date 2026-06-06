@@ -72,9 +72,12 @@ void Interpreter::execute(const InstructionProgram& program) {
             if (instruction.operand < FRAME_HEADER_SIZE) {
                 throw std::out_of_range("invalid address: LOD/STO operand points into frame header");
             }
+
+            // bp_ sebagai batas atas untuk menghindari pembacaan lintas frame
+            const std::size_t frameTop = (frameBase == bp_) ? machine_.stackTop() : bp_;
             const std::size_t addr = checkedAddress(
                 static_cast<int>(frameBase) + instruction.operand,
-                machine_.stackTop(), "load");
+                frameTop, "load");
             machine_.push(machine_.stackAt(addr));
             break;
         }
@@ -83,9 +86,10 @@ void Interpreter::execute(const InstructionProgram& program) {
             if (instruction.operand < FRAME_HEADER_SIZE) {
                 throw std::out_of_range("invalid address: LOD/STO operand points into frame header");
             }
+            const std::size_t frameTop = (frameBase == bp_) ? machine_.stackTop() : bp_;
             const std::size_t addr = checkedAddress(
                 static_cast<int>(frameBase) + instruction.operand,
-                machine_.stackTop(), "store");
+                frameTop, "store");
             machine_.setStackAt(addr, machine_.pop());
             break;
         }
