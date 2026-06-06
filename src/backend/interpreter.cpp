@@ -26,59 +26,98 @@ std::size_t checkedJumpTarget(int address, std::size_t limit) {
 }  
 
 void Interpreter::execute(const InstructionProgram& program) {
-    // Setiap eksekusi program dimulai dengan runtime state baru agar tidak ada data yang tersisa dari eksekusi sebelumnya
+    // Setiap eksekusi program dimulai dengan runtime state baru
     machine_ = StackMachine{};
     output_.clear();
+    bp_ = 0;
+    ip_ = 0;
+
+    // Dorong tiga slot header sentinel untuk frame program utama:
+    // static link = 0, dynamic link = 0, return address = 0
+    machine_.push(RuntimeValue::integer(0)); // BP+0: static link
+    machine_.push(RuntimeValue::integer(0)); // BP+1: dynamic link
+    machine_.push(RuntimeValue::integer(0)); // BP+2: return address
+    bp_ = 0;
 
     const auto& instructions = program.getInstructions();
-    std::size_t ip = 0;
     bool running = true;
 
-    while (running && ip < instructions.size()) {
-        // Siklus fetch-decode-execute:
-        // 1. Ambil instruksi pada IP
-        // 2. Decode opcode
-        // 3. Jalankan operasi
-        // 4. Perbarui IP bila diperlukan
-        const Instruction instruction = instructions[ip++];
+    while (running && ip_ < instructions.size()) {
+        // Siklus fetch-decode-execute
+        const Instruction instruction = instructions[ip_++];
 
         switch (instruction.opcode) {
-        case OpCode::INT: // Mengalokasikan area memori runtime sesuai ukuran frame yang dihitung saat code generation
+        case OpCode::INT: {
+            // Alokasikan slot variabel lokal untuk frame saat ini.
+            // Header tiga slot sudah ada (didorong oleh CAL atau sentinel program utama),
+            // jadi INT hanya mendorong slot variabel sebanyak (operand - FRAME_HEADER_SIZE).
             if (instruction.operand < 0) {
                 throw std::out_of_range("invalid address: ukuran frame negatif");
             }
-            machine_.allocate(static_cast<std::size_t>(instruction.operand));
+            const int varCount = instruction.operand - 3; // 3 = FRAME_HEADER_SIZE
+            for (int i = 0; i < varCount; ++i) {
+                machine_.push(RuntimeValue::integer(0));
+            }
             break;
-        case OpCode::LIT: // Push literal ke evaluation stack
+        }
+        case OpCode::LIT:
             machine_.push(RuntimeValue::integer(instruction.operand));
             break;
-        case OpCode::LOD: // LOD: membaca nilai dari memori runtime ke evaluation stack
-            machine_.push(machine_.load(checkedAddress(instruction.operand,
-                                                       machine_.memorySize(),
-                                                       "load")));
+        case OpCode::LOD: {
+            // Temukan frame tempat variabel dideklarasikan lewat static-link chain,
+            // lalu baca nilai dari slot variabel relative terhadap BP frame tersebut.
+            const std::size_t frameBase = machine_.walkStaticChain(bp_, instruction.level);
+            const std::size_t addr = checkedAddress(
+                static_cast<int>(frameBase) + instruction.operand,
+                machine_.stackTop(), "load");
+            machine_.push(machine_.stackAt(addr));
             break;
-        case OpCode::STO: // STO: menyimpan nilai dari evaluation stack ke memori runtime
-            machine_.store(checkedAddress(instruction.operand,
-                                          machine_.memorySize(),
-                                          "store"),
-                           machine_.pop());
+        }
+        case OpCode::STO: {
+            const std::size_t frameBase = machine_.walkStaticChain(bp_, instruction.level);
+            const std::size_t addr = checkedAddress(
+                static_cast<int>(frameBase) + instruction.operand,
+                machine_.stackTop(), "store");
+            machine_.setStackAt(addr, machine_.pop());
             break;
+        }
         case OpCode::JMP:
-            ip = checkedJumpTarget(instruction.operand, instructions.size());
+            ip_ = checkedJumpTarget(instruction.operand, instructions.size());
             break;
-        case OpCode::JPC: // JPC melakukan lompatan hanya ketika kondisi bernilai false
+        case OpCode::JPC:
             if (!popCondition()) {
-                ip = checkedJumpTarget(instruction.operand, instructions.size());
+                ip_ = checkedJumpTarget(instruction.operand, instructions.size());
             }
             break;
         case OpCode::OPR:
             executeOpr(instruction.operand);
             break;
-        case OpCode::RET:
-            running = false;
+        case OpCode::CAL: {
+            // Dorong header frame baru: static link, dynamic link, return address.
+            // instruction.level  = selisih level leksikal antara pemanggil dan callee
+            // instruction.operand = alamat instruksi pertama callee
+            const std::size_t staticLink = machine_.walkStaticChain(bp_, instruction.level);
+            machine_.push(RuntimeValue::integer(static_cast<int>(staticLink))); // BP+0
+            machine_.push(RuntimeValue::integer(static_cast<int>(bp_)));        // BP+1: dynamic link
+            machine_.push(RuntimeValue::integer(static_cast<int>(ip_)));        // BP+2: return address
+            bp_ = machine_.stackTop() - 3;
+            ip_ = checkedJumpTarget(instruction.operand, instructions.size());
             break;
-        case OpCode::CAL: // CALL procedure/function belum diimplementasikan pada subset Milestone 4 yang digunakan interpreter ini
-            throw std::runtime_error("invalid opcode: CAL belum didukung interpreter");
+        }
+        case OpCode::RET: {
+            // Baca header frame saat ini, lepas frame, pulihkan caller.
+            const int returnAddr = machine_.stackAt(bp_ + 2).asInteger();
+            const int callerBp   = machine_.stackAt(bp_ + 1).asInteger();
+            machine_.popTo(bp_);
+            if (bp_ == 0 && callerBp == 0) {
+                // Frame program utama — tidak ada caller, hentikan eksekusi
+                running = false;
+            } else {
+                bp_ = static_cast<std::size_t>(callerBp);
+                ip_ = static_cast<std::size_t>(returnAddr);
+            }
+            break;
+        }
         default:
             throw std::runtime_error("invalid opcode");
         }

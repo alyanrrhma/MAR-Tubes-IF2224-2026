@@ -16,6 +16,8 @@ public:
 private:
     StackMachine machine_;
     std::string output_;
+    std::size_t bp_ = 0;
+    std::size_t ip_ = 0;
 
     RuntimeValue executeOpr(int operand);
     RuntimeValue unaryNeg();

@@ -41,12 +41,6 @@ std::string RuntimeValue::toString() const {
 RuntimeValue::RuntimeValue(Kind kind, int value)
     : kind_(kind), value_(value) {}
 
-void StackMachine::allocate(std::size_t count) {
-    // Mengalokasikan area memori runtime
-    // Seluruh slot diinisialisasi dengan nilai default (0)
-    memory_.assign(count, defaultValue());
-}
-
 void StackMachine::push(RuntimeValue value) {
     if (stack_.size() >= MAX_STACK_SIZE) {
         throw std::runtime_error("stack overflow: ukuran stack melebihi batas runtime");
@@ -73,54 +67,54 @@ const RuntimeValue& StackMachine::peek() const {
     return stack_.back();
 }
 
-RuntimeValue StackMachine::load(std::size_t address) const {
-    // LOD pada interpreter membaca nilai dari alamat absolut yang telah ditentukan oleh CodeGenerator
-    if (address >= memory_.size()) {
-        throw std::out_of_range("invalid memory access: load address " +
-                                std::to_string(address) +
-                                " di luar ukuran memory " +
-                                std::to_string(memory_.size()));
+RuntimeValue StackMachine::stackAt(std::size_t index) const {
+    if (index >= stack_.size()) {
+        throw std::out_of_range("invalid stack access: index " +
+                                std::to_string(index) +
+                                " di luar ukuran stack " +
+                                std::to_string(stack_.size()));
     }
-
-    return memory_[address];
+    return stack_[index];
 }
 
-void StackMachine::store(std::size_t address, RuntimeValue value) {
-    // STO pada interpreter menulis nilai ke alamat memori runtime.
-    if (address >= memory_.size()) {
-        throw std::out_of_range("invalid memory access: store address " +
-                                std::to_string(address) +
-                                " di luar ukuran memory " +
-                                std::to_string(memory_.size()));
+void StackMachine::setStackAt(std::size_t index, RuntimeValue value) {
+    if (index >= stack_.size()) {
+        throw std::out_of_range("invalid stack access: index " +
+                                std::to_string(index) +
+                                " di luar ukuran stack " +
+                                std::to_string(stack_.size()));
     }
+    stack_[index] = value;
+}
 
-    memory_[address] = value;
+void StackMachine::popTo(std::size_t index) {
+    if (index > stack_.size()) {
+        throw std::out_of_range("popTo: target index melebihi ukuran stack saat ini");
+    }
+    stack_.erase(stack_.begin() + index, stack_.end());
+}
+
+std::size_t StackMachine::stackTop() const {
+    return stack_.size();
+}
+
+std::size_t StackMachine::walkStaticChain(std::size_t bp, int levels) const {
+    // Mengikuti rantai static link sebanyak `levels` langkah ke atas
+    // untuk menemukan base pointer frame tempat variabel dideklarasikan
+    std::size_t current = bp;
+    for (int i = 0; i < levels; ++i) {
+        // Static link tersimpan di current+0
+        current = static_cast<std::size_t>(stackAt(current).asInteger());
+    }
+    return current;
 }
 
 std::size_t StackMachine::stackSize() const {
     return stack_.size();
 }
 
-std::size_t StackMachine::memorySize() const {
-    return memory_.size();
-}
-
 RuntimeValue StackMachine::defaultValue() {
-    // Seluruh variabel diinisialisasi ke integer 0 ketika area memori runtime dibuat
     return RuntimeValue::integer(0);
 }
-
-/*
-Unit-style contoh penggunaan:
-
-backend::StackMachine machine;
-machine.allocate(5);                       // slot 0..4 tersedia
-machine.store(3, backend::RuntimeValue::integer(10));
-machine.push(machine.load(3));
-machine.push(backend::RuntimeValue::integer(5));
-auto rhs = machine.pop();
-auto lhs = machine.pop();
-machine.store(4, backend::RuntimeValue::integer(lhs.asInteger() + rhs.asInteger()));
-*/
 
 } 

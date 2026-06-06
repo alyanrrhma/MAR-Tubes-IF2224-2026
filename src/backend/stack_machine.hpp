@@ -8,15 +8,15 @@
 
 namespace backend {
 
-// Layout memori runtime:
+// Layout frame (relatif terhadap BP):
 //
-// 0 : Static Link
-// 1 : Dynamic Link
-// 2 : Return Address
-// 3+ : Variable Area
+// BP+0 : Static Link    (BP frame yang secara leksikal melingkupi frame ini)
+// BP+1 : Dynamic Link   (BP frame pemanggil — dipulihkan saat RET)
+// BP+2 : Return Address (IP yang dilanjutkan setelah RET)
+// BP+3+: Variable Area  (satu slot per variabel lokal yang dideklarasikan)
 //
-// Layout ini mengikuti model activation record
-// yang digunakan pada spesifikasi Milestone 4.
+// Setiap pemanggilan CAL mendorong header tiga slot ini lalu memperbarui BP.
+// RET membaca kembali header tersebut, melepas frame, dan memulihkan BP dan IP.
 
 class RuntimeValue {
 public:
@@ -45,22 +45,22 @@ class StackMachine {
 public:
     static constexpr std::size_t MAX_STACK_SIZE = 65536;
 
-    void allocate(std::size_t count);
-
     void push(RuntimeValue value);
     RuntimeValue pop();
     const RuntimeValue& peek() const;
 
-    RuntimeValue load(std::size_t address) const;
-    void store(std::size_t address, RuntimeValue value);
+    RuntimeValue stackAt(std::size_t index) const;
+    void setStackAt(std::size_t index, RuntimeValue value);
+    void popTo(std::size_t index);
 
+    std::size_t stackTop() const;
     std::size_t stackSize() const;
-    std::size_t memorySize() const;
+
+    std::size_t walkStaticChain(std::size_t bp, int levels) const;
 
 private:
     static RuntimeValue defaultValue();
 
-    std::vector<RuntimeValue> memory_;
     std::vector<RuntimeValue> stack_;
 };
 
