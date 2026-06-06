@@ -154,6 +154,49 @@ void Interpreter::execute(const InstructionProgram& program) {
             }
             break;
         }
+        case OpCode::LITB:
+            machine_.push(RuntimeValue::boolean(instruction.operand != 0));
+            break;
+        case OpCode::LITS: {
+            machine_.push(RuntimeValue::string(program.getString(instruction.operand)));
+            break;
+        }
+        case OpCode::ADDR: {
+            // Dorong alamat absolut slot variabel ke stack sebagai Integer
+            const std::size_t frameBase = machine_.walkStaticChain(bp_, instruction.level);
+            const int absAddr = static_cast<int>(frameBase) + instruction.operand;
+            if (absAddr < 0) {
+                throw std::out_of_range("invalid address: ADDR result is negative");
+            }
+            machine_.push(RuntimeValue::integer(absAddr));
+            break;
+        }
+        case OpCode::LODI: {
+            // Baca nilai dari alamat absolut yang ada di atas stack
+            const int rawAddr = machine_.pop().asInteger();
+            if (rawAddr < 0) {
+                throw std::out_of_range("invalid address: LODI address is negative");
+            }
+            const std::size_t addr = static_cast<std::size_t>(rawAddr);
+            if (addr >= machine_.stackTop()) {
+                throw std::out_of_range("invalid address: LODI address out of range");
+            }
+            machine_.push(machine_.stackAt(addr));
+            break;
+        }
+        case OpCode::STOI: {
+            // Tulis nilai ke alamat absolut: pop alamat, lalu pop nilai, simpan
+            const int rawAddr = machine_.pop().asInteger();
+            if (rawAddr < 0) {
+                throw std::out_of_range("invalid address: STOI address is negative");
+            }
+            const std::size_t addr = static_cast<std::size_t>(rawAddr);
+            if (addr >= machine_.stackTop()) {
+                throw std::out_of_range("invalid address: STOI address out of range");
+            }
+            machine_.setStackAt(addr, machine_.pop());
+            break;
+        }
         default:
             throw std::runtime_error("invalid opcode");
         }
@@ -251,35 +294,43 @@ void Interpreter::binaryArithmetic(OprCode opcode) {
 }
 
 void Interpreter::binaryComparison(OprCode opcode) {
-    const int rhs = popInteger();
-    const int lhs = popInteger();
+    const RuntimeValue rhsVal = machine_.pop();
+    const RuntimeValue lhsVal = machine_.pop();
     bool result = false;
 
-    switch (opcode) {
-    case OprCode::EQL:
-        result = lhs == rhs;
-        break;
-    case OprCode::NEQ:
-        result = lhs != rhs;
-        break;
-    case OprCode::LSS:
-        result = lhs < rhs;
-        break;
-    case OprCode::GEQ:
-        result = lhs >= rhs;
-        break;
-    case OprCode::GTR:
-        result = lhs > rhs;
-        break;
-    case OprCode::LEQ:
-        result = lhs <= rhs;
-        break;
-    default:
-        throw std::runtime_error("invalid opcode");
+    // String equality/inequality
+    if (lhsVal.kind() == RuntimeValue::Kind::String ||
+        rhsVal.kind() == RuntimeValue::Kind::String) {
+        const std::string& ls = lhsVal.toString();
+        const std::string& rs = rhsVal.toString();
+        switch (opcode) {
+        case OprCode::EQL: result = ls == rs; break;
+        case OprCode::NEQ: result = ls != rs; break;
+        case OprCode::LSS: result = ls <  rs; break;
+        case OprCode::GEQ: result = ls >= rs; break;
+        case OprCode::GTR: result = ls >  rs; break;
+        case OprCode::LEQ: result = ls <= rs; break;
+        default: throw std::runtime_error("invalid opcode");
+        }
+        machine_.push(RuntimeValue::boolean(result));
+        return;
     }
 
-    const RuntimeValue value = RuntimeValue::boolean(result);
-    machine_.push(value);
+    // Numeric comparison (integer or boolean-as-integer)
+    const int rhs = (rhsVal.kind() == RuntimeValue::Kind::Boolean) ? (rhsVal.asBoolean() ? 1 : 0) : rhsVal.asInteger();
+    const int lhs = (lhsVal.kind() == RuntimeValue::Kind::Boolean) ? (lhsVal.asBoolean() ? 1 : 0) : lhsVal.asInteger();
+
+    switch (opcode) {
+    case OprCode::EQL: result = lhs == rhs; break;
+    case OprCode::NEQ: result = lhs != rhs; break;
+    case OprCode::LSS: result = lhs <  rhs; break;
+    case OprCode::GEQ: result = lhs >= rhs; break;
+    case OprCode::GTR: result = lhs >  rhs; break;
+    case OprCode::LEQ: result = lhs <= rhs; break;
+    default: throw std::runtime_error("invalid opcode");
+    }
+
+    machine_.push(RuntimeValue::boolean(result));
 }
 
 int Interpreter::popInteger() {

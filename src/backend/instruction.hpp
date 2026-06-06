@@ -16,7 +16,12 @@ enum class OpCode {
     JMP,
     JPC,
     OPR,
-    RET
+    RET,
+    LITB,  // push Boolean literal  (operand: 0=false, 1=true)
+    LITS,  // push String from pool  (operand: string pool index)
+    ADDR,  // push absolute stack address of variable (like LOD but yields address, not value)
+    LODI,  // indirect load:  pop address, push stack[address]
+    STOI   // indirect store: pop address, pop value, stack[address] = value
 };
 
 const char* toString(OpCode opcode);
@@ -58,6 +63,10 @@ public:
     void patch(int address, int operand);
     int currentAddress() const;
 
+    // String pool: stores string literals; returns pool index for LITS operand
+    int addString(const std::string& value);
+    const std::string& getString(int index) const;
+
     const std::vector<Instruction>& getInstructions() const;
 
     void prettyPrint(std::ostream& out) const;
@@ -65,6 +74,7 @@ public:
 
 private:
     std::vector<Instruction> instructions_;
+    std::vector<std::string> stringPool_;
 };
 
 }  

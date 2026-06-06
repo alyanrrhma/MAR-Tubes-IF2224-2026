@@ -49,6 +49,12 @@ private:
     void generateBoolLit(const semantic::BoolLitNode& node);
     void generateUnaryOp(const semantic::UnaryOpNode& node);
     void generateBinOp(const semantic::BinOpNode& node);
+    void generateStringLit(const semantic::StringLitNode& node);
+    void generateArrayAccess(const semantic::ArrayAccessNode& node);
+    void generateFieldAccess(const semantic::FieldAccessNode& node);
+
+    // Pushes the absolute stack address of an lvalue onto the evaluation stack
+    void generateAddress(const semantic::AstNode* node);
 
     // Generates nested proc/func declarations found in a declaration part
     void generateNestedDeclarations(const semantic::DeclarationNode& decls);

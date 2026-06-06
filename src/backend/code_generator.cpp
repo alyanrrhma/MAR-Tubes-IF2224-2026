@@ -131,6 +131,15 @@ void CodeGenerator::generateExpression(const semantic::AstNode* node) {
     case semantic::AstKind::BoolLit:
         generateBoolLit(static_cast<const semantic::BoolLitNode&>(*node));
         break;
+    case semantic::AstKind::StringLit:
+        generateStringLit(static_cast<const semantic::StringLitNode&>(*node));
+        break;
+    case semantic::AstKind::ArrayAccess:
+        generateArrayAccess(static_cast<const semantic::ArrayAccessNode&>(*node));
+        break;
+    case semantic::AstKind::FieldAccess:
+        generateFieldAccess(static_cast<const semantic::FieldAccessNode&>(*node));
+        break;
     case semantic::AstKind::UnaryOp:
         generateUnaryOp(static_cast<const semantic::UnaryOpNode&>(*node));
         break;
@@ -143,15 +152,21 @@ void CodeGenerator::generateExpression(const semantic::AstNode* node) {
 }
 
 void CodeGenerator::generateStore(const semantic::AstNode* target) {
-    // Menyimpan hasil ekspresi ke lokasi tujuan assignment
-    // Pada Milestone 4 hanya assignment ke variabel biasa yang didukung
     if (!target) return;
 
-    if (target->getKind() != semantic::AstKind::Var) {
-        throw std::runtime_error("CodeGenerator fase 1 hanya mendukung assignment ke variabel biasa");
+    switch (target->getKind()) {
+    case semantic::AstKind::Var:
+        program_.emit(OpCode::STO, levelDifference(*target), variableAddress(*target));
+        break;
+    case semantic::AstKind::ArrayAccess:
+    case semantic::AstKind::FieldAccess:
+        // Nilai sudah di stack (dari generateAssign); dorong alamat lalu STOI
+        generateAddress(target);
+        program_.emit(OpCode::STOI, 0, 0);
+        break;
+    default:
+        throw std::runtime_error(std::string("generateStore: target assignment tidak didukung: ") + target->kindName());
     }
-
-    program_.emit(OpCode::STO, levelDifference(*target), variableAddress(*target));
 }
 
 void CodeGenerator::generateProgram(const semantic::ProgramNode& node) {
@@ -387,7 +402,69 @@ void CodeGenerator::generateIntLit(const semantic::IntLitNode& node) {
 }
 
 void CodeGenerator::generateBoolLit(const semantic::BoolLitNode& node) {
-    program_.emit(OpCode::LIT, 0, node.value ? 1 : 0);
+    program_.emit(OpCode::LITB, 0, node.value ? 1 : 0);
+}
+
+void CodeGenerator::generateStringLit(const semantic::StringLitNode& node) {
+    const int idx = program_.addString(node.value);
+    program_.emit(OpCode::LITS, 0, idx);
+}
+
+void CodeGenerator::generateArrayAccess(const semantic::ArrayAccessNode& node) {
+    generateAddress(&node);
+    program_.emit(OpCode::LODI, 0, 0);
+}
+
+void CodeGenerator::generateFieldAccess(const semantic::FieldAccessNode& node) {
+    generateAddress(&node);
+    program_.emit(OpCode::LODI, 0, 0);
+}
+
+void CodeGenerator::generateAddress(const semantic::AstNode* node) {
+    if (!node) throw std::runtime_error("generateAddress: node null");
+
+    switch (node->getKind()) {
+    case semantic::AstKind::Var:
+        program_.emit(OpCode::ADDR, levelDifference(*node), variableAddress(*node));
+        break;
+
+    case semantic::AstKind::ArrayAccess: {
+        const auto& arr = static_cast<const semantic::ArrayAccessNode&>(*node);
+        generateAddress(arr.base.get()); // dorong alamat dasar array
+
+        int atabIdx = arr.base->typeRef;
+        for (const auto& idxExpr : arr.indices) {
+            if (atabIdx == semantic::NO_INDEX) {
+                throw std::runtime_error("generateAddress: tidak ada info atab untuk dimensi array");
+            }
+            const auto& atab = symbolTable_->atabAt(atabIdx);
+            generateExpression(idxExpr.get());         // dorong indeks
+            program_.emit(OpCode::LIT, 0, atab.low);  // dorong batas bawah
+            program_.emit(OpCode::OPR, 0, static_cast<int>(OprCode::SUB)); // i - low
+            program_.emit(OpCode::LIT, 0, atab.elsz); // dorong ukuran elemen
+            program_.emit(OpCode::OPR, 0, static_cast<int>(OprCode::MUL)); // (i-low)*elsz
+            program_.emit(OpCode::OPR, 0, static_cast<int>(OprCode::ADD)); // base + offset
+            atabIdx = atab.eref; // masuk ke dimensi berikutnya
+        }
+        break;
+    }
+
+    case semantic::AstKind::FieldAccess: {
+        const auto& fld = static_cast<const semantic::FieldAccessNode&>(*node);
+        generateAddress(fld.base.get()); // dorong alamat dasar record
+        if (fld.tabIdx != semantic::NO_INDEX) {
+            const int fieldOffset = symbolTable_->tabAt(fld.tabIdx).adr;
+            if (fieldOffset != 0) {
+                program_.emit(OpCode::LIT, 0, fieldOffset);
+                program_.emit(OpCode::OPR, 0, static_cast<int>(OprCode::ADD));
+            }
+        }
+        break;
+    }
+
+    default:
+        throw std::runtime_error(std::string("generateAddress: tidak bisa mengambil alamat dari ") + node->kindName());
+    }
 }
 
 void CodeGenerator::generateUnaryOp(const semantic::UnaryOpNode& node) {

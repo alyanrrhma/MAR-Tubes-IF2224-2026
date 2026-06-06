@@ -4,14 +4,16 @@
 
 namespace backend {
 
-// RuntimeValue merepresentasikan nilai yang dapat disimpan pada stack evaluasi maupun area memori interpreter
-// Milestone 4 saat ini mendukung Integer dan Boolean.
 RuntimeValue RuntimeValue::integer(int value) {
-    return RuntimeValue(Kind::Integer, value);
+    return RuntimeValue(Kind::Integer, value, {});
 }
 
 RuntimeValue RuntimeValue::boolean(bool value) {
-    return RuntimeValue(Kind::Boolean, value ? 1 : 0);
+    return RuntimeValue(Kind::Boolean, value ? 1 : 0, {});
+}
+
+RuntimeValue RuntimeValue::string(std::string value) {
+    return RuntimeValue(Kind::String, 0, std::move(value));
 }
 
 int RuntimeValue::asInteger() const {
@@ -28,18 +30,27 @@ bool RuntimeValue::asBoolean() const {
     return value_ != 0;
 }
 
+const std::string& RuntimeValue::asString() const {
+    if (kind_ != Kind::String) {
+        throw std::runtime_error("RuntimeValue bukan string");
+    }
+    return strValue_;
+}
+
 std::string RuntimeValue::toString() const {
     switch (kind_) {
     case Kind::Integer:
         return std::to_string(value_);
     case Kind::Boolean:
         return value_ != 0 ? "true" : "false";
+    case Kind::String:
+        return strValue_;
     }
     return "?";
 }
 
-RuntimeValue::RuntimeValue(Kind kind, int value)
-    : kind_(kind), value_(value) {}
+RuntimeValue::RuntimeValue(Kind kind, int intValue, std::string strValue)
+    : kind_(kind), value_(intValue), strValue_(std::move(strValue)) {}
 
 void StackMachine::push(RuntimeValue value) {
     if (stack_.size() >= MAX_STACK_SIZE) {
