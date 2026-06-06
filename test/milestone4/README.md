@@ -30,19 +30,21 @@ The program is implemented in **C/C++ GNU** and supports printing generated TAC 
 
 The Milestone 4 backend supports:
 - variable assignment
-- integer literals
-- boolean literals
+- integer, boolean, string, and character literals
 - unary expression (`+`, `-`, `not`)
 - binary arithmetic (`+`, `-`, `*`, `div`, `mod`)
 - comparison (`==`, `<>`, `<`, `<=`, `>`, `>=`)
-- `if`
-- `if-else`
-- `while`
-- `writeln(expr)`
+- `if` and `if-else`
+- `while`, `for`, and `repeat-until`
+- `case` branch selection
+- procedure and function calls through `CAL`/`RET`
+- array access and record field access
+- `writeln(expr)` and `writeln(a, b, ...)`
 - TAC generation with `--print-tac`
 - program execution with `--run`
+- direct intermediate-code execution with `--run-ir` for runtime/vulnerability tests
 - semantic error blocking before TAC generation
-- runtime error reporting for division by zero, invalid opcode, invalid address, and stack underflow
+- runtime error reporting for division by zero, invalid opcode, invalid address, invalid jump target, stack underflow/overflow, integer overflow, and dynamic array out-of-bounds
 
 The interpreter supports these instructions:
 
@@ -55,21 +57,24 @@ The interpreter supports these instructions:
 | `JMP` | Unconditional jump |
 | `JPC` | Conditional jump |
 | `OPR` | Execute arithmetic, comparison, or output operation |
-| `RET` | Stop execution |
+| `RET` | Return from procedure/function or stop main program |
+| `LITB` | Push Boolean literal |
+| `LITS` | Push String literal from string pool |
+| `ADDR` | Push absolute address of an lvalue |
+| `LODI` | Indirect load through stack address |
+| `STOI` | Indirect store through stack address |
+| `CHK` | Runtime bounds check for array index |
 
 ---
 
 ## Limitations
 
-The current Milestone 4 backend does not implement:
-- procedure calls and function calls
-- `CAL`
-- complex activation records
-- arrays and records at runtime
-- `case`, `repeat`, and `for` code generation
-- `readln`
+The current Milestone 4 backend intentionally still limits:
+- `readln` execution, because runtime input is not required for the main execution tests
+- full real-number runtime arithmetic; `real` is recognized semantically, but the stack-machine execution focuses on integer/ordinal arithmetic
+- direct reconstruction from decorated-AST text; the executable generates code from the decorated AST produced internally by the Milestone 3 pipeline and can also start from Milestone 2 parse-tree output
 
-The parser and semantic analyzer may recognize more language constructs than the backend can execute. Unsupported constructs are rejected by the code generator.
+The implemented backend covers the main executable subset required for code generation, stack-machine execution, and runtime vulnerability checks.
 
 ---
 
@@ -116,6 +121,12 @@ To execute a program:
 
 ```bash
 ./bin/arion <source.txt> --run
+```
+
+To run saved stack-machine intermediate code directly:
+
+```bash
+./bin/arion --run-ir <intermediate-code.txt>
 ```
 
 ### Example
@@ -169,7 +180,7 @@ Program output:
 
 ## Test Cases
 
-The Milestone 4 audit covers these execution scenarios:
+The Milestone 4 regression suite covers these execution scenarios:
 
 | Test | Focus |
 |---|---|
@@ -186,6 +197,9 @@ The Milestone 4 audit covers these execution scenarios:
 | Writeln | Output statement with `OPR 0 14` |
 | Semantic error | Backend is skipped when semantic analysis fails |
 | Runtime error | Interpreter reports division by zero |
+| Dynamic bounds check | Runtime `CHK` rejects out-of-bounds array index |
+| Invalid jump | `--run-ir` rejects invalid jump target |
+| Stack underflow | `--run-ir` rejects stack underflow |
 
 ---
 
@@ -222,20 +236,15 @@ Display available commands.
 ├── src/
 │   ├── main.cpp
 │   ├── backend/
-│   │   ├── code_generator.cpp
-│   │   ├── code_generator.hpp
-│   │   ├── instruction.cpp
-│   │   ├── instruction.hpp
-│   │   ├── interpreter.cpp
-│   │   ├── interpreter.hpp
-│   │   ├── stack_machine.cpp
-│   │   └── stack_machine.hpp
 │   ├── lexer/
 │   ├── parser/
 │   └── semantic/
 ├── test/
 │   └── milestone4/
-│       ├── test4.txt
+│       ├── input/
+│       ├── output/
+│       ├── ir/
+│       ├── run_milestone4_tests.sh
 │       └── README.md
 ├── Makefile
 └── README.md
