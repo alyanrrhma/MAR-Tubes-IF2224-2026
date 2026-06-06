@@ -1,0 +1,8 @@
+program M4Arithmetic;
+var a,b,c: integer;
+begin
+  a := 6;
+  b := 3;
+  c := (a + b) * 2 - a div b;
+  writeln(c)
+end.

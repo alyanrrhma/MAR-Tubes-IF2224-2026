@@ -1,0 +1,11 @@
+program M4IfElse;
+var x,y: integer;
+begin
+  x := 7;
+  if x > 5 then begin
+    y := 1
+  end else begin
+    y := 2
+  end;
+  writeln(y)
+end.

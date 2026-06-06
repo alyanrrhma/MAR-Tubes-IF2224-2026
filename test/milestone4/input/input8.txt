@@ -1,0 +1,15 @@
+program M4Call;
+var y: integer;
+procedure hello;
+begin
+  writeln('hi')
+end;
+function add1(x: integer): integer;
+begin
+  add1 := x + 1
+end;
+begin
+  hello;
+  y := add1(4);
+  writeln(y)
+end.

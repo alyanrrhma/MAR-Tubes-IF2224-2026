@@ -1,0 +1,9 @@
+program M4While;
+var x: integer;
+begin
+  x := 3;
+  while x > 0 do begin
+    writeln(x);
+    x := x - 1
+  end
+end.

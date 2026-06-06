@@ -2,6 +2,8 @@ ProgramNode(name: 'M3ForUndeclared')
 +-- Declarations
 \-- Block
     \-- For(var: 'i', start: Num(1), direction: to, end: Num(3))
+        \-- Block
+            \-- ProcedureCall(name: 'writeln', args: [Var('i')])
 
 tab (identifier table)
   idx  identifier         link  obj         type        ref  nrm  lev  adr
@@ -57,6 +59,7 @@ atab (array table)
     0  unknown     unknown       -1     0     0     1     0
 
 Semantic errors
+[Semantic error]: identifier 'i' belum dideklarasikan
 [Semantic error]: identifier 'i' belum dideklarasikan
 
 Type errors

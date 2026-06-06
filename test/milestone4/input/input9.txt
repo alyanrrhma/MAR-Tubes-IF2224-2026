@@ -1,0 +1,13 @@
+program M4ArrayRecord;
+type Person == record
+  age: integer;
+  score: integer
+end;
+var a: array[1..3] of integer;
+    p: Person;
+begin
+  a[1] := 7;
+  a[2] := a[1] + 5;
+  p.age := a[2];
+  writeln(p.age)
+end.

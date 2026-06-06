@@ -1,0 +1,6 @@
+program M4DivZero;
+var x: integer;
+begin
+  x := 1 div 0;
+  writeln(x)
+end.
