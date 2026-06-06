@@ -186,35 +186,39 @@ void Interpreter::unaryNeg() {
 void Interpreter::binaryArithmetic(OprCode opcode) {
     const int rhs = popInteger();
     const int lhs = popInteger();
-    int result = 0;
+    long long result = 0;
 
     switch (opcode) {
     case OprCode::ADD:
-        result = lhs + rhs;
+        result = static_cast<long long>(lhs) + rhs;
         break;
     case OprCode::SUB:
-        result = lhs - rhs;
+        result = static_cast<long long>(lhs) - rhs;
         break;
     case OprCode::MUL:
-        result = lhs * rhs;
+        result = static_cast<long long>(lhs) * rhs;
         break;
     case OprCode::DIV:
         if (rhs == 0) {
             throw std::runtime_error("division by zero");
         }
-        result = lhs / rhs;
+        result = static_cast<long long>(lhs) / rhs;
         break;
     case OprCode::MOD:
         if (rhs == 0) {
             throw std::runtime_error("division by zero");
         }
-        result = lhs % rhs;
+        result = static_cast<long long>(lhs) % rhs;
         break;
     default:
         throw std::runtime_error("invalid opcode");
     }
 
-    const RuntimeValue value = RuntimeValue::integer(result);
+    if (result > INT_MAX || result < INT_MIN) {
+        throw std::runtime_error("integer overflow");
+    }
+
+    const auto value = RuntimeValue::integer(static_cast<int>(result));
     machine_.push(value);
 }
 
