@@ -1,0 +1,64 @@
+programsy
+ident (ArrayRecord)
+semicolon
+typesy
+ident (Person)
+eql
+recordsy
+ident (name)
+colon
+ident (string)
+semicolon
+ident (age)
+colon
+ident (integer)
+endsy
+semicolon
+varsy
+ident (arr)
+colon
+arraysy
+lbrack
+intcon (1)
+period
+period
+intcon (5)
+rbrack
+ofsy
+ident (integer)
+semicolon
+ident (p)
+colon
+ident (Person)
+semicolon
+beginsy
+ident (arr)
+lbrack
+intcon (1)
+rbrack
+becomes
+intcon (10)
+semicolon
+ident (arr)
+lbrack
+intcon (2)
+rbrack
+becomes
+ident (arr)
+lbrack
+intcon (1)
+rbrack
+plus
+intcon (5)
+semicolon
+ident (p)
+period
+ident (age)
+becomes
+ident (arr)
+lbrack
+intcon (2)
+rbrack
+semicolon
+endsy
+period

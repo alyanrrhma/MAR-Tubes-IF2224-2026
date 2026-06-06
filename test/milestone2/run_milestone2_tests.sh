@@ -21,7 +21,8 @@ assert_same_file() {
 }
 
 # Token files are Milestone 1 outputs used by the Milestone 2 test set.
-token_cases=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)
+# input24 is already a token file for --from-tokens, so it is not lexed here.
+token_cases=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 25 26 27)
 for n in "${token_cases[@]}"; do
   actual="$TMP_DIR/token$n.txt"
   "$BIN" "$INPUT_DIR/input$n.txt" --lex-only -o "$actual" > /dev/null
@@ -38,21 +39,21 @@ for n in "${parse_tree_cases[@]}"; do
   echo "[OK] parser input$n"
 done
 
-# Newer numbered parser cases introduced for strict Milestone 2 coverage.
+# Newer numbered parser cases follow the same output naming pattern as the legacy tests.
 for n in 21 22 23; do
-  actual="$TMP_DIR/output$n.txt"
+  actual="$TMP_DIR/parse_tree$n.txt"
   "$BIN" "$INPUT_DIR/input$n.txt" --parse-only --save-parse-tree "$actual" > /dev/null
-  assert_same_file "$OUTPUT_DIR/output$n.txt" "$actual"
+  assert_same_file "$OUTPUT_DIR/parse_tree$n.txt" "$actual"
   echo "[OK] parser input$n"
 done
 
-actual="$TMP_DIR/output24.txt"
+actual="$TMP_DIR/parse_tree24.txt"
 "$BIN" --from-tokens "$INPUT_DIR/input24.txt" --parse-only --save-parse-tree "$actual" > /dev/null
-assert_same_file "$OUTPUT_DIR/output24.txt" "$actual"
+assert_same_file "$OUTPUT_DIR/parse_tree24.txt" "$actual"
 echo "[OK] parser input24 from tokens"
 
-invalid_cases=(11 12 13 14 15 25 26 27)
-for n in "${invalid_cases[@]}"; do
+legacy_invalid_cases=(11 12 13 14 15)
+for n in "${legacy_invalid_cases[@]}"; do
   set +e
   "$BIN" "$INPUT_DIR/input$n.txt" --parse-only --save-parse-tree "$TMP_DIR/invalid$n.txt" > "$TMP_DIR/stdout$n.txt" 2> "$TMP_DIR/stderr$n.txt"
   code=$?
@@ -62,6 +63,21 @@ for n in "${invalid_cases[@]}"; do
     exit 1
   fi
   grep -qi "ParseError" "$TMP_DIR/stderr$n.txt"
+  echo "[OK] parser input$n rejected invalid syntax"
+done
+
+new_invalid_cases=(25 26 27)
+for n in "${new_invalid_cases[@]}"; do
+  set +e
+  "$BIN" "$INPUT_DIR/input$n.txt" --parse-only --save-parse-tree "$TMP_DIR/invalid$n.txt" > "$TMP_DIR/stdout$n.txt" 2> "$TMP_DIR/stderr$n.txt"
+  code=$?
+  set -e
+  if [[ $code -eq 0 ]]; then
+    echo "[FAIL] input$n seharusnya syntax error" >&2
+    exit 1
+  fi
+  grep -qi "ParseError" "$TMP_DIR/stderr$n.txt"
+  assert_same_file "$OUTPUT_DIR/error$n.txt" "$TMP_DIR/stderr$n.txt"
   echo "[OK] parser input$n rejected invalid syntax"
 done
 

@@ -1,0 +1,26 @@
+programsy
+ident (BadWhile)
+semicolon
+varsy
+ident (i)
+colon
+ident (integer)
+semicolon
+beginsy
+ident (i)
+becomes
+intcon (0)
+semicolon
+whilesy
+ident (i)
+lss
+intcon (3)
+dosy
+ident (i)
+becomes
+ident (i)
+plus
+intcon (1)
+semicolon
+endsy
+period

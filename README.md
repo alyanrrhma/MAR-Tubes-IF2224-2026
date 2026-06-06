@@ -155,8 +155,10 @@ Run Milestone 2 syntax analysis only and save the parse tree with:
 make all
 ./bin/arion test/milestone2/input/input21.txt \
   --parse-only \
-  --save-parse-tree test/milestone2/output/output21.txt
+  --save-parse-tree test/milestone2/output/parse_tree21.txt
 ```
+
+Milestone 2 keeps token output and parse-tree output as separate artifacts. Source-code based tests store `tokenN.txt` for lexical output and `parse_treeN.txt` for parser output. Invalid syntax tests store lexical output as `tokenN.txt` and parser error output as `errorN.txt`.
 
 The parser can also read the textual token output produced by Milestone 1.
 This is useful for grading the parser as a separate component:
@@ -164,7 +166,7 @@ This is useful for grading the parser as a separate component:
 ```bash
 ./bin/arion --from-tokens test/milestone2/input/input24.txt \
   --parse-only \
-  --save-parse-tree test/milestone2/output/output24.txt
+  --save-parse-tree test/milestone2/output/parse_tree24.txt
 ```
 
 Run the Milestone 2 regression suite with:

@@ -1,0 +1,62 @@
+programsy
+ident (LoopValid)
+semicolon
+varsy
+ident (i)
+comma
+ident (sum)
+colon
+ident (integer)
+semicolon
+beginsy
+ident (i)
+becomes
+intcon (0)
+semicolon
+ident (sum)
+becomes
+intcon (0)
+semicolon
+whilesy
+ident (i)
+lss
+intcon (3)
+dosy
+beginsy
+ident (sum)
+becomes
+ident (sum)
+plus
+ident (i)
+semicolon
+ident (i)
+becomes
+ident (i)
+plus
+intcon (1)
+semicolon
+endsy
+semicolon
+forsy
+ident (i)
+becomes
+intcon (1)
+tosy
+intcon (3)
+dosy
+beginsy
+ident (sum)
+becomes
+ident (sum)
+plus
+ident (i)
+semicolon
+endsy
+semicolon
+ident (writeln)
+lparent
+ident (sum)
+rparent
+semicolon
+endsy
+period

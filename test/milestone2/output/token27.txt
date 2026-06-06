@@ -1,0 +1,7 @@
+programsy
+ident (ExtraToken)
+semicolon
+beginsy
+endsy
+period
+ident (extra)

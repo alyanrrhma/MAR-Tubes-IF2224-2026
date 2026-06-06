@@ -108,7 +108,7 @@ To run the parser from Milestone 1 token output instead of source code, execute:
 make all
 ./bin/arion test/milestone2/input/input21.txt \
   --parse-only \
-  --save-parse-tree test/milestone2/output/output21.txt
+  --save-parse-tree test/milestone2/output/parse_tree21.txt
 ```
 
 To run lexical analysis only:
@@ -142,15 +142,15 @@ Run all Milestone 2 regression tests with:
 
 The suite covers these grading-oriented cases:
 
-| Input | Expected Result | Purpose |
+| Input | Expected Output File(s) | Purpose |
 |---|---|---|
-| `input21.txt` | Success | Valid basic program from the specification pattern |
-| `input22.txt` | Success | `while` and `for` using required `begin ... end` compound bodies |
-| `input23.txt` | Success | Array type, record type, array selector, and field selector parse tree |
-| `input24.txt` | Success | Parser can read Milestone 1 token output directly |
-| `input25.txt` | Parse error | Rejects `while ... do` with single statement body, as required by the revision |
-| `input26.txt` | Parse error | Rejects `for ... do` with single statement body, as required by the revision |
-| `input27.txt` | Parse error | Rejects extra token after final period |
+| `input21.txt` | `token21.txt`, `parse_tree21.txt` | Valid basic program from the specification pattern |
+| `input22.txt` | `token22.txt`, `parse_tree22.txt` | `while` and `for` using required `begin ... end` compound bodies |
+| `input23.txt` | `token23.txt`, `parse_tree23.txt` | Array type, record type, array selector, and field selector parse tree |
+| `input24.txt` | `parse_tree24.txt` | Parser reads Milestone 1 token output directly, so no separate token output is regenerated |
+| `input25.txt` | `token25.txt`, `error25.txt` | Rejects `while ... do` with single statement body, as required by the revision |
+| `input26.txt` | `token26.txt`, `error26.txt` | Rejects `for ... do` with single statement body, as required by the revision |
+| `input27.txt` | `token27.txt`, `error27.txt` | Rejects extra token after final period |
 
 ---
 
