@@ -94,7 +94,7 @@
         <assignment-statement>
           <variable>
             ident (arr)
-            <selector>
+            <component-variable>
               lbrack ([)
               <index-list>
                 <expression>
@@ -114,7 +114,7 @@
         <assignment-statement>
           <variable>
             ident (arr)
-            <selector>
+            <component-variable>
               lbrack ([)
               <index-list>
                 <expression>
@@ -134,7 +134,7 @@
         <assignment-statement>
           <variable>
             ident (arr)
-            <selector>
+            <component-variable>
               lbrack ([)
               <index-list>
                 <expression>
@@ -150,7 +150,7 @@
                 <factor>
                   <variable>
                     ident (arr)
-                    <selector>
+                    <component-variable>
                       lbrack ([)
                       <index-list>
                         <expression>
@@ -165,7 +165,7 @@
                 <factor>
                   <variable>
                     ident (arr)
-                    <selector>
+                    <component-variable>
                       lbrack ([)
                       <index-list>
                         <expression>
@@ -179,7 +179,7 @@
         <assignment-statement>
           <variable>
             ident (p)
-            <selector>
+            <component-variable>
               period (.)
               ident (age)
           becomes (:=)
@@ -193,7 +193,7 @@
         <assignment-statement>
           <variable>
             ident (p)
-            <selector>
+            <component-variable>
               period (.)
               ident (score)
           becomes (:=)
@@ -231,7 +231,7 @@
                       <factor>
                         <variable>
                           ident (arr)
-                          <selector>
+                          <component-variable>
                             lbrack ([)
                             <index-list>
                               <expression>

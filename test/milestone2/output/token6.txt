@@ -1,6 +1,13 @@
 programsy
 ident (ProcedureAndFunction)
 semicolon
+varsy
+ident (x)
+comma
+ident (y)
+colon
+ident (integer)
+semicolon
 proceduresy
 ident (Greet)
 lparent
@@ -105,13 +112,6 @@ minus
 intcon (1)
 rparent
 endsy
-semicolon
-varsy
-ident (x)
-comma
-ident (y)
-colon
-ident (integer)
 semicolon
 beginsy
 ident (x)

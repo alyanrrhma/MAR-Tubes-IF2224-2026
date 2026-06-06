@@ -4,6 +4,16 @@
     ident (ProcedureAndFunction)
     semicolon (;)
   <declaration-part>
+    <var-declaration>
+      varsy (var)
+      <identifier-list>
+        ident (x)
+        comma (,)
+        ident (y)
+      colon (:)
+      <type>
+        ident (integer)
+      semicolon (;)
     <subprogram-declaration-part>
       <subprogram-declaration>
         <procedure-declaration>
@@ -254,16 +264,6 @@
                                             intcon (1)
                                   rparent ())
               endsy (end)
-      semicolon (;)
-    <var-declaration>
-      varsy (var)
-      <identifier-list>
-        ident (x)
-        comma (,)
-        ident (y)
-      colon (:)
-      <type>
-        ident (integer)
       semicolon (;)
   <compound-statement>
     beginsy (begin)

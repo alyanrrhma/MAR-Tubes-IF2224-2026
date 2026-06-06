@@ -1,0 +1,49 @@
+<program>
+  <program-header>
+    programsy (program)
+    ident (ValidDeclarationOrder)
+    semicolon (;)
+  <declaration-part>
+    <const-declaration>
+      constsy (const)
+      <const-definition>
+        ident (A)
+        eql (==)
+        <constant>
+          intcon (1)
+      semicolon (;)
+    <type-declaration>
+      typesy (type)
+      <type-definition>
+        ident (T)
+        eql (==)
+        <type>
+          ident (integer)
+      semicolon (;)
+    <var-declaration>
+      varsy (var)
+      <identifier-list>
+        ident (x)
+      colon (:)
+      <type>
+        ident (T)
+      semicolon (;)
+  <compound-statement>
+    beginsy (begin)
+    <statement-list>
+      <statement>
+        <assignment-statement>
+          <variable>
+            ident (x)
+          becomes (:=)
+          <expression>
+            <simple-expression>
+              <term>
+                <factor>
+                  <variable>
+                    ident (A)
+      semicolon (;)
+      <statement>
+        <empty>
+    endsy (end)
+  period (.)

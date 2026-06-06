@@ -1,0 +1,38 @@
+programsy
+ident (IndexExpressionExtension)
+semicolon
+varsy
+ident (a)
+colon
+arraysy
+lbrack
+intcon (1)
+period
+period
+intcon (10)
+rbrack
+ofsy
+ident (integer)
+semicolon
+ident (i)
+comma
+ident (x)
+colon
+ident (integer)
+semicolon
+beginsy
+ident (i)
+becomes
+intcon (1)
+semicolon
+ident (x)
+becomes
+ident (a)
+lbrack
+ident (i)
+plus
+intcon (1)
+rbrack
+semicolon
+endsy
+period

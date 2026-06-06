@@ -1,0 +1,8 @@
+program IndexExpressionExtension;
+var
+  a: array[1..10] of integer;
+  i, x: integer;
+begin
+  i := 1;
+  x := a[i + 1];
+end.

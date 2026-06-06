@@ -1,0 +1,14 @@
+program ComponentChain;
+type
+  Inner == record
+    value: integer;
+  end;
+  Item == record
+    inner: Inner;
+  end;
+var
+  items: array[1..10] of Item;
+  x: integer;
+begin
+  x := items[1].inner.value;
+end.

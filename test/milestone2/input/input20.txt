@@ -1,0 +1,10 @@
+program ValidDeclarationOrder;
+const
+  A == 1;
+type
+  T == integer;
+var
+  x: T;
+begin
+  x := A;
+end.

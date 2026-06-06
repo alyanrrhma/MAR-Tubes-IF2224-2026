@@ -1,0 +1,16 @@
+programsy
+ident (InvalidDeclarationOrder)
+semicolon
+varsy
+ident (a)
+colon
+ident (integer)
+semicolon
+constsy
+ident (C)
+eql
+intcon (1)
+semicolon
+beginsy
+endsy
+period

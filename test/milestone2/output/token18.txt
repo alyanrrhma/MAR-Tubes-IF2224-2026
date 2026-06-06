@@ -1,0 +1,53 @@
+programsy
+ident (ComponentChain)
+semicolon
+typesy
+ident (Inner)
+eql
+recordsy
+ident (value)
+colon
+ident (integer)
+semicolon
+endsy
+semicolon
+ident (Item)
+eql
+recordsy
+ident (inner)
+colon
+ident (Inner)
+semicolon
+endsy
+semicolon
+varsy
+ident (items)
+colon
+arraysy
+lbrack
+intcon (1)
+period
+period
+intcon (10)
+rbrack
+ofsy
+ident (Item)
+semicolon
+ident (x)
+colon
+ident (integer)
+semicolon
+beginsy
+ident (x)
+becomes
+ident (items)
+lbrack
+intcon (1)
+rbrack
+period
+ident (inner)
+period
+ident (value)
+semicolon
+endsy
+period

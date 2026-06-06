@@ -1,0 +1,7 @@
+program InvalidDeclarationOrder;
+var
+  a: integer;
+const
+  C == 1;
+begin
+end.

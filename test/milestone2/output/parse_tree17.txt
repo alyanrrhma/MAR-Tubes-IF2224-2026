@@ -1,0 +1,34 @@
+<program>
+  <program-header>
+    programsy (program)
+    ident (ArrayRangeIndex)
+    semicolon (;)
+  <declaration-part>
+    <var-declaration>
+      varsy (var)
+      <identifier-list>
+        ident (a)
+      colon (:)
+      <type>
+        <array-type>
+          arraysy (array)
+          lbrack ([)
+          <range>
+            <constant>
+              intcon (1)
+            period (.)
+            period (.)
+            <constant>
+              intcon (10)
+          rbrack (])
+          ofsy (of)
+          <type>
+            ident (integer)
+      semicolon (;)
+  <compound-statement>
+    beginsy (begin)
+    <statement-list>
+      <statement>
+        <empty>
+    endsy (end)
+  period (.)
