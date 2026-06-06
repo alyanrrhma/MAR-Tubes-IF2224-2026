@@ -93,6 +93,8 @@ public:
 
     int lookup(const std::string& name) const;
     int lookupCurrentScope(const std::string& name) const;
+    int lookupBlockScope(int blockIndex, const std::string& name) const;
+    int lookupGlobalScope(const std::string& name) const;
 
     int pushBlock();
     void popBlock();

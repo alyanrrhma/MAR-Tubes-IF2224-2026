@@ -99,13 +99,22 @@ int SymbolTable::lookup(const std::string& name) const {
 
 int SymbolTable::lookupCurrentScope(const std::string& name) const {
     if (scopeStack_.empty()) return NO_INDEX;
+    return lookupBlockScope(scopeStack_.back(), name);
+}
 
-    int current = btab_[scopeStack_.back()].last;
+int SymbolTable::lookupBlockScope(int blockIndex, const std::string& name) const {
+    if (blockIndex < 0 || blockIndex >= static_cast<int>(btab_.size())) return NO_INDEX;
+
+    int current = btab_[blockIndex].last;
     while (current != NO_INDEX) {
         if (nameEquals(tab_[current].identifier, name)) return current;
         current = tab_[current].link;
     }
     return NO_INDEX;
+}
+
+int SymbolTable::lookupGlobalScope(const std::string& name) const {
+    return lookupBlockScope(0, name);
 }
 
 int SymbolTable::pushBlock() {

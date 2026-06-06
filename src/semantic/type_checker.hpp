@@ -68,6 +68,9 @@ private:
     bool compatibleWithRef(semantic::TypeKind a, int aRef,
                            semantic::TypeKind b, int bRef) const;
 
+    bool sameArrayTypeRef(int aRef, int bRef) const;
+    bool sameArrayEntry(int aRef, int bRef, std::unordered_set<long long>& seen) const;
+
     bool assignmentCompatible(semantic::TypeKind lhsType, int lhsRef,
                               semantic::TypeKind rhsType, int rhsRef) const;
 

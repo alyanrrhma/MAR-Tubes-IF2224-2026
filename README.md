@@ -174,6 +174,29 @@ Run the Milestone 2 regression suite with:
 ./test/milestone2/run_milestone2_tests.sh
 ```
 
+Run Milestone 3 semantic analysis and save the decorated AST plus symbol tables with:
+
+```bash
+./bin/arion test/milestone3/input/input31.txt \
+  --save-ast test/milestone3/output/output31.txt
+```
+
+The semantic analyzer can also read Milestone 2 parse-tree output directly. This is useful for grading Milestone 3 as a separate phase whose input is a parse tree. Semantic/type errors now return a non-zero exit status, but `--save-ast` still writes the decorated AST, symbol tables, and diagnostics for inspection:
+
+```bash
+./bin/arion test/milestone3/input/input37.txt \
+  --parse-only \
+  --save-parse-tree test/milestone3/tmp/parse_tree37.txt
+./bin/arion --from-parse-tree test/milestone3/tmp/parse_tree37.txt \
+  --save-ast test/milestone3/output/output37.txt
+```
+
+Run the Milestone 3 regression suite with. The suite includes strict array/enumerated compatibility, semantic error exit-code checks, and parse-tree input mode:
+
+```bash
+./test/milestone3/run_milestone3_tests.sh
+```
+
 `-o <file>` saves token output when used together with `--lex-only`, saves parse tree output with `--parse-only`, and otherwise saves the decorated AST output.
 
 Generate TAC for Milestone 4 with:

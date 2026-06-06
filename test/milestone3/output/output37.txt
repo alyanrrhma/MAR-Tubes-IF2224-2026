@@ -1,0 +1,62 @@
+ProgramNode(name: 'M3FromParseTree')
++-- Declarations
+|   \-- VarDecl(name: 'a', type: 'integer')
+\-- Block
+    +-- Assign
+    |   +-- target: Var('a')
+    |   \-- value: Num(7)
+    \-- ProcedureCall(name: 'writeln', args: [Var('a')])
+
+tab (identifier table)
+  idx  identifier         link  obj         type        ref  nrm  lev  adr
+  ---  ----------------   ----  ----------  ----------  ---  ---  ---  ---
+    0  -                    -1  undefined   unknown      -1    1    0    0
+    1  and                  -1  reserved    unknown      -1    1    0    0
+    2  array                 1  reserved    unknown      -1    1    0    0
+    3  begin                 2  reserved    unknown      -1    1    0    0
+    4  case                  3  reserved    unknown      -1    1    0    0
+    5  const                 4  reserved    unknown      -1    1    0    0
+    6  div                   5  reserved    unknown      -1    1    0    0
+    7  downto                6  reserved    unknown      -1    1    0    0
+    8  do                    7  reserved    unknown      -1    1    0    0
+    9  else                  8  reserved    unknown      -1    1    0    0
+   10  end                   9  reserved    unknown      -1    1    0    0
+   11  for                  10  reserved    unknown      -1    1    0    0
+   12  function             11  reserved    unknown      -1    1    0    0
+   13  if                   12  reserved    unknown      -1    1    0    0
+   14  mod                  13  reserved    unknown      -1    1    0    0
+   15  not                  14  reserved    unknown      -1    1    0    0
+   16  of                   15  reserved    unknown      -1    1    0    0
+   17  or                   16  reserved    unknown      -1    1    0    0
+   18  procedure            17  reserved    unknown      -1    1    0    0
+   19  program              18  reserved    unknown      -1    1    0    0
+   20  record               19  reserved    unknown      -1    1    0    0
+   21  repeat               20  reserved    unknown      -1    1    0    0
+   22  then                 21  reserved    unknown      -1    1    0    0
+   23  to                   22  reserved    unknown      -1    1    0    0
+   24  type                 23  reserved    unknown      -1    1    0    0
+   25  until                24  reserved    unknown      -1    1    0    0
+   26  var                  25  reserved    unknown      -1    1    0    0
+   27  while                26  reserved    unknown      -1    1    0    0
+   28  integer              27  type        integer      -1    1    0    1
+   29  real                 28  type        real         -1    1    0    1
+   30  char                 29  type        char         -1    1    0    1
+   31  boolean              30  type        boolean      -1    1    0    1
+   32  string               31  type        string       -1    1    0    1
+   33  false                32  constant    boolean      -1    1    0    0
+   34  true                 33  constant    boolean      -1    1    0    1
+   35  writeln              34  procedure   void         -1    1    0    0
+   36  readln               35  procedure   void         -1    1    0    0
+   37  M3FromParseTree      36  program     void          0    1    0    0
+   38  a                    37  variable    integer      -1    1    0    0
+  firstUserIndex = 37
+
+btab (block table)
+  idx  last  lpar  psze  vsze
+  ---  ----  ----  ----  ----
+    0    38    -1     0     1
+
+atab (array table)
+  idx  xtyp        etyp        eref   low  high  elsz  size
+  ---  ----------  ----------  ----  ----  ----  ----  ----
+    0  unknown     unknown       -1     0     0     1     0

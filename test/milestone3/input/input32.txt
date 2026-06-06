@@ -1,0 +1,11 @@
+program M3ParamShadow;
+var
+  x: integer;
+procedure p(x: integer);
+begin
+  writeln(x);
+end;
+begin
+  x := 1;
+  p(x);
+end.

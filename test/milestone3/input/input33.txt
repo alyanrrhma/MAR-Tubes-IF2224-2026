@@ -1,0 +1,8 @@
+program M3MissingReturn;
+function f: integer;
+begin
+  writeln(1);
+end;
+begin
+  writeln(f);
+end.

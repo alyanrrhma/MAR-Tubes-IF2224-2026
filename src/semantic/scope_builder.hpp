@@ -7,6 +7,10 @@
 class ScopeBuilder
 {
 private:
+    // L-attributed semantic flow used by ScopeBuilder:
+    // - inherited attribute: active block/scope is carried by symTab scope stack
+    // - synthesized attributes: TypeInfo {type, ref, size} is returned upward
+    //   from type/expression nodes and stored back into the decorated AST
     struct TypeInfo {
         semantic::TypeKind type = semantic::TypeKind::Unknown;
         int ref = semantic::NO_INDEX;

@@ -1,0 +1,12 @@
+program M3ValidBasic;
+var
+  x, y: integer;
+begin
+  x := 10;
+  y := x + 5;
+  if y > 10 then begin
+    writeln(y);
+  end else begin
+    writeln(x);
+  end;
+end.

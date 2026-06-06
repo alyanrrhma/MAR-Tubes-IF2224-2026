@@ -9,9 +9,9 @@ This milestone extends the previous lexer and parser by:
 - constructing and managing **symbol tables**
 - performing **scope checking**
 - performing **type checking**
-- validating several semantic rules such as assignment compatibility, array access, record field access, procedure/function call arguments, and variable initialization
+- validating several semantic rules such as assignment compatibility, array access, record field access, procedure/function call arguments, variable initialization, formal parameter/global-name conflicts, and function return rules
 
-The program is implemented in **C/C++ GNU** and supports running semantic analysis directly from source code or from the parse tree produced in milestone 2.
+The program is implemented in **C/C++ GNU** and supports running semantic analysis directly from source code or from the parse tree produced in Milestone 2 through `--from-parse-tree`.
 
 ---
 
@@ -19,7 +19,8 @@ The program is implemented in **C/C++ GNU** and supports running semantic analys
 
 | Component | Description |
 |---|---|
-| `src/ast.cpp` | Main driver for semantic analysis and parse-tree reading |
+| `src/main.cpp` | Main driver for the integrated lexer-parser-semantic pipeline |
+| `src/ast.cpp` | Legacy/helper driver for semantic analysis and parse-tree reading |
 | `src/semantic/ast_builder.cpp/hpp` | Converts parse tree into AST |
 | `src/semantic/ast_nodes.cpp/hpp` | AST node definitions and AST printing |
 | `src/semantic/scope_builder.cpp/hpp` | Builds symbol tables and performs scope/declaration checking |
@@ -37,12 +38,17 @@ The semantic analyzer supports:
 - Predefined identifier initialization
 - Declaration and scope validation
 - Type inference for expressions
-- Assignment compatibility checking
+- Strict assignment compatibility checking for array, record, and enumerated type references
 - Procedure/function call argument checking
 - Record field access validation
 - Array index type and static bound checking
 - Subrange validation
 - Variable use-before-initialization checking
+- Function return validation
+- Rejection of assignment to a function name outside the function body
+- Formal parameter validation against global identifier names
+- Semantic analysis from Milestone 2 parse-tree output with `--from-parse-tree`
+- Non-zero process exit status whenever semantic/type errors are detected, while still writing decorated AST diagnostics to `--save-ast`
 
 ---
 
@@ -66,36 +72,42 @@ cd MAR-Tubes-IF2224-2026
 ### 2. Compile the Program
 
 ```bash
-make
-make ast
+make all
 ```
 
 ---
 
 ## How To Run
 
-To run semantic analysis from source code:
+To run semantic analysis from source code and save the decorated AST plus symbol tables:
 
 ```bash
-./bin/ast <source.txt> [-o <ast_output.txt>]
+./bin/arion <source.txt> --save-ast <ast_output.txt>
 ```
 
 ### Example
 
 ```bash
-./bin/ast test/milestone3/input/input1.txt -o test/milestone3/output/output1.txt
+./bin/arion test/milestone3/input/input31.txt --save-ast test/milestone3/output/output31.txt
 ```
 
-To run semantic analysis from parse tree output of milestone 2:
+To run semantic analysis from parse tree output of Milestone 2:
 
 ```bash
-./bin/ast --parse-tree <parse_tree.txt> [-o <ast_output.txt>]
+./bin/arion --from-parse-tree <parse_tree.txt> --save-ast <ast_output.txt>
 ```
 
 ### Example
 
 ```bash
-./bin/ast --parse-tree test/milestone2/output/parse_tree1.txt -o test/milestone3/output/output1.txt
+./bin/arion test/milestone3/input/input37.txt --parse-only --save-parse-tree test/milestone3/tmp/parse_tree37.txt
+./bin/arion --from-parse-tree test/milestone3/tmp/parse_tree37.txt --save-ast test/milestone3/output/output37.txt
+```
+
+To run the Milestone 3 regression tests:
+
+```bash
+./test/milestone3/run_milestone3_tests.sh
 ```
 
 ---
@@ -111,6 +123,15 @@ The sample inputs in `test/milestone3/input/` cover multiple semantic constructs
 | `input3.txt` | Array, record, field access, array access, `for` loop |
 | `input4.txt` | `if-else` and `case` statements |
 | `input5.txt` | `while`, `repeat`, and `for downto` loops |
+| `input31.txt` | Valid source-to-decorated-AST regression test |
+| `input32.txt` | Invalid formal parameter shadowing global identifier |
+| `input33.txt` | Invalid function with no return assignment/return statement |
+| `input34.txt` | Invalid assignment to function name outside its own body |
+| `input35.txt` | Invalid undeclared `for` control variable; verifies no crash |
+| `input36.txt` | Invalid array index out of declared bounds |
+| `input37.txt` | Semantic analysis from parse-tree input mode |
+| `input38.txt` | Invalid assignment between two separately declared array types with identical shape |
+| `input39.txt` | Invalid assignment between two separately declared enumerated types |
 
 The semantic analyzer is expected to produce:
 - AST / decorated AST output
@@ -118,20 +139,16 @@ The semantic analyzer is expected to produce:
 - block table (`btab`)
 - array table (`atab`)
 - semantic/type error messages when invalid constructs are found
+- non-zero exit code for invalid semantic/type cases
 
 ---
 
 ## Build Commands
 
 ```bash
-make
+make all
 ```
-Build the main program.
-
-```bash
-make ast
-```
-Build the semantic analysis executable.
+Build the main integrated compiler program.
 
 ```bash
 make clean
@@ -172,12 +189,17 @@ Clean and rebuild the main program.
 │       ├── input/
 │       │   ├── input1.txt
 │       │   ├── ...
-│       │   └── input18.txt
+│       │   ├── input18.txt
+│       │   ├── ...
+│       │   └── input37.txt
 │       ├── output/
 │       │   ├── output1.txt
 │       │   ├── ...
-│       │   └── output18.txt
-│       ├── test3.txt
+│       │   ├── output18.txt
+│       │   ├── ...
+│       │   └── output37.txt
+│       ├── tmp/
+│       ├── run_milestone3_tests.sh
 │       └── README.md
 ├── Makefile
 └── README.md

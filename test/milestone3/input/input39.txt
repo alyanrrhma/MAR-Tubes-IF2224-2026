@@ -1,0 +1,15 @@
+program M3EnumeratedTypeCompatibility;
+const
+  red == 1;
+  green == 2;
+  blue == 3;
+  yellow == 4;
+type
+  Color == (red, green);
+  Shade == (blue, yellow);
+var
+  c: Color;
+  s: Shade;
+begin
+  c := s;
+end.

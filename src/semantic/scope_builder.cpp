@@ -96,6 +96,22 @@ void ScopeBuilder::visitFormalParam(semantic::FormalParam& param)
     semantic::AstNode* owner = param.typeExpr.get();
     if(!owner) return;
 
+    // Spesifikasi/QnA Milestone 3 menuntut parameter formal tidak
+    // menabrak identifier yang sudah ada pada scope global program.
+    // Lookup current scope saja tidak cukup karena parameter berada pada
+    // block procedure/function baru. Karena itu kita cek global user symbol
+    // secara eksplisit sebelum memasukkan parameter.
+    const int globalIdx = symTab->lookupGlobalScope(param.name);
+    if (globalIdx != semantic::NO_INDEX && globalIdx >= symTab->firstUserIndex())
+    {
+        const auto& globalEntry = symTab->tabAt(globalIdx);
+        if (globalEntry.lev == 0)
+        {
+            report(*owner, "parameter formal '" + param.name +
+                          "' tidak boleh memakai nama identifier global");
+        }
+    }
+
     const int index = declareIdentifier(*owner, param.name, semantic::ObjectKind::Parameter, type, adr, !param.byReference);
     owner->tabIdx = index;
     owner->inferredType = type.type;
@@ -651,9 +667,21 @@ ScopeBuilder::TypeInfo ScopeBuilder::resolveEnumeratedType(semantic::EnumeratedT
         return {semantic::TypeKind::Error, semantic::NO_INDEX, 1};
     }
 
+    // Enumerated type receives a unique descriptor in atab. The descriptor is
+    // intentionally reference-based so type compatibility can reject different
+    // enumerated definitions even when both have TypeKind::Enumerated.
+    const int enumRef = symTab->addArrayType(
+        0,
+        static_cast<int>(node.identifiers.empty() ? 0 : node.identifiers.size() - 1),
+        semantic::TypeKind::Enumerated,
+        semantic::TypeKind::Enumerated,
+        semantic::NO_INDEX,
+        1);
+    symTab->atabAt(enumRef).size = 1;
+
     node.inferredType = semantic::TypeKind::Enumerated;
-    node.typeRef = semantic::NO_INDEX;
-    return {semantic::TypeKind::Enumerated, semantic::NO_INDEX, 1};
+    node.typeRef = enumRef;
+    return {semantic::TypeKind::Enumerated, enumRef, 1};
 
 }
 

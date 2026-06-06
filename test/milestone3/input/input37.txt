@@ -1,0 +1,7 @@
+program M3FromParseTree;
+var
+  a: integer;
+begin
+  a := 7;
+  writeln(a);
+end.

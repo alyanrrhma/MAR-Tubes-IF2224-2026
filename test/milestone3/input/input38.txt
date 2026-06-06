@@ -1,0 +1,10 @@
+program M3ArrayTypeCompatibility;
+type
+  A == array[1..3] of integer;
+  B == array[1..3] of integer;
+var
+  leftArr: A;
+  rightArr: B;
+begin
+  leftArr := rightArr;
+end.

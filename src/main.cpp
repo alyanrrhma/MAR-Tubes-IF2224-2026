@@ -5,6 +5,7 @@
 #include <iostream>
 #include <memory>
 #include <sstream>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -34,6 +35,7 @@ struct Options {
     bool lexOnly = false;
     bool parseOnly = false;
     bool tokenInput = false;
+    bool parseTreeInput = false;
     bool verbose = false;
     bool printTac = false;
     bool run = false;
@@ -45,6 +47,7 @@ void printUsage(const char* programName) {
         << "  " << programName << " <program.txt> --lex-only -o <tokens.txt> [--save-dfa-trace <trace.txt>]\n"
         << "  " << programName << " <program.txt> --parse-only --save-parse-tree <parse-tree.txt>\n"
         << "  " << programName << " --from-tokens <tokens.txt> --parse-only --save-parse-tree <parse-tree.txt>\n"
+        << "  " << programName << " --from-parse-tree <parse-tree.txt> --save-ast <ast-output.txt>\n"
         << "  " << programName << " <program.txt> [--verbose]\n"
         << "  " << programName << " <program.txt> --print-tac\n"
         << "  " << programName << " <program.txt> --run\n"
@@ -53,6 +56,7 @@ void printUsage(const char* programName) {
         << "  --lex-only              Run lexical analysis only, print tokens, then stop\n"
         << "  --parse-only            Stop after syntax analysis and print/save parse tree\n"
         << "  --from-tokens <file>    Read Milestone 1 token output instead of source code\n"
+        << "  --from-parse-tree <file> Read Milestone 2 parse tree output for semantic analysis\n"
         << "  --verbose               Print tokens, parse tree, and decorated AST to stdout\n"
         << "  --print-tac             Generate TAC, print it, then stop\n"
         << "  --run                   Generate TAC and run it with the interpreter\n"
@@ -141,6 +145,17 @@ Options parseOptions(int argc, char* argv[]) {
             continue;
         }
 
+        if (arg == "--from-parse-tree") {
+            if (i + 1 >= argc) {
+                throw std::runtime_error("--from-parse-tree membutuhkan nama file parse tree");
+            }
+            options.inputFile = argv[++i];
+            options.parseTreeInput = true;
+            inputSet = true;
+            ++i;
+            continue;
+        }
+
         if (arg == "--save-tokens") {
             if (i + 1 >= argc) {
                 throw std::runtime_error("--save-tokens membutuhkan nama file");
@@ -200,8 +215,16 @@ Options parseOptions(int argc, char* argv[]) {
         throw std::runtime_error("Argumen input tidak diberikan");
     }
 
-    if (options.lexOnly && options.tokenInput) {
-        throw std::runtime_error("--lex-only tidak dapat digabungkan dengan --from-tokens");
+    if (options.lexOnly && (options.tokenInput || options.parseTreeInput)) {
+        throw std::runtime_error("--lex-only hanya dapat digunakan dengan input source code");
+    }
+
+    if (options.parseOnly && options.parseTreeInput) {
+        throw std::runtime_error("--parse-only tidak dapat digabungkan dengan --from-parse-tree");
+    }
+
+    if (options.tokenInput && options.parseTreeInput) {
+        throw std::runtime_error("--from-tokens dan --from-parse-tree tidak dapat digunakan bersamaan");
     }
 
     if (!options.outputFile.empty()) {
@@ -277,6 +300,135 @@ std::vector<Token> readTokensFromMilestone1Output(std::istream& in, std::ostream
     return tokens;
 }
 
+
+int parseTreeIndentLevel(const std::string& line) {
+    int spaces = 0;
+    for (char c : line) {
+        if (c == ' ') ++spaces;
+        else break;
+    }
+    return spaces / 2;
+}
+
+bool isParseTreeNonTerminal(const std::string& text) {
+    return text.size() >= 2 && text.front() == '<' && text.back() == '>';
+}
+
+std::string parseTreeNonTerminalName(const std::string& text) {
+    return text.substr(1, text.size() - 2);
+}
+
+struct ParseTreeTerminalInfo {
+    std::string type;
+    std::string lexeme;
+    int line = -1;
+    int column = -1;
+};
+
+ParseTreeTerminalInfo parseTreeTerminal(const std::string& text) {
+    ParseTreeTerminalInfo info;
+    const std::size_t open = text.find('(');
+    if (open == std::string::npos) {
+        info.type = trim(text);
+        return info;
+    }
+
+    info.type = trim(text.substr(0, open));
+
+    const std::size_t bracket = text.rfind('[');
+    std::string payload;
+    if (bracket != std::string::npos && bracket > open) {
+        payload = trim(text.substr(open, bracket - open));
+        const std::string loc = text.substr(bracket + 1);
+        const std::size_t colon = loc.find(':');
+        if (colon != std::string::npos) {
+            try {
+                info.line = std::stoi(loc.substr(0, colon));
+                info.column = std::stoi(loc.substr(colon + 1));
+            } catch (...) {
+                info.line = -1;
+                info.column = -1;
+            }
+        }
+    } else {
+        payload = trim(text.substr(open));
+    }
+
+    if (payload.size() >= 2 && payload.front() == '(') {
+        payload = payload.substr(1);
+        if (!payload.empty() && payload.back() == ')') payload.pop_back();
+        info.lexeme = payload;
+    }
+
+    return info;
+}
+
+bool isParseTreeMetaLine(const std::string& text) {
+    return text.find("selesai") != std::string::npos ||
+           text.find("disimpan di") != std::string::npos ||
+           text.rfind("Output", 0) == 0;
+}
+
+parse_tree::NodePtr readParseTreeFromMilestone2Output(std::istream& in) {
+    std::vector<std::pair<int, std::string>> lines;
+    std::string raw;
+
+    while (std::getline(in, raw)) {
+        if (!raw.empty() && raw.back() == '\r') raw.pop_back();
+        const std::string text = trim(raw);
+        if (text.empty() || isParseTreeMetaLine(text)) continue;
+
+        const bool looksLikeNonTerminal = isParseTreeNonTerminal(text);
+        const bool looksLikeTerminal = text.find('(') != std::string::npos;
+        if (!looksLikeNonTerminal && !looksLikeTerminal) continue;
+
+        lines.push_back({parseTreeIndentLevel(raw), text});
+    }
+
+    if (lines.empty()) return nullptr;
+
+    struct Frame {
+        int level;
+        parse_tree::Node* node;
+    };
+    std::stack<Frame> stack;
+    parse_tree::NodePtr root = nullptr;
+
+    for (const auto& item : lines) {
+        const int level = item.first;
+        const std::string& content = item.second;
+        parse_tree::NodePtr node;
+
+        if (isParseTreeNonTerminal(content)) {
+            node = parse_tree::makeNonTerminal(parseTreeNonTerminalName(content));
+        } else {
+            ParseTreeTerminalInfo terminal = parseTreeTerminal(content);
+            node = parse_tree::makeTerminal(terminal.type, terminal.lexeme,
+                                            terminal.line, terminal.column);
+        }
+
+        parse_tree::Node* rawNode = node.get();
+        if (stack.empty()) {
+            root = std::move(node);
+            stack.push({level, rawNode});
+            continue;
+        }
+
+        while (!stack.empty() && stack.top().level >= level) {
+            stack.pop();
+        }
+
+        if (stack.empty()) {
+            throw std::runtime_error("Format parse tree tidak valid: ditemukan lebih dari satu root");
+        }
+
+        stack.top().node->addChild(std::move(node));
+        stack.push({level, rawNode});
+    }
+
+    return root;
+}
+
 void printSemanticResult(std::ostream& out,
                          semantic::AstPtr& astRoot,
                          ScopeBuilder& scopeBuilder,
@@ -316,8 +468,15 @@ int main(int argc, char* argv[]) {
         std::ostringstream decoratedAstBuffer;
 
         std::vector<Token> rawTokens;
+        parse_tree::NodePtr parseRoot;
 
-        if (options.tokenInput) {
+        if (options.parseTreeInput) {
+            parseRoot = readParseTreeFromMilestone2Output(inputFile);
+            if (!parseRoot) {
+                throw std::runtime_error("Gagal membaca parse tree dari " + options.inputFile);
+            }
+            parse_tree::printTree(parseRoot.get(), parseTreeBuffer);
+        } else if (options.tokenInput) {
             if (!options.saveDfaTrace.empty()) {
                 throw std::runtime_error("--save-dfa-trace hanya berlaku untuk input source code, bukan --from-tokens");
             }
@@ -355,16 +514,17 @@ int main(int argc, char* argv[]) {
             rawTokens = lexer.getResult();
         }
 
-        if (!options.saveTokens.empty()) {
-            writeOutputFile(options.saveTokens, tokenBuffer.str());
-        }
+        if (!options.parseTreeInput) {
+            if (!options.saveTokens.empty()) {
+                writeOutputFile(options.saveTokens, tokenBuffer.str());
+            }
 
-        if (options.lexOnly) {
-            std::cout << tokenBuffer.str();
-            return 0;
-        }
+            if (options.lexOnly) {
+                std::cout << tokenBuffer.str();
+                return 0;
+            }
 
-        std::vector<Token> parserTokens;
+            std::vector<Token> parserTokens;
         parserTokens.reserve(rawTokens.size());
         for (const Token& token : rawTokens) {
             if (isIgnoredByParser(token)) {
@@ -380,9 +540,10 @@ int main(int argc, char* argv[]) {
             parserTokens.push_back(token);
         }
 
-        Parser parser(parserTokens);
-        parse_tree::NodePtr parseRoot = parser.parse();
-        parse_tree::printTree(parseRoot.get(), parseTreeBuffer);
+            Parser parser(parserTokens);
+            parseRoot = parser.parse();
+            parse_tree::printTree(parseRoot.get(), parseTreeBuffer);
+        }
 
         if (!options.saveParseTree.empty()) {
             writeOutputFile(options.saveParseTree, parseTreeBuffer.str());
@@ -419,19 +580,18 @@ int main(int argc, char* argv[]) {
             writeOutputFile(options.saveAst, decoratedAstBuffer.str());
         }
 
-        if (options.printTac || options.run) {
-            if (scopeBuilder.hasErrors() || typeChecker.hasErrors()) {
-                if (scopeBuilder.hasErrors()) {
-                    std::cout << "Semantic errors\n";
-                    scopeBuilder.printErrors(std::cout);
-                }
-                if (typeChecker.hasErrors()) {
-                    std::cout << "Type errors\n";
-                    typeChecker.printErrors(std::cout);
-                }
-                return 1;
+        const bool semanticFailed = scopeBuilder.hasErrors() || typeChecker.hasErrors();
+        if (semanticFailed) {
+            // Milestone 3 failures must be observable from the process status.
+            // The decorated AST and symbol tables are still written first so the
+            // user/test can inspect the exact semantic/type error details.
+            if (!options.verbose && options.saveAst.empty()) {
+                std::cout << decoratedAstBuffer.str();
             }
+            return 1;
+        }
 
+        if (options.printTac || options.run) {
             backend::InstructionProgram tac;
             try {
                 backend::CodeGenerator codeGenerator;

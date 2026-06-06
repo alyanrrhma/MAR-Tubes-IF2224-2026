@@ -208,6 +208,13 @@ void TypeChecker::visitAssign(semantic::AssignNode& n)
             n.inferredType = semantic::TypeKind::Error;
             return;
         }
+        if (entry.obj == semantic::ObjectKind::Function &&
+            !isFunctionReturnAssign(n, currentFunctionIdx_)) {
+            report(n, "assignment ke nama fungsi '" + entry.identifier +
+                      "' hanya boleh dilakukan di dalam fungsi tersebut sebagai nilai return");
+            n.inferredType = semantic::TypeKind::Error;
+            return;
+        }
         if (!isAssignableObject(entry.obj)) {
             report(n, "sisi kiri assignment harus berupa variabel, parameter, atau elemen array/record");
             n.inferredType = semantic::TypeKind::Error;
@@ -434,15 +441,19 @@ void TypeChecker::visitRepeat(semantic::RepeatNode& n)
 void TypeChecker::visitFor(semantic::ForNode& n)
 {
     bool validControlVar = false;
-    const auto& entry = sym_->tabAt(n.tabIdx);
-    
-    if (entry.obj != semantic::ObjectKind::Variable)
-    {
-        report(n, "Variabel kontrol " + n.controlVar + " harus berupa variabel");
-    }
-    else validControlVar = true;
-    
-    if (n.tabIdx != semantic::NO_INDEX) {
+    if (n.tabIdx == semantic::NO_INDEX) {
+        report(n, "variabel kontrol for '" + n.controlVar + "' belum dideklarasikan");
+    } else {
+        const auto& entry = sym_->tabAt(n.tabIdx);
+        if (entry.obj != semantic::ObjectKind::Variable &&
+            entry.obj != semantic::ObjectKind::Parameter)
+        {
+            report(n, "variabel kontrol for '" + n.controlVar + "' harus berupa variabel");
+        }
+        else {
+            validControlVar = true;
+        }
+
         const semantic::TypeKind ct = entry.type;
         if (ct != semantic::TypeKind::Integer &&
             ct != semantic::TypeKind::Subrange &&
@@ -795,7 +806,10 @@ void TypeChecker::visitCharLit(semantic::CharLitNode& n)
 void TypeChecker::visitStringLit(semantic::StringLitNode& n)
 {
     n.inferredType = semantic::TypeKind::String;
-    n.typeRef = semantic::NO_INDEX;
+    // Pertahankan panjang string sebagai typeRef. ScopeBuilder sudah mengisi
+    // nilai ini, tetapi TypeChecker dapat dipanggil ulang sehingga nilai harus
+    // distabilkan di sini. Panjang digunakan untuk aturan kompatibilitas string.
+    n.typeRef = static_cast<int>(n.value.size());
 }
 
 void TypeChecker::visitBoolLit(semantic::BoolLitNode& n)
@@ -818,8 +832,17 @@ bool TypeChecker::compatibleWithRef(semantic::TypeKind a, int aRef,
     };
 
     if (a == b) {
-        if (a == semantic::TypeKind::Record) {
-            return aRef == bRef;
+        // Structured types must be compatible by definition/reference, not only
+        // by TypeKind. This preserves Pascal/Arion semantics: two anonymous
+        // arrays or two separately declared enumerated/record types are not
+        // interchangeable merely because their outer kind is equal. The ref
+        // value is the synthesized type descriptor produced by ScopeBuilder.
+        if (a == semantic::TypeKind::Array) {
+            return sameArrayTypeRef(aRef, bRef);
+        }
+        if (a == semantic::TypeKind::Record ||
+            a == semantic::TypeKind::Enumerated) {
+            return aRef != semantic::NO_INDEX && aRef == bRef;
         }
         if (a == semantic::TypeKind::String) {
             if (aRef == semantic::NO_INDEX || bRef == semantic::NO_INDEX) return true;
@@ -846,6 +869,66 @@ bool TypeChecker::compatibleWithRef(semantic::TypeKind a, int aRef,
     }
 
     return false;
+}
+
+bool TypeChecker::sameArrayTypeRef(int aRef, int bRef) const
+{
+    // Assignment compatibility for arrays is strict by descriptor reference.
+    // Same shape is not enough: separately declared named/anonymous array
+    // types receive different atab refs and must be rejected.
+    return aRef != semantic::NO_INDEX && aRef == bRef;
+}
+
+bool TypeChecker::sameArrayEntry(int aRef, int bRef, std::unordered_set<long long>& seen) const
+{
+    if (aRef == semantic::NO_INDEX || bRef == semantic::NO_INDEX) return false;
+    if (aRef == bRef) return true;
+    if (!sym_) return false;
+    if (aRef < 0 || bRef < 0 ||
+        aRef >= sym_->atabSize() || bRef >= sym_->atabSize()) {
+        return false;
+    }
+
+    const long long key = (static_cast<long long>(aRef) << 32) ^
+                          static_cast<unsigned int>(bRef);
+    if (seen.count(key)) return true;
+    seen.insert(key);
+
+    const auto& lhs = sym_->atabAt(aRef);
+    const auto& rhs = sym_->atabAt(bRef);
+
+    if (lhs.low != rhs.low || lhs.high != rhs.high || lhs.xtyp != rhs.xtyp) {
+        return false;
+    }
+
+    if (lhs.etyp != rhs.etyp) return false;
+
+    if (lhs.etyp == semantic::TypeKind::Array) {
+        return sameArrayEntry(lhs.eref, rhs.eref, seen);
+    }
+
+    if (lhs.etyp == semantic::TypeKind::Record ||
+        lhs.etyp == semantic::TypeKind::Enumerated) {
+        return lhs.eref != semantic::NO_INDEX && lhs.eref == rhs.eref;
+    }
+
+    if (lhs.etyp == semantic::TypeKind::String) {
+        return lhs.eref == rhs.eref ||
+               lhs.eref == semantic::NO_INDEX ||
+               rhs.eref == semantic::NO_INDEX;
+    }
+
+    if (lhs.etyp == semantic::TypeKind::Subrange) {
+        if (lhs.eref == rhs.eref) return true;
+        if (lhs.eref == semantic::NO_INDEX || rhs.eref == semantic::NO_INDEX) return false;
+        const auto& lrange = sym_->atabAt(lhs.eref);
+        const auto& rrange = sym_->atabAt(rhs.eref);
+        return lrange.low == rrange.low &&
+               lrange.high == rrange.high &&
+               lrange.xtyp == rrange.xtyp;
+    }
+
+    return true;
 }
 
 void TypeChecker::checkSubrangeBounds(const semantic::AstNode& node,
@@ -916,9 +999,13 @@ bool TypeChecker::assignmentCompatible(semantic::TypeKind lhsType, int lhsRef,
     };
 
     if (lhsType == rhsType) {
-        if (lhsType == semantic::TypeKind::Record) {
-            if (lhsRef != rhsRef) return false;
-            return true;
+        if (lhsType == semantic::TypeKind::Array) {
+            return sameArrayTypeRef(lhsRef, rhsRef);
+        }
+
+        if (lhsType == semantic::TypeKind::Record ||
+            lhsType == semantic::TypeKind::Enumerated) {
+            return lhsRef != semantic::NO_INDEX && lhsRef == rhsRef;
         }
 
         if (lhsType == semantic::TypeKind::String) {
