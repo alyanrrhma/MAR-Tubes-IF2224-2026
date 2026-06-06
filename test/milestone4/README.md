@@ -43,6 +43,8 @@ The Milestone 4 backend supports:
 - TAC generation with `--print-tac`
 - program execution with `--run`
 - direct intermediate-code execution with `--run-ir` for runtime/vulnerability tests
+- reloadable decorated AST bundle through `--save-ast ... --embed-parse-tree` and `--from-decorated-ast`
+- serialized string pool metadata in TAC output so `LITS` instructions can be re-run through `--run-ir`
 - semantic error blocking before TAC generation
 - runtime error reporting for division by zero, invalid opcode, invalid address, invalid jump target, stack underflow/overflow, integer overflow, and dynamic array out-of-bounds
 
@@ -72,9 +74,9 @@ The interpreter supports these instructions:
 The current Milestone 4 backend intentionally still limits:
 - `readln` execution, because runtime input is not required for the main execution tests
 - full real-number runtime arithmetic; `real` is recognized semantically, but the stack-machine execution focuses on integer/ordinal arithmetic
-- direct reconstruction from decorated-AST text; the executable generates code from the decorated AST produced internally by the Milestone 3 pipeline and can also start from Milestone 2 parse-tree output
+- arbitrary hand-written decorated-AST text is not accepted; `--from-decorated-ast` expects the decorated AST bundle produced by this compiler using `--save-ast <file> --embed-parse-tree`
 
-The implemented backend covers the main executable subset required for code generation, stack-machine execution, and runtime vulnerability checks.
+The implemented backend covers the main executable subset required for code generation, stack-machine execution, runtime vulnerability checks, and M4 execution from a saved decorated AST artifact.
 
 ---
 
@@ -127,6 +129,14 @@ To run saved stack-machine intermediate code directly:
 
 ```bash
 ./bin/arion --run-ir <intermediate-code.txt>
+```
+
+To save a decorated AST bundle and use it as the Milestone 4 input artifact:
+
+```bash
+./bin/arion <source.txt> --save-ast <decorated_ast.txt> --embed-parse-tree
+./bin/arion --from-decorated-ast <decorated_ast.txt> --print-tac
+./bin/arion --from-decorated-ast <decorated_ast.txt> --run
 ```
 
 ### Example
@@ -200,6 +210,8 @@ The Milestone 4 regression suite covers these execution scenarios:
 | Dynamic bounds check | Runtime `CHK` rejects out-of-bounds array index |
 | Invalid jump | `--run-ir` rejects invalid jump target |
 | Stack underflow | `--run-ir` rejects stack underflow |
+| Decorated AST input | Backend reloads a saved decorated AST bundle and executes it |
+| Serialized IR reload | `--run-ir` executes TAC with string-pool metadata |
 
 ---
 

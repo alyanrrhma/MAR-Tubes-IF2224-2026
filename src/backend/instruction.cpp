@@ -5,6 +5,26 @@
 #include <stdexcept>
 
 namespace backend {
+
+namespace {
+
+std::string escapePoolString(const std::string& value) {
+    std::string out;
+    for (char c : value) {
+        switch (c) {
+        case '\\': out += "\\\\"; break;
+        case '\n': out += "\\n"; break;
+        case '\t': out += "\\t"; break;
+        case '\r': out += "\\r"; break;
+        case '"': out += "\\\""; break;
+        default: out += c; break;
+        }
+    }
+    return out;
+}
+
+}  // namespace
+
 const char* toString(OpCode opcode) {
     switch (opcode) {
     case OpCode::INT: return "INT";
@@ -87,6 +107,9 @@ const std::vector<Instruction>& InstructionProgram::getInstructions() const {
 }
 
 void InstructionProgram::prettyPrint(std::ostream& out) const {
+    for (std::size_t i = 0; i < stringPool_.size(); ++i) {
+        out << "#STRING " << i << " \"" << escapePoolString(stringPool_[i]) << "\"\n";
+    }
     for (std::size_t i = 0; i < instructions_.size(); ++i) {
         const auto& instruction = instructions_[i];
         out << i << ' '
