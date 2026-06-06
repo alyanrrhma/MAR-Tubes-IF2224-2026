@@ -1,3 +1,6 @@
+#STRING 0 "one"
+#STRING 1 "two"
+#STRING 2 "three"
 0 INT 0 4
 1 LIT 0 2
 2 STO 0 3
