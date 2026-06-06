@@ -3,8 +3,6 @@
 #include <cctype>
 #include <stdexcept>
 
-// State-lihat penjelasan pada dfa.hpp
-
 State::State()
 {
     assignCharID("q_stale");
@@ -58,7 +56,6 @@ bool State::isNullState() const
 
 State::~State() {}
 
-// DFA-Lihat penjelasan pada dfa.hpp
 TokenType DFA::unknownToken = TokenType("UNKNOWN");
 bool DFA::isVisualized = false;
 State DFA::nullState = State();
@@ -153,7 +150,6 @@ void DFA::exportDFAConfig(std::string path) const
         return;
     }
 
-    // START
     if (!states.empty())
     {
         fs << "START " << states[0].getStateCharID() << "\n\n";
@@ -164,9 +160,6 @@ void DFA::exportDFAConfig(std::string path) const
         return;
     }
 
-    // FINAL
-    // stateIDtoTokenID : stateIdx -> tokenId
-    // tokenTypes[tokenId] diasumsikan valid dan posisinya sesuai id token
     for (const auto& entry : stateIDtoTokenID)
     {
         int stateIdx = entry.first;
@@ -189,7 +182,6 @@ void DFA::exportDFAConfig(std::string path) const
 
     fs << "\n";
 
-    // TRANSITIONS
     for (int from = 0; from < static_cast<int>(transTable.size()); ++from)
     {
         for (int ascii = 0; ascii < MAX_ASCII_USED; ++ascii)
@@ -252,7 +244,6 @@ void DFA::next(unsigned char c)
 {
     if (currStateIdx == -1)
     {
-        // std::cout << "Gagal melakukan pergantian state, DFA belum terinisiasi\n";
         return;
     }
     if (currStateIdx < 0 || currStateIdx >= static_cast<int>(transTable.size()))
@@ -262,7 +253,6 @@ void DFA::next(unsigned char c)
     }
 
     int16_t newStateIdx = transTable[currStateIdx][c];
-    // menghasilkan -1 jika state tidak ditemukan, artinya pada saat demikian state menjadi tidak valid atau null;
     currStateIdx = newStateIdx;
     if (isVisualized){
         visualizedProccToFile(c, getState());
@@ -314,12 +304,10 @@ TokenType DFA::getCurrToken() const
 {
     if (currStateIdx == -1)
     {
-        // std::cout << "Gagal mengambil token, DFA masih belum diinisialisasi\n";
         return unknownToken;
     }
     int tokId = getTokIDfromStateID(currStateIdx);
     if (tokId < 0){
-        // std::cout << "Pasangan dari state tidak ditemukan\n";
         return unknownToken;
     }
     return tokenTypes[tokId];

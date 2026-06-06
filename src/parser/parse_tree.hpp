@@ -80,7 +80,6 @@ class Node {
 public:
     Node(NodeKind kind, std::string label, std::string value = "", int line = -1, int column = -1);
 
-    // Takes ownership of raw child pointers produced by createTerminal/createNonTerminal.
     Node* addChild(Node* child);
     Node* addChild(std::unique_ptr<Node> child);
 

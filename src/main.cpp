@@ -300,7 +300,6 @@ std::vector<Token> readTokensFromMilestone1Output(std::istream& in, std::ostream
     return tokens;
 }
 
-
 int parseTreeIndentLevel(const std::string& line) {
     int spaces = 0;
     for (char c : line) {
@@ -582,9 +581,6 @@ int main(int argc, char* argv[]) {
 
         const bool semanticFailed = scopeBuilder.hasErrors() || typeChecker.hasErrors();
         if (semanticFailed) {
-            // Milestone 3 failures must be observable from the process status.
-            // The decorated AST and symbol tables are still written first so the
-            // user/test can inspect the exact semantic/type error details.
             if (!options.verbose && options.saveAst.empty()) {
                 std::cout << decoratedAstBuffer.str();
             }

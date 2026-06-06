@@ -8,16 +8,6 @@
 
 namespace backend {
 
-// Layout frame (relatif terhadap BP):
-//
-// BP+0 : Static Link    (BP frame yang secara leksikal melingkupi frame ini)
-// BP+1 : Dynamic Link   (BP frame pemanggil — dipulihkan saat RET)
-// BP+2 : Return Address (IP yang dilanjutkan setelah RET)
-// BP+3+: Variable Area  (satu slot per variabel lokal yang dideklarasikan)
-//
-// Setiap pemanggilan CAL mendorong header tiga slot ini lalu memperbarui BP.
-// RET membaca kembali header tersebut, melepas frame, dan memulihkan BP dan IP.
-
 class RuntimeValue {
 public:
     enum class Kind {

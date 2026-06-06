@@ -5,10 +5,7 @@
 #include <stdexcept>
 
 namespace backend {
-// Mengubah opcode TAC menjadi representasi teks agar mudah dibaca saat debugging atau menggunakan opsi CLI --print-tac
 const char* toString(OpCode opcode) {
-    // Mengubah sub-operasi OPR menjadi representasi teks
-    // Digunakan untuk dokumentasi dan debugging interpreter
     switch (opcode) {
     case OpCode::INT: return "INT";
     case OpCode::LIT: return "LIT";
@@ -47,19 +44,15 @@ Instruction::Instruction(OpCode opcode, int level, int operand)
     : opcode(opcode), level(level), operand(operand) {}
 
 int InstructionProgram::emit(OpCode opcode, int level, int operand) {
-    // Menambahkan instruksi baru ke program TAC dan mengembalikan alamat instruksi yang baru dibuat
     return emit(Instruction(opcode, level, operand));
 }
 
 int InstructionProgram::emit(const Instruction& instruction) {
-    // Menyimpan instruksi pada akhir program TAC
-    // Nilai return digunakan untuk proses backpatching
     instructions_.push_back(instruction);
     return static_cast<int>(instructions_.size()) - 1;
 }
 
 void InstructionProgram::patch(int address, int operand) {
-    // Backpatching digunakan ketika target lompatan belum diketahui saat instruksi JMP/JPC dibuat. Setelah alamat tujuan diketahui, operand instruksi diperbarui melalui fungsi ini
     if (address < 0 || address >= static_cast<int>(instructions_.size())) {
         throw std::out_of_range("alamat instruksi untuk patch tidak valid");
     }
@@ -67,8 +60,6 @@ void InstructionProgram::patch(int address, int operand) {
 }
 
 int InstructionProgram::currentAddress() const {
-    // Mengembalikan alamat instruksi berikutnya yang akan dihasilkan
-    // Digunakan oleh CodeGenerator saat menghitung target lompatan
     return static_cast<int>(instructions_.size());
 }
 
@@ -77,8 +68,6 @@ const std::vector<Instruction>& InstructionProgram::getInstructions() const {
 }
 
 void InstructionProgram::prettyPrint(std::ostream& out) const {
-    // Menampilkan TAC dalam format:
-    // <alamat> <opcode> <level> <operand>
     for (std::size_t i = 0; i < instructions_.size(); ++i) {
         const auto& instruction = instructions_[i];
         out << i << ' '

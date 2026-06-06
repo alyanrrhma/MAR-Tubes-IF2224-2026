@@ -9,12 +9,6 @@ namespace semantic {
 
 constexpr int NO_INDEX = -1;
 
-// Index convention:
-// - tab[0] is an empty sentinel. Valid lookup results are never 0.
-// - btab[0] is the global/predefined block.
-// - atab[0] is a "no array" sentinel.
-// - NO_INDEX means no link/reference/lookup result.
-
 enum class ObjectKind {
     Undefined,
     Reserved,

@@ -806,9 +806,6 @@ void TypeChecker::visitCharLit(semantic::CharLitNode& n)
 void TypeChecker::visitStringLit(semantic::StringLitNode& n)
 {
     n.inferredType = semantic::TypeKind::String;
-    // Pertahankan panjang string sebagai typeRef. ScopeBuilder sudah mengisi
-    // nilai ini, tetapi TypeChecker dapat dipanggil ulang sehingga nilai harus
-    // distabilkan di sini. Panjang digunakan untuk aturan kompatibilitas string.
     n.typeRef = static_cast<int>(n.value.size());
 }
 
@@ -832,11 +829,6 @@ bool TypeChecker::compatibleWithRef(semantic::TypeKind a, int aRef,
     };
 
     if (a == b) {
-        // Structured types must be compatible by definition/reference, not only
-        // by TypeKind. This preserves Pascal/Arion semantics: two anonymous
-        // arrays or two separately declared enumerated/record types are not
-        // interchangeable merely because their outer kind is equal. The ref
-        // value is the synthesized type descriptor produced by ScopeBuilder.
         if (a == semantic::TypeKind::Array) {
             return sameArrayTypeRef(aRef, bRef);
         }
@@ -873,9 +865,6 @@ bool TypeChecker::compatibleWithRef(semantic::TypeKind a, int aRef,
 
 bool TypeChecker::sameArrayTypeRef(int aRef, int bRef) const
 {
-    // Assignment compatibility for arrays is strict by descriptor reference.
-    // Same shape is not enough: separately declared named/anonymous array
-    // types receive different atab refs and must be rejected.
     return aRef != semantic::NO_INDEX && aRef == bRef;
 }
 

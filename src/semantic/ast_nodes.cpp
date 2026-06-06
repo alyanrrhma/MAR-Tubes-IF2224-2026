@@ -470,16 +470,12 @@ void printNodePretty(std::ostream& out, const AstNode* node, const std::string& 
     if (const auto* repeatNode = dynamic_cast<const RepeatNode*>(node)) {
         out << "Repeat\n";
         const std::string childPrefix = prefix + (last ? "    " : "|   ");
-        // Print the block as the first child, and the `until` expression as a
-        // sibling so they appear at the same level in the tree output.
         if (repeatNode->body) {
             printNodePretty(out, repeatNode->body.get(), childPrefix, false);
         } else {
-            // If there's no body, still emit an empty Block node
             out << childPrefix << ("\\-- Block\n");
         }
 
-        // Now print the until expression as the last child of Repeat
         printExprPretty(out, "until", repeatNode->condition.get(), childPrefix, true);
         return;
     }

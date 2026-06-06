@@ -4,8 +4,6 @@
 
 namespace backend {
 
-// RuntimeValue merepresentasikan nilai yang dapat disimpan pada stack evaluasi maupun area memori interpreter
-// Milestone 4 saat ini mendukung Integer dan Boolean.
 RuntimeValue RuntimeValue::integer(int value) {
     return RuntimeValue(Kind::Integer, value);
 }
@@ -99,11 +97,8 @@ std::size_t StackMachine::stackTop() const {
 }
 
 std::size_t StackMachine::walkStaticChain(std::size_t bp, int levels) const {
-    // Mengikuti rantai static link sebanyak `levels` langkah ke atas
-    // untuk menemukan base pointer frame tempat variabel dideklarasikan
     std::size_t current = bp;
     for (int i = 0; i < levels; ++i) {
-        // Static link tersimpan di current+0
         current = static_cast<std::size_t>(stackAt(current).asInteger());
     }
     return current;

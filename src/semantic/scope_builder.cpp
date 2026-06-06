@@ -52,7 +52,6 @@ void ScopeBuilder::visitProgramNode(semantic::ProgramNode& node)
     node.level = symTab->currentLevel();
     node.tabIdx = declareIdentifier(node, node.name, semantic::ObjectKind::Program, {semantic::TypeKind::Void, symTab->currentBlock(), 0});
 
-    // Kunjungi deklarasi global dan compound statement utama program
     visit(node.declaration.get());
     visit(node.statements.get());
 }
@@ -96,11 +95,6 @@ void ScopeBuilder::visitFormalParam(semantic::FormalParam& param)
     semantic::AstNode* owner = param.typeExpr.get();
     if(!owner) return;
 
-    // Spesifikasi/QnA Milestone 3 menuntut parameter formal tidak
-    // menabrak identifier yang sudah ada pada scope global program.
-    // Lookup current scope saja tidak cukup karena parameter berada pada
-    // block procedure/function baru. Karena itu kita cek global user symbol
-    // secara eksplisit sebelum memasukkan parameter.
     const int globalIdx = symTab->lookupGlobalScope(param.name);
     if (globalIdx != semantic::NO_INDEX && globalIdx >= symTab->firstUserIndex())
     {
@@ -129,11 +123,8 @@ void ScopeBuilder::visitProcDeclNode(semantic::ProcDeclNode& node)
         node.typeRef = blockIndex;
     }
 
-    // Daftarkan parameter; btab.lpar = indeks parameter terakhir
     for (auto& param: node.params) {visitFormalParam(param);}
-    // Set lpar ke identifier terakhir yang merupakan parameter
     symTab->btabAt(blockIndex).lpar = symTab->btabAt(blockIndex).last;
-    // psze = total ukuran parameter (tiap param = 1 unit)
     symTab->btabAt(blockIndex).psze = static_cast<int>(node.params.size());
 
     if (node.block)
@@ -158,7 +149,6 @@ void ScopeBuilder::visitFuncDeclNode(semantic::FuncDeclNode& node)
         node.typeRef = blockIndex;
     }
 
-    // Daftarkan parameter; btab.lpar = indeks parameter terakhir
     for (auto& param: node.params) {visitFormalParam(param);}
     symTab->btabAt(blockIndex).lpar = symTab->btabAt(blockIndex).last;
     symTab->btabAt(blockIndex).psze = static_cast<int>(node.params.size());
@@ -364,8 +354,6 @@ void ScopeBuilder::visitCharLitNode(semantic::CharLitNode& node)
 void ScopeBuilder::visitStringLitNode(semantic::StringLitNode& node)
 {
     node.inferredType = semantic::TypeKind::String;
-    // Simpan panjang string di typeRef agar type_checker bisa validasi
-    // kompatibilitas string (spesifikasi §II.C: string kompatibel jika panjang sama)
     node.typeRef = static_cast<int>(node.value.size());
 }
 void ScopeBuilder::visitBoolLitNode(semantic::BoolLitNode& node)
@@ -567,11 +555,9 @@ ScopeBuilder::TypeInfo ScopeBuilder::resolveRangeType(semantic::RangeNode& node)
     const long long lowVal  = constIntValue(node.low.get(),  lowOk);
     const long long highVal = constIntValue(node.high.get(), highOk);
 
-    // Inferensikan tipe literal low & high
     TypeInfo lowType  = inferExpression(node.low.get());
     TypeInfo highType = inferExpression(node.high.get());
 
-    // Aturan spesifikasi: subrange tidak boleh bertipe Real
     if (lowType.type  == semantic::TypeKind::Real ||
         highType.type == semantic::TypeKind::Real) {
         report(node, "subrange tidak boleh bertipe Real");
@@ -579,7 +565,6 @@ ScopeBuilder::TypeInfo ScopeBuilder::resolveRangeType(semantic::RangeNode& node)
         return {semantic::TypeKind::Error, semantic::NO_INDEX, 1};
     }
 
-    // Batas harus berupa konstanta integer (atau char/boolean ordinal)
     if (!lowOk || !highOk) {
         report(node, "batas range harus berupa konstanta integer");
         node.inferredType = semantic::TypeKind::Error;
@@ -605,7 +590,6 @@ ScopeBuilder::TypeInfo ScopeBuilder::resolveRangeType(semantic::RangeNode& node)
         return {semantic::TypeKind::Error, semantic::NO_INDEX, 1};
     }
 
-    // Aturan spesifikasi: lower bound tidak boleh lebih besar dari upper bound
     if (lowVal > highVal) {
         report(node, "lower bound (" + std::to_string(lowVal) +
                ") tidak boleh lebih besar dari upper bound (" +
@@ -614,8 +598,6 @@ ScopeBuilder::TypeInfo ScopeBuilder::resolveRangeType(semantic::RangeNode& node)
         return {semantic::TypeKind::Error, semantic::NO_INDEX, 1};
     }
 
-    // Simpan bounds di atab agar type_checker bisa cek assignment value
-    // xtyp/etyp menyimpan tipe dasar subrange (integer/char/boolean/enumerated)
     const int size = static_cast<int>(highVal - lowVal + 1);
     const int atabIdx = symTab->addArrayType(
         static_cast<int>(lowVal),
@@ -625,7 +607,6 @@ ScopeBuilder::TypeInfo ScopeBuilder::resolveRangeType(semantic::RangeNode& node)
         semantic::NO_INDEX,
         1  // elsz
     );
-    // Perbaiki size di atab (addArrayType belum set size dengan tepat untuk subrange)
     symTab->atabAt(atabIdx).size = size;
 
     node.inferredType = semantic::TypeKind::Subrange;
@@ -667,9 +648,6 @@ ScopeBuilder::TypeInfo ScopeBuilder::resolveEnumeratedType(semantic::EnumeratedT
         return {semantic::TypeKind::Error, semantic::NO_INDEX, 1};
     }
 
-    // Enumerated type receives a unique descriptor in atab. The descriptor is
-    // intentionally reference-based so type compatibility can reject different
-    // enumerated definitions even when both have TypeKind::Enumerated.
     const int enumRef = symTab->addArrayType(
         0,
         static_cast<int>(node.identifiers.empty() ? 0 : node.identifiers.size() - 1),
@@ -684,7 +662,6 @@ ScopeBuilder::TypeInfo ScopeBuilder::resolveEnumeratedType(semantic::EnumeratedT
     return {semantic::TypeKind::Enumerated, enumRef, 1};
 
 }
-
 
 ScopeBuilder::TypeInfo ScopeBuilder::inferExpression(semantic::AstNode* node)
 {

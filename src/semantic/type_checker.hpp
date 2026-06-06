@@ -61,10 +61,8 @@ private:
     void visitStringLit(semantic::StringLitNode& n);
     void visitBoolLit(semantic::BoolLitNode& n);
 
-    
     bool compatible(semantic::TypeKind a, semantic::TypeKind b) const;
 
-    
     bool compatibleWithRef(semantic::TypeKind a, int aRef,
                            semantic::TypeKind b, int bRef) const;
 
