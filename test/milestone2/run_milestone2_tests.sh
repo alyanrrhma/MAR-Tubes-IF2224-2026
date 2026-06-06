@@ -39,6 +39,7 @@ for n in "${parse_tree_cases[@]}"; do
   echo "[OK] parser input$n"
 done
 
+# Newer numbered parser cases follow the same output naming pattern as the legacy tests.
 for n in 21 22 23; do
   actual="$TMP_DIR/parse_tree$n.txt"
   "$BIN" "$INPUT_DIR/input$n.txt" --parse-only --save-parse-tree "$actual" > /dev/null
@@ -51,22 +52,8 @@ actual="$TMP_DIR/parse_tree24.txt"
 assert_same_file "$OUTPUT_DIR/parse_tree24.txt" "$actual"
 echo "[OK] parser input24 from tokens"
 
-invalid_syntax_cases=(11 12 13 14 15)
-for n in "${invalid_syntax_cases[@]}"; do
-  set +e
-  "$BIN" "$INPUT_DIR/input$n.txt" --parse-only --save-parse-tree "$TMP_DIR/invalid$n.txt" > "$TMP_DIR/stdout$n.txt" 2> "$TMP_DIR/stderr$n.txt"
-  code=$?
-  set -e
-  if [[ $code -eq 0 ]]; then
-    echo "[FAIL] input$n seharusnya syntax error" >&2
-    exit 1
-  fi
-  grep -qi "ParseError" "$TMP_DIR/stderr$n.txt"
-  echo "[OK] parser input$n rejected invalid syntax"
-done
-
-new_invalid_cases=(25 26 27)
-for n in "${new_invalid_cases[@]}"; do
+invalid_cases=(11 12 13 14 15 25 26 27)
+for n in "${invalid_cases[@]}"; do
   set +e
   "$BIN" "$INPUT_DIR/input$n.txt" --parse-only --save-parse-tree "$TMP_DIR/invalid$n.txt" > "$TMP_DIR/stdout$n.txt" 2> "$TMP_DIR/stderr$n.txt"
   code=$?
@@ -79,5 +66,6 @@ for n in "${new_invalid_cases[@]}"; do
   assert_same_file "$OUTPUT_DIR/error$n.txt" "$TMP_DIR/stderr$n.txt"
   echo "[OK] parser input$n rejected invalid syntax"
 done
+
 
 echo "Milestone 2 parser regression tests passed."

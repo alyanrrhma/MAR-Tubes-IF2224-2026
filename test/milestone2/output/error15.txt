@@ -1,0 +1,1 @@
+[ParseError] Urutan deklarasi tidak valid. Deklarasi harus berurutan: const, type, var, procedure/function. Mendapat 'CONSTSY'

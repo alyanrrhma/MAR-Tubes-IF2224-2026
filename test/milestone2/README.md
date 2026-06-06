@@ -144,7 +144,27 @@ The suite covers these grading-oriented cases:
 
 | Input | Expected Output File(s) | Purpose |
 |---|---|---|
-| `input21.txt` | `token21.txt`, `parse_tree21.txt` | Valid basic program from the specification pattern |
+| `input1.txt` | `token1.txt`, `parse_tree1.txt` | Valid basic program, declarations, assignment, expression, and `writeln` |
+| `input2.txt` | `token2.txt`, `parse_tree2.txt` | Constant declaration, type declaration, range, and enumerated type |
+| `input3.txt` | `token3.txt`, `parse_tree3.txt` | Array type, record type, selector, and `for` loop |
+| `input4.txt` | `token4.txt`, `parse_tree4.txt` | Conditional statement and relational expression |
+| `input5.txt` | `token5.txt`, `parse_tree5.txt` | Loop statements with compound bodies |
+| `input6.txt` | `token6.txt`, `parse_tree6.txt` | Procedure/function declaration and call structure |
+| `input7.txt` | `token7.txt`, `parse_tree7.txt` | Case statement grammar |
+| `input8.txt` | `token8.txt`, `parse_tree8.txt` | Repeat-until grammar |
+| `input9.txt` | `token9.txt`, `parse_tree9.txt` | Nested statement structure |
+| `input10.txt` | `token10.txt`, `parse_tree10.txt` | Larger valid program covering multiple grammar forms |
+| `input11.txt` | `token11.txt`, `error11.txt` | Rejects missing semicolon before a statement |
+| `input12.txt` | `token12.txt`, `error12.txt` | Rejects assignment written inside the declaration section |
+| `input13.txt` | `token13.txt`, `error13.txt` | Rejects `for ... do` with a single statement body |
+| `input14.txt` | `token14.txt`, `error14.txt` | Rejects extra token after final period |
+| `input15.txt` | `token15.txt`, `error15.txt` | Rejects invalid declaration order |
+| `input16.txt` | `token16.txt`, `parse_tree16.txt` | Array declaration with identifier index type |
+| `input17.txt` | `token17.txt`, `parse_tree17.txt` | Array declaration with range index |
+| `input18.txt` | `token18.txt`, `parse_tree18.txt` | Component chain with array and record selectors |
+| `input19.txt` | `token19.txt`, `parse_tree19.txt` | Array index using expression |
+| `input20.txt` | `token20.txt`, `parse_tree20.txt` | Valid declaration order: const, type, var |
+| `input21.txt` | `token21.txt`, `parse_tree21.txt` | Regression test for a valid basic parser case |
 | `input22.txt` | `token22.txt`, `parse_tree22.txt` | `while` and `for` using required `begin ... end` compound bodies |
 | `input23.txt` | `token23.txt`, `parse_tree23.txt` | Array type, record type, array selector, and field selector parse tree |
 | `input24.txt` | `parse_tree24.txt` | Parser reads Milestone 1 token output directly, so no separate token output is regenerated |

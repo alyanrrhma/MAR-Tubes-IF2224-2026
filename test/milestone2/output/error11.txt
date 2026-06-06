@@ -1,0 +1,1 @@
+[ParseError] Diharapkan 'ENDSY', mendapat 'IDENT' (writeln)
