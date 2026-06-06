@@ -44,12 +44,16 @@ private:
     void generateReturn(const semantic::ReturnNode& node);
     void generateIf(const semantic::IfNode& node);
     void generateWhile(const semantic::WhileNode& node);
+    void generateRepeat(const semantic::RepeatNode& node);
+    void generateFor(const semantic::ForNode& node);
+    void generateCase(const semantic::CaseNode& node);
     void generateVar(const semantic::VarNode& node);
     void generateIntLit(const semantic::IntLitNode& node);
     void generateBoolLit(const semantic::BoolLitNode& node);
     void generateUnaryOp(const semantic::UnaryOpNode& node);
     void generateBinOp(const semantic::BinOpNode& node);
     void generateStringLit(const semantic::StringLitNode& node);
+    void generateCharLit(const semantic::CharLitNode& node);
     void generateArrayAccess(const semantic::ArrayAccessNode& node);
     void generateFieldAccess(const semantic::FieldAccessNode& node);
 

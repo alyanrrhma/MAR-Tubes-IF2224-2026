@@ -13,10 +13,6 @@ std::string unsupported(const semantic::AstNode& node) {
     return std::string("CodeGenerator belum mendukung node ") + node.kindName();
 }
 
-bool isExecutableDeclaration(semantic::AstKind kind) {
-    return kind == semantic::AstKind::ProcDecl ||
-           kind == semantic::AstKind::FuncDecl;
-}
 
 std::string lowerName(std::string value) {
     std::transform(value.begin(), value.end(), value.begin(),
@@ -87,6 +83,15 @@ void CodeGenerator::generateStatement(const semantic::AstNode* node) {
     case semantic::AstKind::While:
         generateWhile(static_cast<const semantic::WhileNode&>(*node));
         break;
+    case semantic::AstKind::Repeat:
+        generateRepeat(static_cast<const semantic::RepeatNode&>(*node));
+        break;
+    case semantic::AstKind::For:
+        generateFor(static_cast<const semantic::ForNode&>(*node));
+        break;
+    case semantic::AstKind::Case:
+        generateCase(static_cast<const semantic::CaseNode&>(*node));
+        break;
     case semantic::AstKind::Compound:
         generateCompound(static_cast<const semantic::CompoundNode&>(*node));
         break;
@@ -125,6 +130,9 @@ void CodeGenerator::generateExpression(const semantic::AstNode* node) {
         break;
     case semantic::AstKind::StringLit:
         generateStringLit(static_cast<const semantic::StringLitNode&>(*node));
+        break;
+    case semantic::AstKind::CharLit:
+        generateCharLit(static_cast<const semantic::CharLitNode&>(*node));
         break;
     case semantic::AstKind::ArrayAccess:
         generateArrayAccess(static_cast<const semantic::ArrayAccessNode&>(*node));
@@ -348,6 +356,71 @@ void CodeGenerator::generateWhile(const semantic::WhileNode& node) {
     program_.patch(exitJump, program_.currentAddress());
 }
 
+void CodeGenerator::generateRepeat(const semantic::RepeatNode& node) {
+    const int loopStart = program_.currentAddress();
+    generateCompound(*node.body);
+    generateExpression(node.condition.get());
+    program_.emit(OpCode::JPC, 0, loopStart);
+}
+
+void CodeGenerator::generateFor(const semantic::ForNode& node) {
+    if (node.tabIdx == semantic::NO_INDEX || !symbolTable_) {
+        throw std::runtime_error("for control variable belum memiliki entri symbol table");
+    }
+
+    generateExpression(node.startExpr.get());
+    program_.emit(OpCode::STO, levelDifference(node), variableAddress(node));
+
+    const int loopStart = program_.currentAddress();
+    program_.emit(OpCode::LOD, levelDifference(node), variableAddress(node));
+    generateExpression(node.endExpr.get());
+    program_.emit(OpCode::OPR, 0, static_cast<int>(node.downto ? OprCode::GEQ : OprCode::LEQ));
+    const int exitJump = program_.emit(OpCode::JPC, 0, 0);
+
+    generateStatement(node.body.get());
+
+    program_.emit(OpCode::LOD, levelDifference(node), variableAddress(node));
+    program_.emit(OpCode::LIT, 0, 1);
+    program_.emit(OpCode::OPR, 0, static_cast<int>(node.downto ? OprCode::SUB : OprCode::ADD));
+    program_.emit(OpCode::STO, levelDifference(node), variableAddress(node));
+    program_.emit(OpCode::JMP, 0, loopStart);
+
+    program_.patch(exitJump, program_.currentAddress());
+}
+
+void CodeGenerator::generateCase(const semantic::CaseNode& node) {
+    std::vector<int> endJumps;
+
+    for (const auto& branch : node.branches) {
+        if (!branch || branch->labels.empty()) continue;
+
+        std::vector<int> jumpToBody;
+        for (const auto& label : branch->labels) {
+            generateExpression(node.selector.get());
+            generateExpression(label.get());
+            program_.emit(OpCode::OPR, 0, static_cast<int>(OprCode::EQL));
+            const int nextLabelJump = program_.emit(OpCode::JPC, 0, 0);
+            jumpToBody.push_back(program_.emit(OpCode::JMP, 0, 0));
+            program_.patch(nextLabelJump, program_.currentAddress());
+        }
+
+        const int noMatchJump = program_.emit(OpCode::JMP, 0, 0);
+        const int bodyAddress = program_.currentAddress();
+        for (int jump : jumpToBody) {
+            program_.patch(jump, bodyAddress);
+        }
+
+        generateStatement(branch->statement.get());
+        endJumps.push_back(program_.emit(OpCode::JMP, 0, 0));
+        program_.patch(noMatchJump, program_.currentAddress());
+    }
+
+    const int endAddress = program_.currentAddress();
+    for (int jump : endJumps) {
+        program_.patch(jump, endAddress);
+    }
+}
+
 void CodeGenerator::generateVar(const semantic::VarNode& node) {
     if (!symbolTable_ || node.tabIdx == semantic::NO_INDEX) {
         throw std::runtime_error("variabel '" + node.name + "' belum memiliki entri symbol table");
@@ -380,6 +453,10 @@ void CodeGenerator::generateStringLit(const semantic::StringLitNode& node) {
     program_.emit(OpCode::LITS, 0, idx);
 }
 
+void CodeGenerator::generateCharLit(const semantic::CharLitNode& node) {
+    program_.emit(OpCode::LIT, 0, static_cast<unsigned char>(node.value));
+}
+
 void CodeGenerator::generateArrayAccess(const semantic::ArrayAccessNode& node) {
     generateAddress(&node);
     program_.emit(OpCode::LODI, 0, 0);
@@ -409,6 +486,7 @@ void CodeGenerator::generateAddress(const semantic::AstNode* node) {
             }
             const auto& atab = symbolTable_->atabAt(atabIdx);
             generateExpression(idxExpr.get());         // dorong indeks
+            program_.emit(OpCode::CHK, atab.low, atab.high); // validasi batas runtime
             program_.emit(OpCode::LIT, 0, atab.low);  // dorong batas bawah
             program_.emit(OpCode::OPR, 0, static_cast<int>(OprCode::SUB)); // i - low
             program_.emit(OpCode::LIT, 0, atab.elsz); // dorong ukuran elemen
