@@ -39,6 +39,7 @@ struct Options {
     bool verbose = false;
     bool printTac = false;
     bool run = false;
+    bool runIr = false;
 };
 
 void printUsage(const char* programName) {
@@ -51,6 +52,7 @@ void printUsage(const char* programName) {
         << "  " << programName << " <program.txt> [--verbose]\n"
         << "  " << programName << " <program.txt> --print-tac\n"
         << "  " << programName << " <program.txt> --run\n"
+        << "  " << programName << " --run-ir <intermediate-code.txt>\n"
         << "  " << programName << " <program.txt> --save-tokens <file> [--save-parse-tree <file>] [--save-ast <file>] [--verbose]\n\n"
         << "Options:\n"
         << "  --lex-only              Run lexical analysis only, print tokens, then stop\n"
@@ -60,6 +62,7 @@ void printUsage(const char* programName) {
         << "  --verbose               Print tokens, parse tree, and decorated AST to stdout\n"
         << "  --print-tac             Generate TAC, print it, then stop\n"
         << "  --run                   Generate TAC and run it with the interpreter\n"
+        << "  --run-ir <file>         Run saved stack-machine intermediate code directly\n"
         << "  --save-tokens <file>    Save tokens to <file>\n"
         << "  --save-dfa-trace <file> Save DFA transition trace during lexical analysis\n"
         << "  --save-parse-tree <file> Save parse tree to <file>\n"
@@ -118,6 +121,17 @@ Options parseOptions(int argc, char* argv[]) {
 
         if (arg == "--run") {
             options.run = true;
+            ++i;
+            continue;
+        }
+
+        if (arg == "--run-ir") {
+            if (i + 1 >= argc) {
+                throw std::runtime_error("--run-ir membutuhkan nama file intermediate code");
+            }
+            options.inputFile = argv[++i];
+            options.runIr = true;
+            inputSet = true;
             ++i;
             continue;
         }
@@ -213,6 +227,12 @@ Options parseOptions(int argc, char* argv[]) {
 
     if (!inputSet) {
         throw std::runtime_error("Argumen input tidak diberikan");
+    }
+
+    if (options.runIr && (options.lexOnly || options.parseOnly || options.tokenInput || options.parseTreeInput ||
+                          options.printTac || options.run || !options.saveTokens.empty() ||
+                          !options.saveParseTree.empty() || !options.saveAst.empty())) {
+        throw std::runtime_error("--run-ir tidak dapat digabungkan dengan mode frontend/backend lain");
     }
 
     if (options.lexOnly && (options.tokenInput || options.parseTreeInput)) {
@@ -428,6 +448,55 @@ parse_tree::NodePtr readParseTreeFromMilestone2Output(std::istream& in) {
     return root;
 }
 
+
+backend::OpCode parseOpcode(const std::string& name) {
+    if (name == "INT") return backend::OpCode::INT;
+    if (name == "LIT") return backend::OpCode::LIT;
+    if (name == "LOD") return backend::OpCode::LOD;
+    if (name == "STO") return backend::OpCode::STO;
+    if (name == "CAL") return backend::OpCode::CAL;
+    if (name == "JMP") return backend::OpCode::JMP;
+    if (name == "JPC") return backend::OpCode::JPC;
+    if (name == "OPR") return backend::OpCode::OPR;
+    if (name == "RET") return backend::OpCode::RET;
+    if (name == "LITB") return backend::OpCode::LITB;
+    if (name == "LITS") return backend::OpCode::LITS;
+    if (name == "ADDR") return backend::OpCode::ADDR;
+    if (name == "LODI") return backend::OpCode::LODI;
+    if (name == "STOI") return backend::OpCode::STOI;
+    if (name == "CHK") return backend::OpCode::CHK;
+    throw std::runtime_error("opcode intermediate code tidak dikenal: " + name);
+}
+
+backend::InstructionProgram readInstructionProgram(std::istream& in) {
+    backend::InstructionProgram program;
+    std::string line;
+    int expectedAddress = 0;
+
+    while (std::getline(in, line)) {
+        line = trim(line);
+        if (line.empty() || line[0] == '#') continue;
+
+        std::istringstream iss(line);
+        int address = 0;
+        std::string opcode;
+        int level = 0;
+        int operand = 0;
+
+        if (!(iss >> address >> opcode >> level >> operand)) {
+            throw std::runtime_error("format intermediate code tidak valid: " + line);
+        }
+        if (address != expectedAddress) {
+            throw std::runtime_error("alamat intermediate code tidak berurutan pada baris: " + line);
+        }
+
+        program.emit(parseOpcode(opcode), level, operand);
+        ++expectedAddress;
+    }
+
+    return program;
+}
+
 void printSemanticResult(std::ostream& out,
                          semantic::AstPtr& astRoot,
                          ScopeBuilder& scopeBuilder,
@@ -459,6 +528,14 @@ int main(int argc, char* argv[]) {
         if (!inputFile.is_open()) {
             std::cerr << "Gagal membuka file input: " << options.inputFile << "\n";
             return 1;
+        }
+
+        if (options.runIr) {
+            backend::InstructionProgram ir = readInstructionProgram(inputFile);
+            backend::Interpreter interpreter;
+            interpreter.execute(ir);
+            std::cout << interpreter.getOutput();
+            return 0;
         }
 
         std::ostringstream tokenBuffer;
