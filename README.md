@@ -210,7 +210,19 @@ Run supported Milestone 4 programs with:
 ./bin/arion <program.txt> --run
 ```
 
-Supported backend execution currently includes assignment, integer arithmetic, comparison, `if`, `if-else`, `while`, and `writeln`.
+Run saved stack-machine intermediate code directly for runtime/vulnerability tests with:
+
+```bash
+./bin/arion --run-ir <intermediate-code.txt>
+```
+
+Supported backend execution includes assignment, integer/boolean/string literals, character literals as ordinal values, arithmetic, comparison, `if`, `if-else`, `while`, `for`, `repeat-until`, `case`, procedure/function calls, array access, record field access, `writeln`, TAC printing, and stack-machine execution. Runtime checks cover division by zero, invalid jump targets, stack underflow/overflow, invalid addresses, integer overflow, and dynamic array bounds through `CHK`.
+
+Run the Milestone 4 regression suite with:
+
+```bash
+./test/milestone4/run_milestone4_tests.sh
+```
 
 ## Contributors
 
