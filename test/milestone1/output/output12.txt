@@ -1,0 +1,21 @@
+comment ({ this is a comment })
+comment ((* this is a comment *))
+comment ({ this is
+   a multiline
+   comment })
+comment ((* 
+   this is
+   another multiline
+   comment 
+*))
+comment ({ comment containing 'string text' and := + - * / ; , . })
+comment ((* comment containing 'hello'
+   and Arion-like code: x := 'abc'; *))
+comment ({abc*))
+unknown (})
+comment ((*abc})
+comment ((* Atau gini (**))
+comment ({Atau gini *))
+unknown (})
+string ('not { a comment }')
+string ('not (* a comment *)')

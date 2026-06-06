@@ -118,7 +118,7 @@ void Lexer::process_next_token() {
                                     int line,
                                     int col,
                                     const std::string& lex) {
-        std::cerr << "[" << line << ":" << col << "] Lexical error: "
+        std::cerr << "[" << line << ":" << col << "] lexical error: "
                   << message;
         if (!lex.empty()) {
             std::cerr << " (near '" << lex << "')";
@@ -155,7 +155,7 @@ void Lexer::process_next_token() {
             prev = c;
         }
 
-        report_lexical_error("komentar belum ditutup", start_line, start_col, lexeme);
+        report_lexical_error("unterminated comment", start_line, start_col, lexeme);
         emit_unknown(lexeme);
     };
 
