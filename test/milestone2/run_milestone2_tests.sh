@@ -39,7 +39,6 @@ for n in "${parse_tree_cases[@]}"; do
   echo "[OK] parser input$n"
 done
 
-# Newer numbered parser cases follow the same output naming pattern as the legacy tests.
 for n in 21 22 23; do
   actual="$TMP_DIR/parse_tree$n.txt"
   "$BIN" "$INPUT_DIR/input$n.txt" --parse-only --save-parse-tree "$actual" > /dev/null
@@ -52,8 +51,8 @@ actual="$TMP_DIR/parse_tree24.txt"
 assert_same_file "$OUTPUT_DIR/parse_tree24.txt" "$actual"
 echo "[OK] parser input24 from tokens"
 
-legacy_invalid_cases=(11 12 13 14 15)
-for n in "${legacy_invalid_cases[@]}"; do
+invalid_syntax_cases=(11 12 13 14 15)
+for n in "${invalid_syntax_cases[@]}"; do
   set +e
   "$BIN" "$INPUT_DIR/input$n.txt" --parse-only --save-parse-tree "$TMP_DIR/invalid$n.txt" > "$TMP_DIR/stdout$n.txt" 2> "$TMP_DIR/stderr$n.txt"
   code=$?
