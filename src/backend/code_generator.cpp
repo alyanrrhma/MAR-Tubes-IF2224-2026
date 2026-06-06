@@ -125,6 +125,9 @@ void CodeGenerator::generateExpression(const semantic::AstNode* node) {
     case semantic::AstKind::IntLit:
         generateIntLit(static_cast<const semantic::IntLitNode&>(*node));
         break;
+    case semantic::AstKind::RealLit:
+        generateRealLit(static_cast<const semantic::RealLitNode&>(*node));
+        break;
     case semantic::AstKind::BoolLit:
         generateBoolLit(static_cast<const semantic::BoolLitNode&>(*node));
         break;
@@ -186,6 +189,7 @@ void CodeGenerator::generateProgram(const semantic::ProgramNode& node) {
 void CodeGenerator::generateBlock(const semantic::BlockNode& node) {
     const int savedLevel = currentLevel_;
     currentLevel_ = node.level == semantic::NO_INDEX ? savedLevel : node.level;
+    if (node.declaration) generateNestedDeclarations(*node.declaration);
     if (node.statements) generateCompound(*node.statements);
     currentLevel_ = savedLevel;
 }
@@ -222,8 +226,7 @@ void CodeGenerator::generateProcDecl(const semantic::ProcDeclNode& node) {
     program_.emit(OpCode::INT, 0, procFrameSize(btabIdx));
 
     if (node.block) {
-        if (node.block->declaration) generateNestedDeclarations(*node.block->declaration);
-        if (node.block->statements) generateCompound(*node.block->statements);
+        generateBlock(*node.block);
     }
 
     // RET: bersihkan psze slot parameter dan kembalikan tanpa nilai
@@ -252,8 +255,7 @@ void CodeGenerator::generateFuncDecl(const semantic::FuncDeclNode& node) {
     program_.emit(OpCode::INT, 0, procFrameSize(btabIdx));
 
     if (node.block) {
-        if (node.block->declaration) generateNestedDeclarations(*node.block->declaration);
-        if (node.block->statements) generateCompound(*node.block->statements);
+        generateBlock(*node.block);
     }
 
     // Fallback jika fungsi jatuh tanpa return eksplisit: kembalikan 0
@@ -299,6 +301,18 @@ void CodeGenerator::generateProcCall(const semantic::ProcCallNode& node) {
             const bool isLast = i + 1 == node.args.size();
             const OprCode outputOp = (name == "writeln" && isLast) ? OprCode::WRTLN : OprCode::WRT;
             program_.emit(OpCode::OPR, 0, static_cast<int>(outputOp));
+        }
+        return;
+    }
+
+    if (name == "read" || name == "readln") {
+        if (node.args.empty()) {
+            throw std::runtime_error("CodeGenerator membutuhkan target untuk '" + node.name + "'");
+        }
+        for (const auto& arg : node.args) {
+            generateAddress(arg.get());
+            program_.emit(OpCode::LIT, 0, runtimeTypeCode(*arg));
+            program_.emit(OpCode::OPR, 0, static_cast<int>(name == "readln" ? OprCode::RDLN : OprCode::RDI));
         }
         return;
     }
@@ -444,6 +458,11 @@ void CodeGenerator::generateIntLit(const semantic::IntLitNode& node) {
     program_.emit(OpCode::LIT, 0, static_cast<int>(node.value));
 }
 
+void CodeGenerator::generateRealLit(const semantic::RealLitNode& node) {
+    const int idx = program_.addReal(node.value);
+    program_.emit(OpCode::LITR, 0, idx);
+}
+
 void CodeGenerator::generateBoolLit(const semantic::BoolLitNode& node) {
     program_.emit(OpCode::LITB, 0, node.value ? 1 : 0);
 }
@@ -582,14 +601,69 @@ int CodeGenerator::initialFrameSize(const semantic::ProgramNode& node) const {
         }
     }
 
-    return FRAME_HEADER_SIZE + symbolTable_->btabAt(blockIndex).vsze;
+    return FRAME_HEADER_SIZE + blockVariableSize(blockIndex);
 }
 
 int CodeGenerator::procFrameSize(int btabIdx) const {
     if (!symbolTable_) return FRAME_HEADER_SIZE;
     const auto& btab = symbolTable_->btabAt(btabIdx);
-    // Header + slot variabel lokal saja; slot parameter sudah didorong caller
-    return FRAME_HEADER_SIZE + (btab.vsze - btab.psze);
+    // Header + slot variabel lokal saja; slot parameter sudah didorong caller.
+    const int computed = blockVariableSize(btabIdx) - btab.psze;
+    return FRAME_HEADER_SIZE + std::max(0, computed);
+}
+
+int CodeGenerator::blockVariableSize(int btabIdx) const {
+    if (!symbolTable_ || btabIdx == semantic::NO_INDEX) return 0;
+
+    int maxSlot = 0;
+    int current = symbolTable_->btabAt(btabIdx).last;
+    while (current != semantic::NO_INDEX) {
+        const auto& entry = symbolTable_->tabAt(current);
+        if (entry.obj == semantic::ObjectKind::Variable ||
+            entry.obj == semantic::ObjectKind::Parameter ||
+            entry.obj == semantic::ObjectKind::Field) {
+            maxSlot = std::max(maxSlot, entry.adr + typeSize(entry.type, entry.ref));
+        }
+        current = entry.link;
+    }
+    return std::max(maxSlot, symbolTable_->btabAt(btabIdx).vsze);
+}
+
+int CodeGenerator::typeSize(semantic::TypeKind type, int ref) const {
+    if (!symbolTable_) return 1;
+    switch (type) {
+    case semantic::TypeKind::Array:
+        if (ref != semantic::NO_INDEX) return std::max(1, symbolTable_->atabAt(ref).size);
+        return 1;
+    case semantic::TypeKind::Record:
+        if (ref != semantic::NO_INDEX) return std::max(1, blockVariableSize(ref));
+        return 1;
+    default:
+        return 1;
+    }
+}
+
+int CodeGenerator::runtimeTypeCode(const semantic::AstNode& node) const {
+    semantic::TypeKind type = node.inferredType;
+    if (type == semantic::TypeKind::Unknown && symbolTable_ && node.tabIdx != semantic::NO_INDEX) {
+        type = symbolTable_->tabAt(node.tabIdx).type;
+    }
+    switch (type) {
+    case semantic::TypeKind::Integer:
+    case semantic::TypeKind::Subrange:
+    case semantic::TypeKind::Enumerated:
+        return 1;
+    case semantic::TypeKind::Real:
+        return 2;
+    case semantic::TypeKind::Char:
+        return 3;
+    case semantic::TypeKind::Boolean:
+        return 4;
+    case semantic::TypeKind::String:
+        return 5;
+    default:
+        throw std::runtime_error("read/readln hanya mendukung target scalar sederhana");
+    }
 }
 
 OprCode CodeGenerator::mapBinaryOp(semantic::BinOpKind op) {

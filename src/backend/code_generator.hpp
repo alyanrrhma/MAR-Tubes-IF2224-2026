@@ -49,6 +49,7 @@ private:
     void generateCase(const semantic::CaseNode& node);
     void generateVar(const semantic::VarNode& node);
     void generateIntLit(const semantic::IntLitNode& node);
+    void generateRealLit(const semantic::RealLitNode& node);
     void generateBoolLit(const semantic::BoolLitNode& node);
     void generateUnaryOp(const semantic::UnaryOpNode& node);
     void generateBinOp(const semantic::BinOpNode& node);
@@ -67,6 +68,9 @@ private:
     int levelDifference(const semantic::AstNode& node) const;
     int initialFrameSize(const semantic::ProgramNode& node) const;
     int procFrameSize(int btabIdx) const;
+    int blockVariableSize(int btabIdx) const;
+    int typeSize(semantic::TypeKind type, int ref) const;
+    int runtimeTypeCode(const semantic::AstNode& node) const;
     static OprCode mapBinaryOp(semantic::BinOpKind op);
 };
 
