@@ -23,6 +23,8 @@ std::size_t checkedJumpTarget(int address, std::size_t limit) {
     return static_cast<std::size_t>(address);
 }
 
+const int FRAME_HEADER_SIZE = 3;
+
 }  
 
 void Interpreter::execute(const InstructionProgram& program) {
@@ -67,6 +69,9 @@ void Interpreter::execute(const InstructionProgram& program) {
             // Temukan frame tempat variabel dideklarasikan lewat static-link chain,
             // lalu baca nilai dari slot variabel relative terhadap BP frame tersebut.
             const std::size_t frameBase = machine_.walkStaticChain(bp_, instruction.level);
+            if (instruction.operand < FRAME_HEADER_SIZE) {
+                throw std::out_of_range("invalid address: LOD/STO operand points into frame header");
+            }
             const std::size_t addr = checkedAddress(
                 static_cast<int>(frameBase) + instruction.operand,
                 machine_.stackTop(), "load");
@@ -75,6 +80,9 @@ void Interpreter::execute(const InstructionProgram& program) {
         }
         case OpCode::STO: {
             const std::size_t frameBase = machine_.walkStaticChain(bp_, instruction.level);
+            if (instruction.operand < FRAME_HEADER_SIZE) {
+                throw std::out_of_range("invalid address: LOD/STO operand points into frame header");
+            }
             const std::size_t addr = checkedAddress(
                 static_cast<int>(frameBase) + instruction.operand,
                 machine_.stackTop(), "store");
@@ -128,49 +136,51 @@ std::string Interpreter::getOutput() const {
     return output_;
 }
 
-RuntimeValue Interpreter::executeOpr(int operand) { // Menjalankan seluruh operasi OPR sesuai tabel opcode pada spesifikasi Milestone 4
+void Interpreter::executeOpr(int operand) { // Menjalankan seluruh operasi OPR sesuai tabel opcode pada spesifikasi Milestone 4
     const OprCode opcode = static_cast<OprCode>(operand);
 
     switch (opcode) {
     case OprCode::NEG:
-        return unaryNeg();
+        unaryNeg();
+        break;
     case OprCode::ADD:
     case OprCode::SUB:
     case OprCode::MUL:
     case OprCode::DIV:
     case OprCode::MOD:
-        return binaryArithmetic(opcode); // Operasi aritmetika selalu mengambil dua operand dari evaluation stack lalu mendorong hasilnya kembali
+        binaryArithmetic(opcode); // Operasi aritmetika selalu mengambil dua operand dari evaluation stack lalu mendorong hasilnya kembali
+        break;
     case OprCode::EQL:
     case OprCode::NEQ:
     case OprCode::LSS:
     case OprCode::GEQ:
     case OprCode::GTR:
     case OprCode::LEQ:
-        return binaryComparison(opcode); // Operasi perbandingan menghasilkan RuntimeValue bertipe Boolean yang kemudian dapat digunakan oleh JPC
+        binaryComparison(opcode); // Operasi perbandingan menghasilkan RuntimeValue bertipe Boolean yang kemudian dapat digunakan oleh JPC
+        break;
     case OprCode::WRT: {
         const RuntimeValue value = machine_.pop();
         output_ += value.toString();
-        return value;
+        break;
     }
     case OprCode::WRTLN: {
         const RuntimeValue value = machine_.pop();
         output_ += value.toString();
         output_ += '\n';
-        return value;
+        break;
     }
     default:
         throw std::runtime_error("invalid opcode: OPR " + std::to_string(operand));
     }
 }
 
-RuntimeValue Interpreter::unaryNeg() {
+void Interpreter::unaryNeg() {
     const int value = popInteger(); // Boolean direpresentasikan sebagai 0/1 pada runtime, sehingga dapat diperlakukan sebagai integer ketika diperlukan
     const RuntimeValue result = RuntimeValue::integer(-value);
     machine_.push(result);
-    return result;
 }
 
-RuntimeValue Interpreter::binaryArithmetic(OprCode opcode) {
+void Interpreter::binaryArithmetic(OprCode opcode) {
     const int rhs = popInteger();
     const int lhs = popInteger();
     int result = 0;
@@ -203,10 +213,9 @@ RuntimeValue Interpreter::binaryArithmetic(OprCode opcode) {
 
     const RuntimeValue value = RuntimeValue::integer(result);
     machine_.push(value);
-    return value;
 }
 
-RuntimeValue Interpreter::binaryComparison(OprCode opcode) {
+void Interpreter::binaryComparison(OprCode opcode) {
     const int rhs = popInteger();
     const int lhs = popInteger();
     bool result = false;
@@ -236,7 +245,6 @@ RuntimeValue Interpreter::binaryComparison(OprCode opcode) {
 
     const RuntimeValue value = RuntimeValue::boolean(result);
     machine_.push(value);
-    return value;
 }
 
 int Interpreter::popInteger() {
