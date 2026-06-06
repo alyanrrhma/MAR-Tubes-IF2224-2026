@@ -30,23 +30,23 @@ The program is implemented in **C/C++ GNU** and supports printing generated TAC 
 
 The Milestone 4 backend supports:
 - variable assignment
-- integer, boolean, string, and character literals
+- integer, real, boolean, string, and character literals
 - unary expression (`+`, `-`, `not`)
-- binary arithmetic (`+`, `-`, `*`, `div`, `mod`)
+- binary arithmetic (`+`, `-`, `*`, `/`, `div`, `mod`) with integer and real runtime values
 - comparison (`==`, `<>`, `<`, `<=`, `>`, `>=`)
 - `if` and `if-else`
 - `while`, `for`, and `repeat-until`
 - `case` branch selection
 - procedure and function calls through `CAL`/`RET`
 - array access and record field access
-- `writeln(expr)` and `writeln(a, b, ...)`
+- `write`, `writeln`, `read`, and `readln` for scalar values
 - TAC generation with `--print-tac`
 - program execution with `--run`
 - direct intermediate-code execution with `--run-ir` for runtime/vulnerability tests
 - reloadable decorated AST bundle through `--save-ast ... --embed-parse-tree` and `--from-decorated-ast`
-- serialized string pool metadata in TAC output so `LITS` instructions can be re-run through `--run-ir`
+- serialized string/real pool metadata in TAC output so `LITS` and `LITR` instructions can be re-run through `--run-ir`
 - semantic error blocking before TAC generation
-- runtime error reporting for division by zero, invalid opcode, invalid address, invalid jump target, stack underflow/overflow, integer overflow, and dynamic array out-of-bounds
+- runtime error reporting for division by zero, invalid opcode/OPR code, invalid instruction level, invalid string/real pool, invalid address, invalid jump target, stack underflow/overflow, integer overflow, real overflow/underflow, and dynamic array out-of-bounds
 
 The interpreter supports these instructions:
 
@@ -62,6 +62,7 @@ The interpreter supports these instructions:
 | `RET` | Return from procedure/function or stop main program |
 | `LITB` | Push Boolean literal |
 | `LITS` | Push String literal from string pool |
+| `LITR` | Push Real literal from real pool |
 | `ADDR` | Push absolute address of an lvalue |
 | `LODI` | Indirect load through stack address |
 | `STOI` | Indirect store through stack address |
@@ -71,12 +72,9 @@ The interpreter supports these instructions:
 
 ## Limitations
 
-The current Milestone 4 backend intentionally still limits:
-- `readln` execution, because runtime input is not required for the main execution tests
-- full real-number runtime arithmetic; `real` is recognized semantically, but the stack-machine execution focuses on integer/ordinal arithmetic
-- arbitrary hand-written decorated-AST text is not accepted; `--from-decorated-ast` expects the decorated AST bundle produced by this compiler using `--save-ast <file> --embed-parse-tree`
+The current Milestone 4 backend now supports `read/readln` for scalar values and real-number arithmetic for the tested runtime subset. The remaining deliberate limitation is that arbitrary hand-written decorated-AST text is not accepted; `--from-decorated-ast` expects the decorated AST bundle produced by this compiler using `--save-ast <file> --embed-parse-tree`.
 
-The implemented backend covers the main executable subset required for code generation, stack-machine execution, runtime vulnerability checks, and M4 execution from a saved decorated AST artifact.
+The implemented backend covers code generation, stack-machine execution, runtime vulnerability checks, re-execution from saved intermediate code, and M4 execution from a saved decorated AST artifact.
 
 ---
 
