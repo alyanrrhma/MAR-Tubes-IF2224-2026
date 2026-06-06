@@ -1,0 +1,10 @@
+program M4FunctionExpression;
+var y: integer;
+function add1(x: integer): integer;
+begin
+  add1 := x + 1
+end;
+begin
+  y := add1(4) * 2;
+  writeln(y)
+end.

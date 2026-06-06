@@ -1,0 +1,6 @@
+program M4RealArithmetic;
+var x: real;
+begin
+  x := 3.5 + 2.0;
+  writeln(x)
+end.

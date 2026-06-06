@@ -60,17 +60,19 @@ tab (identifier table)
    32  string               31  type        string       -1    1    0    1
    33  false                32  constant    boolean      -1    1    0    0
    34  true                 33  constant    boolean      -1    1    0    1
-   35  writeln              34  procedure   void         -1    1    0    0
-   36  readln               35  procedure   void         -1    1    0    0
-   37  M3ValidBasic         36  program     void          0    1    0    0
-   38  x                    37  variable    integer      -1    1    0    0
-   39  y                    38  variable    integer      -1    1    0    1
-  firstUserIndex = 37
+   35  write                34  procedure   void         -1    1    0    0
+   36  writeln              35  procedure   void         -1    1    0    0
+   37  read                 36  procedure   void         -1    1    0    0
+   38  readln               37  procedure   void         -1    1    0    0
+   39  M3ValidBasic         38  program     void          0    1    0    0
+   40  x                    39  variable    integer      -1    1    0    0
+   41  y                    40  variable    integer      -1    1    0    1
+  firstUserIndex = 39
 
 btab (block table)
   idx  last  lpar  psze  vsze
   ---  ----  ----  ----  ----
-    0    39    -1     0     2
+    0    41    -1     0     2
 
 atab (array table)
   idx  xtyp        etyp        eref   low  high  elsz  size

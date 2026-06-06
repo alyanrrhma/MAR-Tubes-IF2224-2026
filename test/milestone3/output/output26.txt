@@ -47,19 +47,21 @@ tab (identifier table)
    32  string               31  type        string       -1    1    0    1
    33  false                32  constant    boolean      -1    1    0    0
    34  true                 33  constant    boolean      -1    1    0    1
-   35  writeln              34  procedure   void         -1    1    0    0
-   36  readln               35  procedure   void         -1    1    0    0
-   37  M3ArrayTypeCompatibility     36  program     void          0    1    0    0
-   38  A                    37  type        array         2    1    0    3
-   39  B                    38  type        array         4    1    0    3
-   40  leftArr              39  variable    array         2    1    0    0
-   41  rightArr             40  variable    array         4    1    0    3
-  firstUserIndex = 37
+   35  write                34  procedure   void         -1    1    0    0
+   36  writeln              35  procedure   void         -1    1    0    0
+   37  read                 36  procedure   void         -1    1    0    0
+   38  readln               37  procedure   void         -1    1    0    0
+   39  M3ArrayTypeCompatibility     38  program     void          0    1    0    0
+   40  A                    39  type        array         2    1    0    3
+   41  B                    40  type        array         4    1    0    3
+   42  leftArr              41  variable    array         2    1    0    0
+   43  rightArr             42  variable    array         4    1    0    3
+  firstUserIndex = 39
 
 btab (block table)
   idx  last  lpar  psze  vsze
   ---  ----  ----  ----  ----
-    0    41    -1     0     6
+    0    43    -1     0     6
 
 atab (array table)
   idx  xtyp        etyp        eref   low  high  elsz  size

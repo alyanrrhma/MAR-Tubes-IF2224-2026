@@ -1,0 +1,7 @@
+program M4ForDownto;
+var i: integer;
+begin
+  for i := 3 downto 1 do begin
+    writeln(i)
+  end
+end.

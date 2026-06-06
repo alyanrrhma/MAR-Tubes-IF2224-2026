@@ -1,0 +1,10 @@
+program M4CaseDefaultless;
+var x: integer;
+begin
+  x := 3;
+  case x of
+    1: writeln('one');
+    2: writeln('two');
+    3: writeln('three')
+  end
+end.

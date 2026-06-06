@@ -1,0 +1,8 @@
+program M4ArrayBoundsValid;
+var i: integer;
+    a: array[1..3] of integer;
+begin
+  i := 3;
+  a[i] := 12;
+  writeln(a[i])
+end.

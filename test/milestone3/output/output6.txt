@@ -53,22 +53,24 @@ tab (identifier table)
    32  string               31  type        string       -1    1    0    1
    33  false                32  constant    boolean      -1    1    0    0
    34  true                 33  constant    boolean      -1    1    0    1
-   35  writeln              34  procedure   void         -1    1    0    0
-   36  readln               35  procedure   void         -1    1    0    0
-   37  enumMismatch         36  program     void          0    1    0    0
-   38  SATU                 37  constant    integer      -1    1    0    1
-   39  DUA                  38  constant    char         -1    1    0   50
-   40  TIGA                 39  constant    integer      -1    1    0    3
-   41  WrongEnum            40  type        error        -1    1    0    1
-   42  ValidEnum            41  type        enumerated    1    1    0    1
-   43  x                    42  variable    error        -1    1    0    0
-   44  y                    43  variable    enumerated    1    1    0    1
-  firstUserIndex = 37
+   35  write                34  procedure   void         -1    1    0    0
+   36  writeln              35  procedure   void         -1    1    0    0
+   37  read                 36  procedure   void         -1    1    0    0
+   38  readln               37  procedure   void         -1    1    0    0
+   39  enumMismatch         38  program     void          0    1    0    0
+   40  SATU                 39  constant    integer      -1    1    0    1
+   41  DUA                  40  constant    char         -1    1    0   50
+   42  TIGA                 41  constant    integer      -1    1    0    3
+   43  WrongEnum            42  type        error        -1    1    0    1
+   44  ValidEnum            43  type        enumerated    1    1    0    1
+   45  x                    44  variable    error        -1    1    0    0
+   46  y                    45  variable    enumerated    1    1    0    1
+  firstUserIndex = 39
 
 btab (block table)
   idx  last  lpar  psze  vsze
   ---  ----  ----  ----  ----
-    0    44    -1     0     2
+    0    46    -1     0     2
 
 atab (array table)
   idx  xtyp        etyp        eref   low  high  elsz  size

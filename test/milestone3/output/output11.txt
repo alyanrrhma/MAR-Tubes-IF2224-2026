@@ -77,20 +77,22 @@ tab (identifier table)
    32  string               31  type        string       -1    1    0    1
    33  false                32  constant    boolean      -1    1    0    0
    34  true                 33  constant    boolean      -1    1    0    1
-   35  writeln              34  procedure   void         -1    1    0    0
-   36  readln               35  procedure   void         -1    1    0    0
-   37  functionReturn       36  program     void          0    1    0    0
-   38  someInt              37  variable    integer      -1    1    0    0
-   39  someBool             38  variable    boolean      -1    1    0    1
-   40  isNegative           39  function    boolean       1    1    0    0
-   41  x                    -1  parameter   integer      -1    1    1    0
-  firstUserIndex = 37
+   35  write                34  procedure   void         -1    1    0    0
+   36  writeln              35  procedure   void         -1    1    0    0
+   37  read                 36  procedure   void         -1    1    0    0
+   38  readln               37  procedure   void         -1    1    0    0
+   39  functionReturn       38  program     void          0    1    0    0
+   40  someInt              39  variable    integer      -1    1    0    0
+   41  someBool             40  variable    boolean      -1    1    0    1
+   42  isNegative           41  function    boolean       1    1    0    0
+   43  x                    -1  parameter   integer      -1    1    1    0
+  firstUserIndex = 39
 
 btab (block table)
   idx  last  lpar  psze  vsze
   ---  ----  ----  ----  ----
-    0    40    -1     0     2
-    1    41    41     1     1
+    0    42    -1     0     2
+    1    43    43     1     1
 
 atab (array table)
   idx  xtyp        etyp        eref   low  high  elsz  size

@@ -1,0 +1,12 @@
+program M4Readln;
+var x: integer;
+    b: boolean;
+    s: string;
+begin
+  readln(x);
+  readln(b);
+  readln(s);
+  writeln(x);
+  writeln(b);
+  writeln(s)
+end.

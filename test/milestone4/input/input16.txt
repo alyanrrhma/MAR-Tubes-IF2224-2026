@@ -1,0 +1,8 @@
+program M4ProcedureParameter;
+procedure show(x: integer);
+begin
+  writeln(x)
+end;
+begin
+  show(9)
+end.

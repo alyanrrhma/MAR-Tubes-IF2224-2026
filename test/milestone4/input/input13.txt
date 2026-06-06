@@ -1,0 +1,9 @@
+program M4RepeatMore;
+var x: integer;
+begin
+  x := 1;
+  repeat
+    x := x * 2;
+    writeln(x)
+  until x >= 8
+end.
