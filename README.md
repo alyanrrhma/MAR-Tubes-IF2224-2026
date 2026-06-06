@@ -26,7 +26,7 @@ This milestone also supports semantic error reporting and decorated AST output f
 
 ### [Milestone 4 - Code Generation and Execution](./test/milestone4/README.md)
 Implementation of an **Intermediate Code Generator**, **Stack Machine**, and **Interpreter** for the Arion programming language.  
-This milestone generates TAC from semantically valid programs, supports TAC printing with `--print-tac`, and executes supported programs with `--run`.
+This milestone generates TAC from semantically valid programs, supports TAC printing with `--print-tac`, executes supported programs with `--run`, reloads saved decorated AST bundles with `--from-decorated-ast`, and runs serialized IR with `--run-ir`.
 
 ## Requirements
 To build and run this program, you need:
@@ -210,19 +210,7 @@ Run supported Milestone 4 programs with:
 ./bin/arion <program.txt> --run
 ```
 
-Run saved stack-machine intermediate code directly for runtime/vulnerability tests with:
-
-```bash
-./bin/arion --run-ir <intermediate-code.txt>
-```
-
-Supported backend execution includes assignment, integer/boolean/string literals, character literals as ordinal values, arithmetic, comparison, `if`, `if-else`, `while`, `for`, `repeat-until`, `case`, procedure/function calls, array access, record field access, `writeln`, TAC printing, and stack-machine execution. Runtime checks cover division by zero, invalid jump targets, stack underflow/overflow, invalid addresses, integer overflow, and dynamic array bounds through `CHK`.
-
-Run the Milestone 4 regression suite with:
-
-```bash
-./test/milestone4/run_milestone4_tests.sh
-```
+Supported backend execution currently includes assignment, integer/ordinal arithmetic, comparison, `if`, `if-else`, `while`, `for`, `repeat-until`, `case`, procedure/function call, array/record access, `writeln`, decorated AST bundle input, and serialized IR execution.
 
 ## Contributors
 
