@@ -543,6 +543,7 @@ backend::OpCode parseOpcode(const std::string& name) {
     if (name == "RET") return backend::OpCode::RET;
     if (name == "LITB") return backend::OpCode::LITB;
     if (name == "LITS") return backend::OpCode::LITS;
+    if (name == "LITR") return backend::OpCode::LITR;
     if (name == "ADDR") return backend::OpCode::ADDR;
     if (name == "LODI") return backend::OpCode::LODI;
     if (name == "STOI") return backend::OpCode::STOI;
@@ -573,6 +574,21 @@ backend::InstructionProgram readInstructionProgram(std::istream& in) {
             const int actual = program.addString(unescapeStringLiteral(value));
             if (actual != index) {
                 throw std::runtime_error("string pool intermediate code tidak berurutan pada baris: " + line);
+            }
+            continue;
+        }
+
+        if (line.rfind("#REAL", 0) == 0) {
+            std::istringstream realLine(line);
+            std::string marker;
+            int index = 0;
+            double value = 0.0;
+            if (!(realLine >> marker >> index >> value)) {
+                throw std::runtime_error("format real pool intermediate code tidak valid: " + line);
+            }
+            const int actual = program.addReal(value);
+            if (actual != index) {
+                throw std::runtime_error("real pool intermediate code tidak berurutan pada baris: " + line);
             }
             continue;
         }
