@@ -21,7 +21,8 @@ enum class OpCode {
     LITS,  // push String from pool  (operand: string pool index)
     ADDR,  // push absolute stack address of variable (like LOD but yields address, not value)
     LODI,  // indirect load:  pop address, push stack[address]
-    STOI   // indirect store: pop address, pop value, stack[address] = value
+    STOI,  // indirect store: pop address, pop value, stack[address] = value
+    CHK    // bounds check: level=low, operand=high; validates and preserves top index
 };
 
 const char* toString(OpCode opcode);

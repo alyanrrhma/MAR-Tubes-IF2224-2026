@@ -21,6 +21,7 @@ const char* toString(OpCode opcode) {
     case OpCode::ADDR: return "ADDR";
     case OpCode::LODI: return "LODI";
     case OpCode::STOI: return "STOI";
+    case OpCode::CHK:  return "CHK";
     }
     return "?";
 }
