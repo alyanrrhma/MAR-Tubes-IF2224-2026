@@ -37,6 +37,22 @@ from_tree_run="$TMP_DIR/run_from_parse_tree1.txt"
 assert_same_file "$OUTPUT_DIR/run1.txt" "$from_tree_run"
 echo "[OK] milestone4 run from parse tree"
 
+# M4 input requirement: reload a decorated AST artifact produced by Milestone 3 output.
+decorated_ast="$TMP_DIR/input1_decorated_ast_bundle.txt"
+from_decorated_run="$TMP_DIR/run_from_decorated_ast1.txt"
+"$BIN" "$INPUT_DIR/input1.txt" --save-ast "$decorated_ast" --embed-parse-tree > /dev/null
+"$BIN" --from-decorated-ast "$decorated_ast" --run > "$from_decorated_run"
+assert_same_file "$OUTPUT_DIR/run1.txt" "$from_decorated_run"
+echo "[OK] milestone4 run from decorated AST"
+
+# Serialized IR can be executed again, including string pool metadata for LITS.
+serialized_ir="$TMP_DIR/input7_serialized.ir"
+run_from_ir="$TMP_DIR/run_from_serialized_ir7.txt"
+"$BIN" "$INPUT_DIR/input7.txt" --print-tac > "$serialized_ir"
+"$BIN" --run-ir "$serialized_ir" > "$run_from_ir"
+assert_same_file "$OUTPUT_DIR/run7.txt" "$run_from_ir"
+echo "[OK] milestone4 run serialized IR with string pool"
+
 run_invalid_source() {
   local n="$1"
   local expected="$OUTPUT_DIR/error$n.txt"
@@ -77,4 +93,4 @@ run_invalid_source 11
 run_invalid_ir invalid_jump 12
 run_invalid_ir stack_underflow 13
 
-echo "Milestone 4 backend regression tests passed (9 valid + 4 runtime/vulnerability cases)."
+echo "Milestone 4 backend regression tests passed (9 valid + decorated AST/IR reload + 4 runtime/vulnerability cases)."
