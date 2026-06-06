@@ -12,26 +12,30 @@ class RuntimeValue {
 public:
     enum class Kind {
         Integer,
+        Real,
         Boolean,
         String
     };
 
     static RuntimeValue integer(int value);
+    static RuntimeValue real(double value);
     static RuntimeValue boolean(bool value);
     static RuntimeValue string(std::string value);
 
     Kind kind() const { return kind_; }
     int asInteger() const;
+    double asReal() const;
     bool asBoolean() const;
     const std::string& asString() const;
 
     std::string toString() const;
 
 private:
-    RuntimeValue(Kind kind, int intValue, std::string strValue);
+    RuntimeValue(Kind kind, int intValue, double realValue, std::string strValue);
 
     Kind kind_;
     int value_ = 0;
+    double realValue_ = 0.0;
     std::string strValue_;
 };
 

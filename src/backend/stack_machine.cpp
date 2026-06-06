@@ -1,19 +1,25 @@
 #include "stack_machine.hpp"
 
+#include <iomanip>
+#include <sstream>
 #include <stdexcept>
 
 namespace backend {
 
 RuntimeValue RuntimeValue::integer(int value) {
-    return RuntimeValue(Kind::Integer, value, {});
+    return RuntimeValue(Kind::Integer, value, 0.0, {});
+}
+
+RuntimeValue RuntimeValue::real(double value) {
+    return RuntimeValue(Kind::Real, 0, value, {});
 }
 
 RuntimeValue RuntimeValue::boolean(bool value) {
-    return RuntimeValue(Kind::Boolean, value ? 1 : 0, {});
+    return RuntimeValue(Kind::Boolean, value ? 1 : 0, 0.0, {});
 }
 
 RuntimeValue RuntimeValue::string(std::string value) {
-    return RuntimeValue(Kind::String, 0, std::move(value));
+    return RuntimeValue(Kind::String, 0, 0.0, std::move(value));
 }
 
 int RuntimeValue::asInteger() const {
@@ -21,6 +27,19 @@ int RuntimeValue::asInteger() const {
         throw std::runtime_error("RuntimeValue bukan integer");
     }
     return value_;
+}
+
+double RuntimeValue::asReal() const {
+    if (kind_ == Kind::Real) {
+        return realValue_;
+    }
+    if (kind_ == Kind::Integer) {
+        return static_cast<double>(value_);
+    }
+    if (kind_ == Kind::Boolean) {
+        return value_ != 0 ? 1.0 : 0.0;
+    }
+    throw std::runtime_error("RuntimeValue bukan real/numerik");
 }
 
 bool RuntimeValue::asBoolean() const {
@@ -41,6 +60,16 @@ std::string RuntimeValue::toString() const {
     switch (kind_) {
     case Kind::Integer:
         return std::to_string(value_);
+    case Kind::Real: {
+        std::ostringstream out;
+        out << std::setprecision(15) << realValue_;
+        std::string text = out.str();
+        if (text.find('.') != std::string::npos) {
+            while (!text.empty() && text.back() == '0') text.pop_back();
+            if (!text.empty() && text.back() == '.') text.pop_back();
+        }
+        return text;
+    }
     case Kind::Boolean:
         return value_ != 0 ? "true" : "false";
     case Kind::String:
@@ -49,8 +78,8 @@ std::string RuntimeValue::toString() const {
     return "?";
 }
 
-RuntimeValue::RuntimeValue(Kind kind, int intValue, std::string strValue)
-    : kind_(kind), value_(intValue), strValue_(std::move(strValue)) {}
+RuntimeValue::RuntimeValue(Kind kind, int intValue, double realValue, std::string strValue)
+    : kind_(kind), value_(intValue), realValue_(realValue), strValue_(std::move(strValue)) {}
 
 void StackMachine::push(RuntimeValue value) {
     if (stack_.size() >= MAX_STACK_SIZE) {
