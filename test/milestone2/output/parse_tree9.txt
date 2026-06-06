@@ -119,28 +119,32 @@
                             <variable>
                               ident (size)
                     dosy (do)
-                    <statement>
-                      <procedure/function-call>
-                        ident (writeln)
-                        lparent (()
-                        <parameter-list>
-                          <expression>
-                            <simple-expression>
-                              <term>
-                                <factor>
-                                  <variable>
-                                    ident (matrix)
-                                    <component-variable>
-                                      lbrack ([)
-                                      <index-list>
-                                        <expression>
-                                          <simple-expression>
-                                            <term>
-                                              <factor>
-                                                <variable>
-                                                  ident (k)
-                                      rbrack (])
-                        rparent ())
+                    <compound-statement>
+                      beginsy (begin)
+                      <statement-list>
+                        <statement>
+                          <procedure/function-call>
+                            ident (writeln)
+                            lparent (()
+                            <parameter-list>
+                              <expression>
+                                <simple-expression>
+                                  <term>
+                                    <factor>
+                                      <variable>
+                                        ident (matrix)
+                                        <component-variable>
+                                          lbrack ([)
+                                          <index-list>
+                                            <expression>
+                                              <simple-expression>
+                                                <term>
+                                                  <factor>
+                                                    <variable>
+                                                      ident (k)
+                                          rbrack (])
+                            rparent ())
+                      endsy (end)
               endsy (end)
       semicolon (;)
       <subprogram-declaration>
@@ -250,39 +254,38 @@
                 <factor>
                   intcon (3)
           dosy (do)
-          <statement>
-            <compound-statement>
-              beginsy (begin)
-              <statement-list>
-                <statement>
-                  <assignment-statement>
-                    <variable>
-                      ident (matrix)
-                      <component-variable>
-                        lbrack ([)
-                        <index-list>
-                          <expression>
-                            <simple-expression>
-                              <term>
-                                <factor>
-                                  <variable>
-                                    ident (i)
-                        rbrack (])
-                    becomes (:=)
-                    <expression>
-                      <simple-expression>
-                        <term>
-                          <factor>
-                            <variable>
-                              ident (i)
-                          <multiplicative-operator>
-                            times (*)
-                          <factor>
-                            intcon (10)
-                semicolon (;)
-                <statement>
-                  <empty>
-              endsy (end)
+          <compound-statement>
+            beginsy (begin)
+            <statement-list>
+              <statement>
+                <assignment-statement>
+                  <variable>
+                    ident (matrix)
+                    <component-variable>
+                      lbrack ([)
+                      <index-list>
+                        <expression>
+                          <simple-expression>
+                            <term>
+                              <factor>
+                                <variable>
+                                  ident (i)
+                      rbrack (])
+                  becomes (:=)
+                  <expression>
+                    <simple-expression>
+                      <term>
+                        <factor>
+                          <variable>
+                            ident (i)
+                        <multiplicative-operator>
+                          times (*)
+                        <factor>
+                          intcon (10)
+              semicolon (;)
+              <statement>
+                <empty>
+            endsy (end)
       semicolon (;)
       <statement>
         <procedure/function-call>
@@ -402,93 +405,91 @@
                 <factor>
                   intcon (3)
           dosy (do)
-          <statement>
-            <compound-statement>
-              beginsy (begin)
-              <statement-list>
-                <statement>
-                  <assignment-statement>
-                    <variable>
-                      ident (j)
-                    becomes (:=)
-                    <expression>
-                      <simple-expression>
-                        <term>
-                          <factor>
-                            intcon (1)
-                semicolon (;)
-                <statement>
-                  <while-statement>
-                    whilesy (while)
-                    <expression>
-                      <simple-expression>
-                        <term>
-                          <factor>
-                            <variable>
-                              ident (j)
-                      <relational-operator>
-                        leq (<=)
-                      <simple-expression>
-                        <term>
-                          <factor>
-                            intcon (3)
-                    dosy (do)
-                    <statement>
-                      <compound-statement>
-                        beginsy (begin)
-                        <statement-list>
-                          <statement>
-                            <procedure/function-call>
-                              ident (writeln)
-                              lparent (()
-                              <parameter-list>
-                                <expression>
-                                  <simple-expression>
-                                    <term>
-                                      <factor>
-                                        <variable>
-                                          ident (i)
-                                      <multiplicative-operator>
-                                        times (*)
-                                      <factor>
-                                        <variable>
-                                          ident (j)
-                              rparent ())
-                          semicolon (;)
-                          <statement>
-                            <assignment-statement>
-                              <variable>
-                                ident (j)
-                              becomes (:=)
-                              <expression>
-                                <simple-expression>
-                                  <term>
-                                    <factor>
-                                      <variable>
-                                        ident (j)
-                                  <additive-operator>
-                                    plus (+)
-                                  <term>
-                                    <factor>
-                                      intcon (1)
-                        endsy (end)
-                semicolon (;)
-                <statement>
-                  <assignment-statement>
-                    <variable>
-                      ident (i)
-                    becomes (:=)
-                    <expression>
-                      <simple-expression>
-                        <term>
-                          <factor>
-                            <variable>
-                              ident (i)
-                        <additive-operator>
-                          plus (+)
-                        <term>
-                          <factor>
-                            intcon (1)
-              endsy (end)
+          <compound-statement>
+            beginsy (begin)
+            <statement-list>
+              <statement>
+                <assignment-statement>
+                  <variable>
+                    ident (j)
+                  becomes (:=)
+                  <expression>
+                    <simple-expression>
+                      <term>
+                        <factor>
+                          intcon (1)
+              semicolon (;)
+              <statement>
+                <while-statement>
+                  whilesy (while)
+                  <expression>
+                    <simple-expression>
+                      <term>
+                        <factor>
+                          <variable>
+                            ident (j)
+                    <relational-operator>
+                      leq (<=)
+                    <simple-expression>
+                      <term>
+                        <factor>
+                          intcon (3)
+                  dosy (do)
+                  <compound-statement>
+                    beginsy (begin)
+                    <statement-list>
+                      <statement>
+                        <procedure/function-call>
+                          ident (writeln)
+                          lparent (()
+                          <parameter-list>
+                            <expression>
+                              <simple-expression>
+                                <term>
+                                  <factor>
+                                    <variable>
+                                      ident (i)
+                                  <multiplicative-operator>
+                                    times (*)
+                                  <factor>
+                                    <variable>
+                                      ident (j)
+                          rparent ())
+                      semicolon (;)
+                      <statement>
+                        <assignment-statement>
+                          <variable>
+                            ident (j)
+                          becomes (:=)
+                          <expression>
+                            <simple-expression>
+                              <term>
+                                <factor>
+                                  <variable>
+                                    ident (j)
+                              <additive-operator>
+                                plus (+)
+                              <term>
+                                <factor>
+                                  intcon (1)
+                    endsy (end)
+              semicolon (;)
+              <statement>
+                <assignment-statement>
+                  <variable>
+                    ident (i)
+                  becomes (:=)
+                  <expression>
+                    <simple-expression>
+                      <term>
+                        <factor>
+                          <variable>
+                            ident (i)
+                      <additive-operator>
+                        plus (+)
+                      <term>
+                        <factor>
+                          intcon (1)
+            endsy (end)
     endsy (end)
   period (.)

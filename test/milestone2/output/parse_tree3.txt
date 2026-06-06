@@ -220,28 +220,32 @@
                 <factor>
                   intcon (5)
           dosy (do)
-          <statement>
-            <procedure/function-call>
-              ident (writeln)
-              lparent (()
-              <parameter-list>
-                <expression>
-                  <simple-expression>
-                    <term>
-                      <factor>
-                        <variable>
-                          ident (arr)
-                          <component-variable>
-                            lbrack ([)
-                            <index-list>
-                              <expression>
-                                <simple-expression>
-                                  <term>
-                                    <factor>
-                                      <variable>
-                                        ident (i)
-                            rbrack (])
-              rparent ())
+          <compound-statement>
+            beginsy (begin)
+            <statement-list>
+              <statement>
+                <procedure/function-call>
+                  ident (writeln)
+                  lparent (()
+                  <parameter-list>
+                    <expression>
+                      <simple-expression>
+                        <term>
+                          <factor>
+                            <variable>
+                              ident (arr)
+                              <component-variable>
+                                lbrack ([)
+                                <index-list>
+                                  <expression>
+                                    <simple-expression>
+                                      <term>
+                                        <factor>
+                                          <variable>
+                                            ident (i)
+                                rbrack (])
+                  rparent ())
+            endsy (end)
       semicolon (;)
       <statement>
         <empty>

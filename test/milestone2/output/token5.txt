@@ -70,10 +70,12 @@ intcon (10)
 downtosy
 intcon (1)
 dosy
+beginsy
 ident (writeln)
 lparent
 ident (i)
 rparent
+endsy
 semicolon
 ident (writeln)
 lparent

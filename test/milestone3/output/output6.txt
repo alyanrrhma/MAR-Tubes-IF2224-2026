@@ -60,9 +60,9 @@ tab (identifier table)
    39  DUA                  38  constant    char         -1    1    0   50
    40  TIGA                 39  constant    integer      -1    1    0    3
    41  WrongEnum            40  type        error        -1    1    0    1
-   42  ValidEnum            41  type        enumerated   -1    1    0    1
+   42  ValidEnum            41  type        enumerated    1    1    0    1
    43  x                    42  variable    error        -1    1    0    0
-   44  y                    43  variable    enumerated   -1    1    0    1
+   44  y                    43  variable    enumerated    1    1    0    1
   firstUserIndex = 37
 
 btab (block table)
@@ -74,6 +74,7 @@ atab (array table)
   idx  xtyp        etyp        eref   low  high  elsz  size
   ---  ----------  ----------  ----  ----  ----  ----  ----
     0  unknown     unknown       -1     0     0     1     0
+    1  enumerated  enumerated    -1     0     1     1     1
 
 Type errors
 [Type error]: type mismatch dalam deklarasi tipe enumerated, expected integer found char (DUA)

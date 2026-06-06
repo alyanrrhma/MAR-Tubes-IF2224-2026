@@ -100,6 +100,7 @@ intcon (1)
 tosy
 intcon (5)
 dosy
+beginsy
 ident (writeln)
 lparent
 ident (arr)
@@ -107,6 +108,7 @@ lbrack
 ident (i)
 rbrack
 rparent
+endsy
 semicolon
 endsy
 period

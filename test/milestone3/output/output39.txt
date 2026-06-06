@@ -1,43 +1,17 @@
-ProgramNode(name: 'functionReturn')
+ProgramNode(name: 'M3EnumeratedTypeCompatibility')
 +-- Declarations
-|   +-- VarDecl(name: 'someInt', type: 'integer')
-|   +-- VarDecl(name: 'someBool', type: 'boolean')
-|   \-- FunctionDecl(name: 'isNegative', params: [integer('x')], returnType: 'boolean')
-|       +-- Declarations
-|       \-- Block
-|           \-- If
-|               +-- condition: BinOp(op: '<')
-|               |   +-- left: Var('x')
-|               |   \-- right: Num(0)
-|               +-- then
-|               |   \-- Return
-|               |       \-- value: Var('true')
-|               \-- else
-|                   \-- If
-|                       +-- condition: BinOp(op: '==')
-|                       |   +-- left: Var('x')
-|                       |   \-- right: Num(0)
-|                       \-- then
-|                           \-- Return
-|                               \-- value: Num(1)
+|   +-- ConstDecl(name: 'red', value: Num(1))
+|   +-- ConstDecl(name: 'green', value: Num(2))
+|   +-- ConstDecl(name: 'blue', value: Num(3))
+|   +-- ConstDecl(name: 'yellow', value: Num(4))
+|   +-- TypeDecl(name: 'Color', type: '(red, green)')
+|   +-- TypeDecl(name: 'Shade', type: '(blue, yellow)')
+|   +-- VarDecl(name: 'c', type: 'Color')
+|   \-- VarDecl(name: 's', type: 'Shade')
 \-- Block
-    +-- Assign
-    |   +-- target: Var('someInt')
-    |   \-- value: UnaryOp(op: '-')
-    |       \-- value: Num(1)
-    +-- Assign
-    |   +-- target: Var('someBool')
-    |   \-- value: ProcedureCall(name: 'isNegative')
-    |       \-- arg: Var('someInt')
-    +-- Assign
-    |   +-- target: Var('someBool')
-    |   \-- value: ProcedureCall(name: 'isNegative')
-    |       \-- arg: UnaryOp(op: '-')
-    |           \-- value: Num(3)
     \-- Assign
-        +-- target: Var('someBool')
-        \-- value: ProcedureCall(name: 'isNegative')
-            \-- arg: Num(1)
+        +-- target: Var('c')
+        \-- value: Var('s')
 
 tab (identifier table)
   idx  identifier         link  obj         type        ref  nrm  lev  adr
@@ -79,24 +53,29 @@ tab (identifier table)
    34  true                 33  constant    boolean      -1    1    0    1
    35  writeln              34  procedure   void         -1    1    0    0
    36  readln               35  procedure   void         -1    1    0    0
-   37  functionReturn       36  program     void          0    1    0    0
-   38  someInt              37  variable    integer      -1    1    0    0
-   39  someBool             38  variable    boolean      -1    1    0    1
-   40  isNegative           39  function    boolean       1    1    0    0
-   41  x                    -1  parameter   integer      -1    1    1    0
+   37  M3EnumeratedTypeCompatibility     36  program     void          0    1    0    0
+   38  red                  37  constant    integer      -1    1    0    1
+   39  green                38  constant    integer      -1    1    0    2
+   40  blue                 39  constant    integer      -1    1    0    3
+   41  yellow               40  constant    integer      -1    1    0    4
+   42  Color                41  type        enumerated    1    1    0    1
+   43  Shade                42  type        enumerated    2    1    0    1
+   44  c                    43  variable    enumerated    1    1    0    0
+   45  s                    44  variable    enumerated    2    1    0    1
   firstUserIndex = 37
 
 btab (block table)
   idx  last  lpar  psze  vsze
   ---  ----  ----  ----  ----
-    0    40    -1     0     2
-    1    41    41     1     1
+    0    45    -1     0     2
 
 atab (array table)
   idx  xtyp        etyp        eref   low  high  elsz  size
   ---  ----------  ----------  ----  ----  ----  ----  ----
     0  unknown     unknown       -1     0     0     1     0
+    1  enumerated  enumerated    -1     0     1     1     1
+    2  enumerated  enumerated    -1     0     1     1     1
 
 Type errors
-[Type error]: type mismatch pada return: diharapkan 'boolean', mendapat 'integer'
-[Type error]: fungsi 'isNegative' tidak memiliki return statement
+[Type error]: variabel 's' digunakan sebelum diinisialisasi
+[Type error]: type mismatch dalam assignment: tidak dapat mengassign 'enumerated' ke 'enumerated'

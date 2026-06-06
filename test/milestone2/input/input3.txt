@@ -16,6 +16,7 @@ begin
   arr[3] := arr[1] + arr[2];
   p.age := 20;
   p.score := 3.14;
-  for i := 1 to 5 do
-    writeln(arr[i]);
+  for i := 1 to 5 do begin
+    writeln(arr[i])
+  end;
 end.

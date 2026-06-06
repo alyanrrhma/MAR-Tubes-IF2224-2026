@@ -60,7 +60,6 @@ MAR-Tubes-IF2224-2026/
 │   ├── Laporan-2-MAR.pdf
 │   └── Laporan-3-MAR.pdf
 ├── src/
-│   ├── ast.cpp
 │   ├── main.cpp
 │   ├── backend/
 │   │   ├── code_generator.cpp

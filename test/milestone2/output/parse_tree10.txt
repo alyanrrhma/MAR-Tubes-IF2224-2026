@@ -162,85 +162,106 @@
                           <factor>
                             intcon (1)
                     dosy (do)
-                    <statement>
-                      <for-statement>
-                        forsy (for)
-                        ident (l)
-                        becomes (:=)
-                        <expression>
-                          <simple-expression>
-                            <term>
-                              <factor>
-                                intcon (1)
-                        tosy (to)
-                        <expression>
-                          <simple-expression>
-                            <term>
-                              <factor>
-                                <variable>
-                                  ident (size)
-                            <additive-operator>
-                              minus (-)
-                            <term>
-                              <factor>
-                                <variable>
-                                  ident (k)
-                        dosy (do)
+                    <compound-statement>
+                      beginsy (begin)
+                      <statement-list>
                         <statement>
-                          <if-statement>
-                            ifsy (if)
+                          <for-statement>
+                            forsy (for)
+                            ident (l)
+                            becomes (:=)
+                            <expression>
+                              <simple-expression>
+                                <term>
+                                  <factor>
+                                    intcon (1)
+                            tosy (to)
                             <expression>
                               <simple-expression>
                                 <term>
                                   <factor>
                                     <variable>
-                                      ident (nums)
-                                      <component-variable>
-                                        lbrack ([)
-                                        <index-list>
-                                          <expression>
-                                            <simple-expression>
-                                              <term>
-                                                <factor>
-                                                  <variable>
-                                                    ident (l)
-                                        rbrack (])
-                              <relational-operator>
-                                gtr (>)
-                              <simple-expression>
+                                      ident (size)
+                                <additive-operator>
+                                  minus (-)
                                 <term>
                                   <factor>
                                     <variable>
-                                      ident (nums)
-                                      <component-variable>
-                                        lbrack ([)
-                                        <index-list>
-                                          <expression>
-                                            <simple-expression>
-                                              <term>
-                                                <factor>
-                                                  <variable>
-                                                    ident (l)
-                                              <additive-operator>
-                                                plus (+)
-                                              <term>
-                                                <factor>
-                                                  intcon (1)
-                                        rbrack (])
-                            thensy (then)
-                            <statement>
-                              <compound-statement>
-                                beginsy (begin)
-                                <statement-list>
-                                  <statement>
-                                    <assignment-statement>
-                                      <variable>
-                                        ident (temp)
-                                      becomes (:=)
-                                      <expression>
-                                        <simple-expression>
-                                          <term>
-                                            <factor>
+                                      ident (k)
+                            dosy (do)
+                            <compound-statement>
+                              beginsy (begin)
+                              <statement-list>
+                                <statement>
+                                  <if-statement>
+                                    ifsy (if)
+                                    <expression>
+                                      <simple-expression>
+                                        <term>
+                                          <factor>
+                                            <variable>
+                                              ident (nums)
+                                              <component-variable>
+                                                lbrack ([)
+                                                <index-list>
+                                                  <expression>
+                                                    <simple-expression>
+                                                      <term>
+                                                        <factor>
+                                                          <variable>
+                                                            ident (l)
+                                                rbrack (])
+                                      <relational-operator>
+                                        gtr (>)
+                                      <simple-expression>
+                                        <term>
+                                          <factor>
+                                            <variable>
+                                              ident (nums)
+                                              <component-variable>
+                                                lbrack ([)
+                                                <index-list>
+                                                  <expression>
+                                                    <simple-expression>
+                                                      <term>
+                                                        <factor>
+                                                          <variable>
+                                                            ident (l)
+                                                      <additive-operator>
+                                                        plus (+)
+                                                      <term>
+                                                        <factor>
+                                                          intcon (1)
+                                                rbrack (])
+                                    thensy (then)
+                                    <statement>
+                                      <compound-statement>
+                                        beginsy (begin)
+                                        <statement-list>
+                                          <statement>
+                                            <assignment-statement>
+                                              <variable>
+                                                ident (temp)
+                                              becomes (:=)
+                                              <expression>
+                                                <simple-expression>
+                                                  <term>
+                                                    <factor>
+                                                      <variable>
+                                                        ident (nums)
+                                                        <component-variable>
+                                                          lbrack ([)
+                                                          <index-list>
+                                                            <expression>
+                                                              <simple-expression>
+                                                                <term>
+                                                                  <factor>
+                                                                    <variable>
+                                                                      ident (l)
+                                                          rbrack (])
+                                          semicolon (;)
+                                          <statement>
+                                            <assignment-statement>
                                               <variable>
                                                 ident (nums)
                                                 <component-variable>
@@ -253,26 +274,31 @@
                                                             <variable>
                                                               ident (l)
                                                   rbrack (])
-                                  semicolon (;)
-                                  <statement>
-                                    <assignment-statement>
-                                      <variable>
-                                        ident (nums)
-                                        <component-variable>
-                                          lbrack ([)
-                                          <index-list>
-                                            <expression>
-                                              <simple-expression>
-                                                <term>
-                                                  <factor>
-                                                    <variable>
-                                                      ident (l)
-                                          rbrack (])
-                                      becomes (:=)
-                                      <expression>
-                                        <simple-expression>
-                                          <term>
-                                            <factor>
+                                              becomes (:=)
+                                              <expression>
+                                                <simple-expression>
+                                                  <term>
+                                                    <factor>
+                                                      <variable>
+                                                        ident (nums)
+                                                        <component-variable>
+                                                          lbrack ([)
+                                                          <index-list>
+                                                            <expression>
+                                                              <simple-expression>
+                                                                <term>
+                                                                  <factor>
+                                                                    <variable>
+                                                                      ident (l)
+                                                                <additive-operator>
+                                                                  plus (+)
+                                                                <term>
+                                                                  <factor>
+                                                                    intcon (1)
+                                                          rbrack (])
+                                          semicolon (;)
+                                          <statement>
+                                            <assignment-statement>
                                               <variable>
                                                 ident (nums)
                                                 <component-variable>
@@ -290,34 +316,16 @@
                                                           <factor>
                                                             intcon (1)
                                                   rbrack (])
-                                  semicolon (;)
-                                  <statement>
-                                    <assignment-statement>
-                                      <variable>
-                                        ident (nums)
-                                        <component-variable>
-                                          lbrack ([)
-                                          <index-list>
-                                            <expression>
-                                              <simple-expression>
-                                                <term>
-                                                  <factor>
-                                                    <variable>
-                                                      ident (l)
-                                                <additive-operator>
-                                                  plus (+)
-                                                <term>
-                                                  <factor>
-                                                    intcon (1)
-                                          rbrack (])
-                                      becomes (:=)
-                                      <expression>
-                                        <simple-expression>
-                                          <term>
-                                            <factor>
-                                              <variable>
-                                                ident (temp)
-                                endsy (end)
+                                              becomes (:=)
+                                              <expression>
+                                                <simple-expression>
+                                                  <term>
+                                                    <factor>
+                                                      <variable>
+                                                        ident (temp)
+                                        endsy (end)
+                              endsy (end)
+                      endsy (end)
               endsy (end)
       semicolon (;)
       <subprogram-declaration>
@@ -380,33 +388,37 @@
                             <variable>
                               ident (size)
                     dosy (do)
-                    <statement>
-                      <assignment-statement>
-                        <variable>
-                          ident (s)
-                        becomes (:=)
-                        <expression>
-                          <simple-expression>
-                            <term>
-                              <factor>
-                                <variable>
-                                  ident (s)
-                            <additive-operator>
-                              plus (+)
-                            <term>
-                              <factor>
-                                <variable>
-                                  ident (nums)
-                                  <component-variable>
-                                    lbrack ([)
-                                    <index-list>
-                                      <expression>
-                                        <simple-expression>
-                                          <term>
-                                            <factor>
-                                              <variable>
-                                                ident (k)
-                                    rbrack (])
+                    <compound-statement>
+                      beginsy (begin)
+                      <statement-list>
+                        <statement>
+                          <assignment-statement>
+                            <variable>
+                              ident (s)
+                            becomes (:=)
+                            <expression>
+                              <simple-expression>
+                                <term>
+                                  <factor>
+                                    <variable>
+                                      ident (s)
+                                <additive-operator>
+                                  plus (+)
+                                <term>
+                                  <factor>
+                                    <variable>
+                                      ident (nums)
+                                      <component-variable>
+                                        lbrack ([)
+                                        <index-list>
+                                          <expression>
+                                            <simple-expression>
+                                              <term>
+                                                <factor>
+                                                  <variable>
+                                                    ident (k)
+                                        rbrack (])
+                      endsy (end)
                 semicolon (;)
                 <statement>
                   <assignment-statement>
@@ -576,28 +588,32 @@
                   <variable>
                     ident (N)
           dosy (do)
-          <statement>
-            <procedure/function-call>
-              ident (writeln)
-              lparent (()
-              <parameter-list>
-                <expression>
-                  <simple-expression>
-                    <term>
-                      <factor>
-                        <variable>
-                          ident (nums)
-                          <component-variable>
-                            lbrack ([)
-                            <index-list>
-                              <expression>
-                                <simple-expression>
-                                  <term>
-                                    <factor>
-                                      <variable>
-                                        ident (i)
-                            rbrack (])
-              rparent ())
+          <compound-statement>
+            beginsy (begin)
+            <statement-list>
+              <statement>
+                <procedure/function-call>
+                  ident (writeln)
+                  lparent (()
+                  <parameter-list>
+                    <expression>
+                      <simple-expression>
+                        <term>
+                          <factor>
+                            <variable>
+                              ident (nums)
+                              <component-variable>
+                                lbrack ([)
+                                <index-list>
+                                  <expression>
+                                    <simple-expression>
+                                      <term>
+                                        <factor>
+                                          <variable>
+                                            ident (i)
+                                rbrack (])
+                  rparent ())
+            endsy (end)
       semicolon (;)
       <statement>
         <procedure/function-call>

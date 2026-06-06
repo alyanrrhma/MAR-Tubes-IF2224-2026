@@ -10,8 +10,9 @@ procedure PrintMatrix(size: integer);
 var
   k: integer;
 begin
-  for k := 1 to size do
+  for k := 1 to size do begin
     writeln(matrix[k])
+  end
 end;
 function GetGrade(s: integer): integer;
 begin

@@ -20,7 +20,6 @@ The program is implemented in **C/C++ GNU** and supports running semantic analys
 | Component | Description |
 |---|---|
 | `src/main.cpp` | Main driver for the integrated lexer-parser-semantic pipeline |
-| `src/ast.cpp` | Legacy/helper driver for semantic analysis and parse-tree reading |
 | `src/semantic/ast_builder.cpp/hpp` | Converts parse tree into AST |
 | `src/semantic/ast_nodes.cpp/hpp` | AST node definitions and AST printing |
 | `src/semantic/scope_builder.cpp/hpp` | Builds symbol tables and performs scope/declaration checking |
@@ -169,7 +168,6 @@ Clean and rebuild the main program.
 │   └── config_lexer.txt
 ├── doc/
 ├── src/
-│   ├── ast.cpp
 │   ├── main.cpp
 │   ├── lexer/
 │   ├── parser/

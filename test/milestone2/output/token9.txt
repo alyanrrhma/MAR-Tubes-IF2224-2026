@@ -69,6 +69,7 @@ intcon (1)
 tosy
 ident (size)
 dosy
+beginsy
 ident (writeln)
 lparent
 ident (matrix)
@@ -76,6 +77,7 @@ lbrack
 ident (k)
 rbrack
 rparent
+endsy
 endsy
 semicolon
 functionsy

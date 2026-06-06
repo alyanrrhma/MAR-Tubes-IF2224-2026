@@ -149,7 +149,7 @@ void DFA::exportDFAConfig(std::string path) const
     std::ofstream fs(path);
     if (!fs)
     {
-        std::cout << "Gagal membuka file output untuk export DFA.\n";
+        std::cerr << "Gagal membuka file output untuk export DFA.\n";
         return;
     }
 
@@ -160,7 +160,7 @@ void DFA::exportDFAConfig(std::string path) const
     }
     else
     {
-        std::cout << "DFA kosong, tidak ada state untuk diexport.\n";
+        std::cerr << "DFA kosong, tidak ada state untuk diexport.\n";
         return;
     }
 
@@ -217,7 +217,7 @@ void DFA::visualizeProcess(std::string path) const
         visualFileStream.open(path, std::ios::out);
         if (!visualFileStream)
         {
-            std::cout << "Gagal membukan file visual\n";
+            std::cerr << "Gagal membukan file visual\n";
         }
         else
         {
@@ -234,7 +234,7 @@ void DFA::visualizedProccToFile(char c, State currState) const
     }
     if (!visualFileStream.good())
     {
-        std::cout << "Gagal menulis ke dalam visualFileStream" << std::endl;
+        std::cerr << "Gagal menulis ke dalam visualFileStream" << std::endl;
         return;
     }
 }

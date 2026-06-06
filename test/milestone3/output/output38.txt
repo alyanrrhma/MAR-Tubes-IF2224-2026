@@ -1,43 +1,13 @@
-ProgramNode(name: 'functionReturn')
+ProgramNode(name: 'M3ArrayTypeCompatibility')
 +-- Declarations
-|   +-- VarDecl(name: 'someInt', type: 'integer')
-|   +-- VarDecl(name: 'someBool', type: 'boolean')
-|   \-- FunctionDecl(name: 'isNegative', params: [integer('x')], returnType: 'boolean')
-|       +-- Declarations
-|       \-- Block
-|           \-- If
-|               +-- condition: BinOp(op: '<')
-|               |   +-- left: Var('x')
-|               |   \-- right: Num(0)
-|               +-- then
-|               |   \-- Return
-|               |       \-- value: Var('true')
-|               \-- else
-|                   \-- If
-|                       +-- condition: BinOp(op: '==')
-|                       |   +-- left: Var('x')
-|                       |   \-- right: Num(0)
-|                       \-- then
-|                           \-- Return
-|                               \-- value: Num(1)
+|   +-- TypeDecl(name: 'A', type: 'array[Num(1)..Num(3)] of integer')
+|   +-- TypeDecl(name: 'B', type: 'array[Num(1)..Num(3)] of integer')
+|   +-- VarDecl(name: 'leftArr', type: 'A')
+|   \-- VarDecl(name: 'rightArr', type: 'B')
 \-- Block
-    +-- Assign
-    |   +-- target: Var('someInt')
-    |   \-- value: UnaryOp(op: '-')
-    |       \-- value: Num(1)
-    +-- Assign
-    |   +-- target: Var('someBool')
-    |   \-- value: ProcedureCall(name: 'isNegative')
-    |       \-- arg: Var('someInt')
-    +-- Assign
-    |   +-- target: Var('someBool')
-    |   \-- value: ProcedureCall(name: 'isNegative')
-    |       \-- arg: UnaryOp(op: '-')
-    |           \-- value: Num(3)
     \-- Assign
-        +-- target: Var('someBool')
-        \-- value: ProcedureCall(name: 'isNegative')
-            \-- arg: Num(1)
+        +-- target: Var('leftArr')
+        \-- value: Var('rightArr')
 
 tab (identifier table)
   idx  identifier         link  obj         type        ref  nrm  lev  adr
@@ -79,24 +49,27 @@ tab (identifier table)
    34  true                 33  constant    boolean      -1    1    0    1
    35  writeln              34  procedure   void         -1    1    0    0
    36  readln               35  procedure   void         -1    1    0    0
-   37  functionReturn       36  program     void          0    1    0    0
-   38  someInt              37  variable    integer      -1    1    0    0
-   39  someBool             38  variable    boolean      -1    1    0    1
-   40  isNegative           39  function    boolean       1    1    0    0
-   41  x                    -1  parameter   integer      -1    1    1    0
+   37  M3ArrayTypeCompatibility     36  program     void          0    1    0    0
+   38  A                    37  type        array         2    1    0    3
+   39  B                    38  type        array         4    1    0    3
+   40  leftArr              39  variable    array         2    1    0    0
+   41  rightArr             40  variable    array         4    1    0    3
   firstUserIndex = 37
 
 btab (block table)
   idx  last  lpar  psze  vsze
   ---  ----  ----  ----  ----
-    0    40    -1     0     2
-    1    41    41     1     1
+    0    41    -1     0     6
 
 atab (array table)
   idx  xtyp        etyp        eref   low  high  elsz  size
   ---  ----------  ----------  ----  ----  ----  ----  ----
     0  unknown     unknown       -1     0     0     1     0
+    1  integer     integer       -1     1     3     1     3
+    2  integer     integer       -1     1     3     1     3
+    3  integer     integer       -1     1     3     1     3
+    4  integer     integer       -1     1     3     1     3
 
 Type errors
-[Type error]: type mismatch pada return: diharapkan 'boolean', mendapat 'integer'
-[Type error]: fungsi 'isNegative' tidak memiliki return statement
+[Type error]: variabel 'rightArr' digunakan sebelum diinisialisasi
+[Type error]: type mismatch dalam assignment: tidak dapat mengassign 'array' ke 'array'

@@ -458,7 +458,7 @@ int main(int argc, char* argv[]) {
 
         std::ifstream inputFile(options.inputFile);
         if (!inputFile.is_open()) {
-            std::cout << "Gagal membuka file input: " << options.inputFile << "\n";
+            std::cerr << "Gagal membuka file input: " << options.inputFile << "\n";
             return 1;
         }
 
@@ -500,7 +500,7 @@ int main(int argc, char* argv[]) {
 
             if (lexer.hasErrors()) {
                 for (const std::string& error : lexer.getErrors()) {
-                    std::cout << error << "\n";
+                    std::cerr << error << "\n";
                 }
                 if (options.lexOnly) {
                     std::cout << tokenBuffer.str();
@@ -525,20 +525,20 @@ int main(int argc, char* argv[]) {
             }
 
             std::vector<Token> parserTokens;
-        parserTokens.reserve(rawTokens.size());
-        for (const Token& token : rawTokens) {
-            if (isIgnoredByParser(token)) {
-                continue;
-            }
+            parserTokens.reserve(rawTokens.size());
+            for (const Token& token : rawTokens) {
+                if (isIgnoredByParser(token)) {
+                    continue;
+                }
 
-            if (isLexicalErrorToken(token)) {
-                std::cout << "Lexical error: token tidak dikenal "
-                          << token.to_string() << "\n";
-                return 1;
-            }
+                if (isLexicalErrorToken(token)) {
+                    std::cerr << "Lexical error: token tidak dikenal "
+                              << token.to_string() << "\n";
+                    return 1;
+                }
 
-            parserTokens.push_back(token);
-        }
+                parserTokens.push_back(token);
+            }
 
             Parser parser(parserTokens);
             parseRoot = parser.parse();
@@ -597,7 +597,7 @@ int main(int argc, char* argv[]) {
                 backend::CodeGenerator codeGenerator;
                 tac = codeGenerator.generate(astRoot.get(), scopeBuilder.symbolTable());
             } catch (const std::runtime_error& e) {
-                std::cout << e.what() << "\n";
+                std::cerr << e.what() << "\n";
                 return 1;
             }
 
@@ -611,24 +611,24 @@ int main(int argc, char* argv[]) {
                 interpreter.execute(tac);
                 std::cout << interpreter.getOutput();
             } catch (const std::runtime_error& e) {
-                std::cout << e.what() << "\n";
+                std::cerr << e.what() << "\n";
                 return 1;
             }
         }
 
         return 0;
     } catch (const LexerException& e) {
-        std::cout << e.full_message() << "\n";
+        std::cerr << e.full_message() << "\n";
         return 1;
     } catch (const ParseException& e) {
-        std::cout << e.full_message() << "\n";
+        std::cerr << e.full_message() << "\n";
         return 1;
     } catch (const std::runtime_error& e) {
-        std::cout << e.what() << "\n";
+        std::cerr << e.what() << "\n";
         printUsage(programName);
         return 1;
     } catch (const std::exception& e) {
-        std::cout << "ERROR: " << e.what() << "\n";
+        std::cerr << "ERROR: " << e.what() << "\n";
         return 1;
     }
 }

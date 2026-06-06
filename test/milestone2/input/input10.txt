@@ -18,21 +18,24 @@ procedure BubbleSort(size: integer);
 var
   k, l: integer;
 begin
-  for k := 1 to size - 1 do
-    for l := 1 to size - k do
+  for k := 1 to size - 1 do begin
+    for l := 1 to size - k do begin
       if nums[l] > nums[l + 1] then begin
         temp := nums[l];
         nums[l] := nums[l + 1];
         nums[l + 1] := temp
       end
+    end
+  end
 end;
 function Sum(size: integer): integer;
 var
   k, s: integer;
 begin
   s := 0;
-  for k := 1 to size do
-    s := s + nums[k];
+  for k := 1 to size do begin
+    s := s + nums[k]
+  end;
   Sum := s
 end;
 begin
@@ -43,8 +46,9 @@ begin
   nums[5] := 22;
   BubbleSort(N);
   total := Sum(N);
-  for i := 1 to N do
-    writeln(nums[i]);
+  for i := 1 to N do begin
+    writeln(nums[i])
+  end;
   writeln(total);
   pos.x := 0;
   pos.y := 0;
