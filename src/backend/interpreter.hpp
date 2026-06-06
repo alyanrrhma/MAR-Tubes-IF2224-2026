@@ -19,10 +19,10 @@ private:
     std::size_t bp_ = 0;
     std::size_t ip_ = 0;
 
-    RuntimeValue executeOpr(int operand);
-    RuntimeValue unaryNeg();
-    RuntimeValue binaryArithmetic(OprCode opcode);
-    RuntimeValue binaryComparison(OprCode opcode);
+    void executeOpr(int operand);
+    void unaryNeg();
+    void binaryArithmetic(OprCode opcode);
+    void binaryComparison(OprCode opcode);
 
     int popInteger();
     bool popCondition();

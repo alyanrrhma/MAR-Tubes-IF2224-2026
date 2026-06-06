@@ -11,11 +11,16 @@ const char* toString(OpCode opcode) {
     case OpCode::LIT: return "LIT";
     case OpCode::LOD: return "LOD";
     case OpCode::STO: return "STO";
-    case OpCode::CAL: return "CAL";
-    case OpCode::JMP: return "JMP";
-    case OpCode::JPC: return "JPC";
-    case OpCode::OPR: return "OPR";
-    case OpCode::RET: return "RET";
+    case OpCode::CAL:  return "CAL";
+    case OpCode::JMP:  return "JMP";
+    case OpCode::JPC:  return "JPC";
+    case OpCode::OPR:  return "OPR";
+    case OpCode::RET:  return "RET";
+    case OpCode::LITB: return "LITB";
+    case OpCode::LITS: return "LITS";
+    case OpCode::ADDR: return "ADDR";
+    case OpCode::LODI: return "LODI";
+    case OpCode::STOI: return "STOI";
     }
     return "?";
 }
@@ -36,6 +41,7 @@ const char* toString(OprCode opcode) {
     case OprCode::LEQ: return "LEQ";
     case OprCode::WRT: return "WRT";
     case OprCode::WRTLN: return "WRTLN";
+    case OprCode::POP: return "POP";
     }
     return "?";
 }
@@ -61,6 +67,18 @@ void InstructionProgram::patch(int address, int operand) {
 
 int InstructionProgram::currentAddress() const {
     return static_cast<int>(instructions_.size());
+}
+
+int InstructionProgram::addString(const std::string& value) {
+    stringPool_.push_back(value);
+    return static_cast<int>(stringPool_.size()) - 1;
+}
+
+const std::string& InstructionProgram::getString(int index) const {
+    if (index < 0 || static_cast<std::size_t>(index) >= stringPool_.size()) {
+        throw std::out_of_range("string pool index out of range: " + std::to_string(index));
+    }
+    return stringPool_[static_cast<std::size_t>(index)];
 }
 
 const std::vector<Instruction>& InstructionProgram::getInstructions() const {
